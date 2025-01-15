@@ -1,0 +1,199 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+/* Estilos gerais */
+body {
+    display: flex;
+    flex-direction: row;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    width: 100vw;
+    font-family: "Montserrat", serif;
+    background-color: white;
+}
+
+.Left {
+    background-image: url(./assets/Banner_Entrada.png);
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 50%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: white;
+    font-size: 2em;
+    font-weight: bold;
+}
+
+.highlight {
+    color: #FDD200;
+    text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+.Right {
+    width: 50%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.logo {
+    width: 30%;
+    padding: 5%;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    width: 50%;
+    gap: 10px;
+    align-items: center;
+}
+
+.login-form label {
+    font-size: 14px;
+    text-align: left;
+    font-weight: bold;
+}
+
+.login-form input {
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+    width: 100%;
+}
+
+.forgot-password {
+    font-size: 20px;
+    color: #0098b3;
+    text-decoration: none;
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+
+.forgot-password:hover {
+    text-decoration: underline;
+}
+
+.login-button {
+    width: 50%;
+    background-color: #FDD200;
+    color: #000000;
+    border: none;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    text-align: center;
+    font-weight: bold;
+    font-size: 30px;
+    box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.5);
+}
+
+.login-button:hover {
+    background-color: rgb(247, 232, 174);
+}
+
+.signup-text {
+    color: #ffffff;
+    font-size: 25px;
+    margin-top: 20px;
+}
+
+.signup-link {
+    color: #0098b3;
+    text-decoration: none;
+}
+
+.signup-link:hover {
+    text-decoration: underline;
+}
+
+/* Estilos específicos para telas menores */
+@media (max-width: 1500px) {
+    body {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .Left {
+        width: 100%;
+        height: 500px;
+    }
+
+    .Right {
+        width: 100%;
+        height: 100%;
+    }
+
+    .login-form {
+        width: 70%; /* Ajuste proporcional para telas menores */
+    }
+}
+
+/*MOBILE*/
+@media (max-width: 600px) {
+    body {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .Left {
+        width: 100%;
+        height: 600px;
+        display: grid;
+        font-size: 40px;
+    }
+
+    .highlight{
+        margin-top: -150px;
+    }
+
+    .Right {
+        width: 100%;
+        height: 100%;
+        justify-content: flex-start;
+        margin-top: 100px;
+    }
+
+    .login-form {
+        width: 70%; /* Ajuste proporcional para telas menores */
+    }
+
+    .login-button {
+        width: 50%;
+        background-color: #FDD200;
+        color: #000000;
+        border: none;
+        padding: 10px;
+        font-size: 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        text-align: center;
+        font-weight: bold;
+        font-size: 20px;
+    }
+
+    .forgot-password {
+        font-size: 15px;
+        color: #0DCAEC;
+        text-decoration: none;
+        margin-top: 10px;
+        margin-bottom: 20px;
+    }
+
+    .signup-text{
+        font-size: 15px;
+    }
+    
+    .logo{
+        width: 70%;
+    }
+}

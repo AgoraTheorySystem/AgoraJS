@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
+    <link rel="icon" type="image/png" href="../../assets/icon.png">
+    <link href="padrao.css" rel="stylesheet">
+    <script src="pessoafisica.js" type="module" defer></script>
+    <title>Ágora</title>
+</head>
+
+<body>
+    <form class="cadastro-form">
+        <h3>Dados Principais</h3>
+
+        <label for="email">E-mail<span>*</span>:</label>
+        <input type="email" id="email" name="email" placeholder="Digite seu e-mail">
+
+        <label for="senha">Senha<span>*</span>:</label>
+        <input type="password" id="senha" name="senha" placeholder="Digite sua senha">
+
+        <label for="confirma_senha">Senha<span>*</span>:</label>
+        <input type="password" id="confirma_senha" name="confirma_senha" placeholder="Digite sua senha">
+
+        <hr>
+        <h3>Dados Pessoais</h3>
+
+        <label for="nome">Nome completo<span>*</span>:</label>
+        <input type="text" id="nome" name="nome" placeholder="Digite seu nome completo">
+
+        <label for="data-nascimento">Data de nascimento<span>*</span>:</label>
+        <input type="date" id="data-nascimento" name="data-nascimento">
+
+        <label for="cpf">CPF<span>*</span>:</label>
+        <input type="number" id="cpf" name="cpf" placeholder="Digite seu CPF">
+
+        <label for="rg">RG:</label>
+        <input type="number" id="rg" name="rg" placeholder="Digite seu RG">
+
+        <label for="genero">Gênero:</label>
+        <select id="genero" name="genero">
+            <option value="" disabled selected>Selecione seu gênero</option>
+            <option value="masculino">Masculino</option>
+            <option value="feminino">Feminino</option>
+            <option value="nao-binario">Não-binário</option>
+            <option value="outro">Outro</option>
+            <option value="prefiro-nao-dizer">Prefiro não dizer</option>
+        </select>
+        <div id="outro-input-container">
+            <label for="outro-genero">Por favor, especifique:</label>
+            <input type="text" id="outro-genero" name="outro-genero" placeholder="Digite seu gênero">
+        </div>
+
+        <label for="nacionalidade">Nacionalidade:</label>
+        <input type="text" id="nacionalidade" name="nacionalidade" placeholder="Digite sua nacionalidade">
+
+        <label for="cidade">Cidade<span>*</span>:</label>
+        <input type="text" id="cidade" name="cidade" placeholder="Digite sua cidade">
+
+        <label for="pais">País:</label>
+        <input type="text" id="pais" name="pais" placeholder="Digite seu país">
+
+        <hr>
+        <h3>Contato</h3>
+
+        <label for="telefone">Telefone:</label>
+        <input type="tel" id="telefone" name="telefone" placeholder="Digite seu telefone">
+
+        <label for="endereco">Endereço completo:</label>
+        <input type="text" id="endereco" name="endereco" placeholder="Digite seu endereço completo">
+
+        <hr>
+        <h3>Dados Complementares</h3>
+
+        <label for="ocupacao">Ocupação/Profissão:</label>
+        <input type="text" id="ocupacao" name="ocupacao" placeholder="Digite sua ocupação ou profissão">
+
+        <label for="escolaridade">Escolaridade:</label>
+        <select id="escolaridade" name="escolaridade">
+            <option value="" disabled selected>Selecione sua escolaridade</option>
+            <option value="fundamental-incompleto">Ensino Fundamental Incompleto</option>
+            <option value="fundamental-completo">Ensino Fundamental Completo</option>
+            <option value="medio-incompleto">Ensino Médio Incompleto</option>
+            <option value="medio-completo">Ensino Médio Completo</option>
+            <option value="superior-incompleto">Ensino Superior Incompleto</option>
+            <option value="superior-completo">Ensino Superior Completo</option>
+            <option value="pos-graduacao">Pós-Graduação</option>
+            <option value="mestrado">Mestrado</option>
+            <option value="doutorado">Doutorado</option>
+        </select>
+        <p>
+
+            <label for="formacao">Formação:</label>
+            <input type="text" id="formacao" name="formacao" placeholder="Digite sua formação">
+
+            <button type="submit" class="cadastro-button">Cadastrar</button>
+    </form>
+</body>
+
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
+    <link rel="icon" type="image/png" href="../../assets/icon.png">
+    <link href="padrao.css" rel="stylesheet">
+    <script src="empresa.js" type="module" defer></script>
+    <title>Ágora</title>
+</head>
+
+<body>
+    <form class="cadastro-form">
+        <h3>Dados Principais</h3>
+
+        <label for="email">E-mail corporativo<span>*</span>:</label>
+        <input type="email" id="email" name="email" placeholder="Digite o e-mail corporativo">
+
+        <label for="senha">Senha<span>*</span>:</label>
+        <input type="password" id="senha" name="senha" placeholder="Digite sua senha">
+
+        <label for="confirma_senha">Senha<span>*</span>:</label>
+        <input type="password" id="confirma_senha" name="confirma_senha" placeholder="Digite sua senha">
+        
+        <hr>
+        <h3>Dados da Empresa</h3>
+
+        <label for="razao-social">Razão social<span>*</span>:</label>
+        <input type="text" id="razao-social" name="razao-social" placeholder="Digite a razão social">
+
+        <label for="nome-fantasia">Nome fantasia<span>*</span>:</label>
+        <input type="text" id="nome-fantasia" name="nome-fantasia" placeholder="Digite o nome fantasia">
+
+        <label for="cnpj">CNPJ<span>*</span>:</label>
+        <input type="text" id="cnpj" name="cnpj" placeholder="Digite o CNPJ">
+
+        <label for="inscricao">Inscrição estadual/municipal (se aplicável):</label>
+        <input type="text" id="inscricao" name="inscricao" placeholder="Digite a inscrição">
+
+        <label for="segmento">Segmento de atuação:</label>
+        <input type="text" id="segmento" name="segmento" placeholder="Digite o segmento de atuação">
+
+        <label for="nacionalidade">Nacionalidade:</label>
+        <input type="text" id="nacionalidade" name="nacionalidade" placeholder="Digite a nacionalidade">
+
+        <label for="cidade">Cidade<span>*</span>:</label>
+        <input type="text" id="cidade" name="cidade" placeholder="Digite a cidade">
+
+        <label for="pais">País<span>*</span>:</label>
+        <input type="text" id="pais" name="pais" placeholder="Digite o país">
+
+        <hr>
+        <h3>Representante Legal</h3>
+
+        <label for="representante-nome">Nome completo<span>*</span>:</label>
+        <input type="text" id="representante-nome" name="representante-nome" placeholder="Nome do representante legal">
+
+        <label for="representante-cpf">CPF<span>*</span>:</label>
+        <input type="text" id="representante-cpf" name="representante-cpf" placeholder="CPF do representante">
+
+        <label for="representante-cargo">Cargo na empresa:</label>
+        <input type="text" id="representante-cargo" name="representante-cargo" placeholder="Cargo na empresa">
+
+        <label for="representante-contato">Telefone:</label>
+        <input type="tel" id="representante-contato" name="representante-contato" placeholder="Contato do representante">
+        
+        <hr>
+        <h3>Contato Empresarial</h3>
+        
+        <label for="telefone">Telefone fixo e/ou celular:</label>
+        <input type="tel" id="telefone" name="telefone" placeholder="Digite o telefone">
+
+        <label for="endereco">Endereço comercial:</label>
+        <input type="text" id="endereco" name="endereco" placeholder="Digite o endereço comercial">
+
+        <label for="website">Website:</label>
+        <input type="url" id="website" name="website" placeholder="Digite a url do website">
+
+        <hr>
+        <h3>Dados Complementares</h3>
+        
+        <label for="tamanho">Tamanho da empresa:</label>
+        <input type="text" id="tamanho" name="tamanho" placeholder="Número de funcionários ou faturamento">
+
+        <label for="interesses">Áreas de interesse:</label>
+        <textarea id="interesses" name="interesses" placeholder="Descreva as áreas de interesse"></textarea>
+
+        <button type="submit" class="cadastro-button">Cadastrar</button>
+    </form>
+</body>
+
+</html>

@@ -1,0 +1,222 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+/* Estilos gerais */
+body {
+    display: flex;
+    flex-direction: row;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    width: 100vw;
+    font-family: "Montserrat", serif;
+    background-color: white;
+}
+
+.Left {
+    flex: 1;
+    background-image: url(../assets/Banner_Entrada.png);
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 50%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: white;
+    font-size: 2em;
+    font-weight: bold;
+}
+
+.highlight {
+    color: #FDD200;
+    text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+span {
+    font-weight: bold;
+    color: red;
+    font-size: 20px;
+}
+
+hr {
+    margin: 30px;
+}
+
+.Right {
+    flex: 2;
+    /* Controla o tamanho relativo */
+    display: grid;
+    /* Define layout em grade */
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    /* Colunas ajustáveis */
+    gap: 10px;
+    /* Espaçamento entre os itens */
+    padding: 20px;
+    /* Espaçamento interno */
+    width: 100%;
+    /* Garante que use toda a largura disponível */
+    height: 100%;
+    /* Garante que use toda a altura disponível */
+    box-sizing: border-box;
+    /* Inclui padding no cálculo do tamanho */
+    align-items: center;
+}
+
+.button {
+    display: flex;
+    /* Permite alinhamento flexível */
+    align-items: center;
+    /* Alinha ícone e texto verticalmente */
+    justify-content: center;
+    /* Centraliza ícone e texto */
+    gap: 10px;
+    /* Espaçamento entre ícone e texto */
+    width: 100%;
+    height: 60px;
+    background-color: #1f1f1f;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    /* Bordas arredondadas */
+    box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.5);
+}
+
+.button i {
+    font-size: 20px;
+    /* Tamanho do ícone */
+}
+
+.button:hover {
+    background-color: #333333;
+    /* Escurece o botão ao passar o mouse */
+    opacity: 0.9;
+}
+
+.cadastro-form {
+    flex-direction: column;
+    gap: 15px;
+    padding: 20px;
+    width: 80%;
+    max-width: 600px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.cadastro-form label {
+    font-size: 14px;
+    font-weight: bold;
+}
+
+textarea {
+    resize: none;
+}
+
+.cadastro-form input,
+.cadastro-form textarea {
+    width: 97%;
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.cadastro-form .cadastro-button {
+    padding: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    background-color: #006600;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 50px;
+}
+
+.cadastro-form .cadastro-button:hover {
+    background-color: #003300;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 300px;
+}
+
+label {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+}
+
+select {
+    margin: 10px;
+    font-size: 16px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+select:focus {
+    outline: none;
+    border-color: #007BFF;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+select:hover {
+    border-color: #007BFF;
+}
+
+/* Estilos específicos para telas menores */
+@media (max-width: 1500px) {
+    body {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .Left {
+        width: 100%;
+        height: 500px;
+    }
+
+    .Right {
+        width: 100%;
+        height: 100%;
+    }
+}
+
+/*MOBILE*/
+@media (max-width: 600px) {
+    body {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .Left {
+        width: 100%;
+        height: 600px;
+        display: grid;
+        font-size: 40px;
+    }
+
+    .highlight {
+        margin-top: -150px;
+    }
+
+    .Right {
+        width: 100%;
+        height: 100%;
+        justify-content: flex-start;
+        margin-top: 100px;
+    }
+}
