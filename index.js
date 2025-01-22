@@ -19,8 +19,11 @@ loginForm.addEventListener('submit', (e) => {
         .then((userCredential) => {
             // Login bem-sucedido
             const user = userCredential.user;
-            alert(`Bem-vindo, ${user.email}!`);
-            // Redirecione para outra página se necessário
+            // Armazenando o usuário no sessionStorage
+            sessionStorage.setItem('user', JSON.stringify({
+                uid: user.uid,
+                email: user.email
+            }));
             window.location.href = '/home/home.html';
         })
         .catch((error) => {
