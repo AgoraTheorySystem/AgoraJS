@@ -1,24 +1,26 @@
 body{
     background-color: #606060;
+    margin: 0;
 }
+
 .container{
-    background-color: #17426C;
-    max-width: 1619px;
     margin-left: auto;
     margin-right: auto;
-    border-radius: 25px;
-    box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.5);
+    max-width: 1620px;
 }
 
 .container .menu{
+    background-color: #17426C;
     display: flex;
     justify-content: space-around;
     align-items: center;
-    height: 100px;
+    border-radius: 25px;
+    box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.5);
     margin-top: 35px;
 }
 
 .container .menu a{
+    padding: 30px 0;
     text-decoration: none;
     color: white;
     font-family: "Montserrat", sans-serif;
@@ -32,29 +34,10 @@ body{
     color: #fdd200;
 }
 
-.user-table {
-    max-width: 1619px;
-    width: 100%;
-    border-collapse: collapse;
-    margin: 70px auto;
-    font-family: "Montserrat", sans-serif;
-    color: white;
-    text-align: left;
-    border-radius: 25px;
-
-}
-
-.user-table th, .user-table td {
-    padding: 8px;
-    background-color: #17426C;
-    border: 2px solid #000;
-}
-
-.user-table th:last-child{
-    text-align: center;
-    padding-bottom: 7px;
-}
-
-.last-link{
-    margin-left: 20px;
+.containerCards{
+    margin-top: 50px;
+    max-width: 1620px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
 }

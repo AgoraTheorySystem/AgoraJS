@@ -1,0 +1,78 @@
+.card {
+    background-color: #4F8105;
+    max-width: 480px;
+    width: 100%;
+    padding: 20px;
+    border-radius: 25px;
+    box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    overflow: auto;
+}
+
+.card h1{
+    font-size: 36px;
+    font-family: "Montserrat", sans-serif;
+    color: #fff;
+}
+
+.card p{
+    font-size: 24px;
+    font-family: "Montserrat", sans-serif;
+    color: #fff;
+}
+
+.card a{
+    text-decoration: none;
+    background-color: #E8661A;
+    font-family: "Montserrat", sans-serif;
+    font-size: 28px;
+    color: #fff;
+}
+
+.card.card-empresa {
+    background-color: #0386A7; /* Azul para tipo "Empresa" */
+}
+
+.card.card-outros {
+    background-color: #B80355; /* Vermelho para tipo "Escola" */
+}
+
+.card.card-universidade-escola {
+    background-color: #002E3F; /* Verde para tipo "Universidade" */
+}
+
+.card.card-ong{
+    background-color: #c0a314; /* Verde para tipo "Universidade" */
+}
+
+.card.card-default{
+    background-color: #313131; /* Verde para tipo "Universidade" */
+}
+
+@media (max-width: 900px){
+    .container{
+        width: 100%
+    }
+
+    .container .menu{
+        padding: 30px 0;
+        flex-direction: column;
+        justify-content: space-between;
+        height: auto;
+        border-radius: 0;
+    }
+}
+
+@media (max-width: 1919px){
+    .containerCards{
+        justify-content: center;
+    }
+
+}
+
+@media (max-width: 480px){
+    .card{
+        max-width: 350px;
+        width: 100%;
+    }
+}
