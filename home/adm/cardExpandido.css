@@ -1,0 +1,119 @@
+.expanded-card {
+    max-width: 90%; /* Usa até 90% da largura disponível */
+    width: calc(100% - 40px); /* Garante ajuste dinâmico com padding */
+    margin-top: 50px;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 25px;
+    padding: 20px; /* Espaçamento interno */
+    box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    overflow: hidden; /* Evita qualquer overflow */
+}
+
+.expanded-card h1 {
+    font-size: 32px;
+    color: #fff;
+    margin-bottom: 20px;
+}
+
+.expanded-card p {
+    color: #fff;
+    font-size: 18px;
+    padding: 10px;
+    word-wrap: break-word; /* Quebra palavras longas */
+    line-height: 1.5;
+}
+
+
+.btn-voltar {
+    max-width: 500px;
+    width: 100%;
+    border: none;
+    background-color: #E8661A;
+    border-radius: 20px;
+    padding: 15px 19px;
+    color: #fff;
+    font-size: 20px;
+    font-weight: bold;
+    box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.5);
+    font-family: "Montserrat", sans-serif;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-voltar:hover {
+    background-color: #a94a17;
+}
+
+/* Responsividade */
+
+/* Para telas grandes (acima de 1200px) */
+@media (min-width: 1200px) {
+    .expanded-card {
+        max-width: 60%; /* Usa apenas 60% da largura para monitores grandes */
+    }
+}
+
+/* Para tablets (entre 768px e 1199px) */
+@media (max-width: 1199px) {
+    .expanded-card {
+        max-width: 80%; /* Usa 80% da largura */
+        padding: 15px 20px; /* Reduz o espaçamento interno */
+    }
+
+    .expanded-card h1 {
+        font-size: 28px; /* Reduz o tamanho do título */
+    }
+
+    .expanded-card p {
+        font-size: 16px; /* Reduz o tamanho do texto */
+    }
+
+    .btn-voltar {
+        font-size: 18px;
+        padding: 10px 15px;
+    }
+}
+
+/* Para smartphones grandes (entre 480px e 767px) */
+@media (max-width: 767px) {
+    .expanded-card {
+        max-width: 95%; /* Usa 95% da largura */
+        padding: 10px 15px;
+    }
+
+    .expanded-card h1 {
+        font-size: 24px;
+    }
+
+    .expanded-card p {
+        font-size: 14px;
+    }
+
+    .btn-voltar {
+        font-size: 16px;
+        padding: 10px 12px;
+    }
+}
+
+/* Para smartphones pequenos (abaixo de 480px) */
+@media (max-width: 479px) {
+    .expanded-card {
+        max-width: 98%; /* Usa quase toda a largura */
+        padding: 8px 10px;
+    }
+
+    .expanded-card h1 {
+        font-size: 20px;
+    }
+
+    .expanded-card p {
+        font-size: 16px;
+    }
+
+    .btn-voltar {
+        font-size: 14px;
+        padding: 8px 10px;
+    }
+}

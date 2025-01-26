@@ -6,47 +6,133 @@
     border-radius: 25px;
     box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.5);
     text-align: center;
-    overflow: auto;
+    word-wrap: break-word;
 }
 
 .card h1{
     font-size: 36px;
-    font-family: "Montserrat", sans-serif;
     color: #fff;
 }
 
 .card p{
     font-size: 24px;
-    font-family: "Montserrat", sans-serif;
     color: #fff;
 }
 
 .card a{
     text-decoration: none;
     background-color: #E8661A;
-    font-family: "Montserrat", sans-serif;
     font-size: 28px;
     color: #fff;
 }
 
-.card.card-empresa {
-    background-color: #0386A7; /* Azul para tipo "Empresa" */
+/* Contêiner de botões no card */
+.btn-container {
+    display: flex;
+    justify-content: center;
+    gap: 25px; /* Espaçamento entre os botões */
+    margin-top: 15px; /* Espaçamento superior */
 }
 
-.card.card-outros {
-    background-color: #B80355; /* Vermelho para tipo "Escola" */
+.containerCards .card .btn-saiba-mais{
+    border: none;
+    background-color: #E8661A;
+    border-radius: 20px;
+    padding:15px 19px;
+    color: #fff;
+    font-size: 24px;
+    font-weight: bold;
+    box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.5);
+    font-family: "Montserrat", sans-serif;
+    cursor: pointer;
+    transition: 0.2s;
 }
 
-.card.card-universidade-escola {
-    background-color: #002E3F; /* Verde para tipo "Universidade" */
+.containerCards .card .btn-saiba-mais:hover{
+    background-color: #a94a17;
 }
 
-.card.card-ong{
-    background-color: #c0a314; /* Verde para tipo "Universidade" */
+/* animação da lixeira ---- From Uiverse.io by vinodjangid07*/ 
+.bin-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    background-color: rgb(255, 95, 95);
+    cursor: pointer;
+    border: 2px solid rgb(255, 201, 201);
+    transition-duration: 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .bin-bottom {
+    width: 15px;
+    z-index: 2;
+  }
+  .bin-top {
+    width: 17px;
+    transform-origin: right;
+    transition-duration: 0.3s;
+    z-index: 2;
+  }
+  .bin-button:hover .bin-top {
+    transform: rotate(45deg);
+  }
+  .bin-button:hover {
+    background-color: rgb(255, 0, 0);
+  }
+  .bin-button:active {
+    transform: scale(0.9);
+  }
+  .garbage {
+    position: absolute;
+    width: 14px;
+    height: auto;
+    z-index: 1;
+    opacity: 0;
+    transition: all 0.3s;
+  }
+  .bin-button:hover .garbage {
+    animation: throw 0.4s linear;
+  }
+  @keyframes throw {
+    from {
+      transform: translate(-400%, -700%);
+      opacity: 0;
+    }
+    to {
+      transform: translate(0%, 0%);
+      opacity: 1;
+    }
+  }
+
+  /* animação da lixeira ---- From Uiverse.io by vinodjangid07*/ 
+
+.card-empresa {
+    background-color: #0386A7;
 }
 
-.card.card-default{
-    background-color: #313131; /* Verde para tipo "Universidade" */
+.card-outros{
+    background-color: #B80355;
+}
+
+.card-universidade-escola {
+    background-color: #002E3F;
+}
+
+.card-ong{
+    background-color: #c0a314;
+}
+
+.card-pessoafisica{
+    background-color: #4F8105;
+}
+
+.card-default{
+    background-color: #313131;
 }
 
 @media (max-width: 900px){
@@ -62,7 +148,7 @@
         border-radius: 0;
     }
 }
-
+    
 @media (max-width: 1919px){
     .containerCards{
         justify-content: center;
@@ -72,7 +158,15 @@
 
 @media (max-width: 480px){
     .card{
-        max-width: 350px;
+        max-width: 330px;
         width: 100%;
+    }
+
+    .card h1{
+        font-size: 30px;
+    }
+
+    .card p{
+        font-size: 18px;
     }
 }
