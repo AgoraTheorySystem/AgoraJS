@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-app.js";
-import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
+import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
 import firebaseConfig from '/firebase.js';
 
 // Inicializar o Firebase
@@ -26,6 +26,28 @@ document.getElementById('uploadButton').addEventListener('click', async () => {
 
   const file = fileInput.files[0];
   const fileName = file.name.split('.')[0]; // Extrair o nome do arquivo sem a extensão
+
+  // Verificar se o arquivo já existe no Firebase
+  const fileExists = await checkIfFileExists(fileName);
+  if (fileExists) {
+    const result = await Swal.fire({
+      icon: 'warning',
+      title: 'Arquivo já existe',
+      text: `A planilha "${fileName}" já existe no sistema. Deseja substituí-la?`,
+      showCancelButton: true,
+      confirmButtonText: 'Substituir',
+      cancelButtonText: 'Cancelar',
+    });
+
+    if (!result.isConfirmed) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Operação cancelada',
+        text: 'A planilha não foi enviada.',
+      });
+      return;
+    }
+  }
 
   // Exibir o símbolo de carregamento
   toggleLoading(true);
@@ -62,6 +84,18 @@ document.getElementById('uploadButton').addEventListener('click', async () => {
     console.error(error);
   }
 });
+
+// Função para verificar se a planilha já existe no Firebase
+async function checkIfFileExists(fileName) {
+  const fileRef = ref(database, `/users/${user.uid}/planilhas/${fileName}`);
+  try {
+    const snapshot = await get(fileRef);
+    return snapshot.exists();
+  } catch (error) {
+    console.error("Erro ao verificar existência do arquivo:", error);
+    return false; // Caso ocorra erro, tratamos como se o arquivo não existisse
+  }
+}
 
 // Função para ler o arquivo Excel
 async function readExcelFile(file) {
