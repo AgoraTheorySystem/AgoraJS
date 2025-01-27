@@ -14,10 +14,10 @@ function autenticacao() {
         console.log('Usuário Logado:', user);
 
         // Buscar nome do usuário no Realtime Database
-        fetchUserName(user.uid);
+        fetchUserEmail();
     } else {
         console.log('Nenhum usuário logado.');
-        window.location.href = '../index.html';
+        window.location.href = '/index.html';
     }
 }
 
@@ -68,7 +68,7 @@ function logout() {
             console.log('LocalStorage limpo.');
 
             // Redirecionar para a página de login ou inicial
-            window.location.href = '../index.html';
+            window.location.href = '/index.html';
         })
         .catch((error) => {
             console.error('Erro ao deslogar:', error);
@@ -76,27 +76,21 @@ function logout() {
 }
 
 // Função para buscar o nome do usuário no Firebase Realtime Database
-function fetchUserName(userId) {
-    // Inicializar o Database
-    const db = getDatabase();
+function fetchUserEmail() {
+    const userData = sessionStorage.getItem('user');
+    if (userData) {
+        const user = JSON.parse(userData);
+        const userEmailElement = document.querySelector('.userEmail');
 
-    // Referência ao caminho no Realtime Database
-    const userRef = ref(db, `users/${userId}/nome`);
-
-    // Buscar dados uma vez
-    get(userRef)
-        .then((snapshot) => {
-            if (snapshot.exists()) {
-                const userName = snapshot.val();
-                document.querySelector('.UserName').textContent = userName;
-            } else {
-                document.querySelector('.UserName').textContent = 'Usuário não encontrado';
-            }
-        })
-        .catch((error) => {
-            console.error('Erro ao buscar o nome do usuário:', error);
-            document.querySelector('.UserName').textContent = 'Erro ao carregar nome';
-        });
+        // Verifica se o elemento existe antes de tentar alterar suas propriedades
+        if (userEmailElement) {
+            userEmailElement.textContent = user.email;
+        } else {
+            console.error('Elemento .userEmail não encontrado no DOM.');
+        }
+    } else {
+        console.error('Nenhum dado de usuário encontrado no sessionStorage.');
+    }
 }
 
 // Função para gerar o menu lateral
@@ -113,7 +107,7 @@ function generateSidebarMenu() {
     </label>
     <div class="sidebar" id="sidebar">
         <ul>
-            <li id="espaco"><a>MENU INICIAL</a></li>
+            <li id="espaco"><a href="/Home/home.html">MENU INICIAL</a></li>
             <hr style="border: 1px solid #ccc; width: 90%; margin: 20px auto;">
             <div class="box">
                 <div class="user-picture">
@@ -125,7 +119,7 @@ function generateSidebarMenu() {
                 </div>
                 <div class="user-info">
                   <h2>Bem-Vindo</h2>
-                  <h2 class="UserName"></h2>
+                  <h2 class="userEmail"></h2>
                 </div>
               </div>
               <li id="espaco"></li>           
@@ -141,7 +135,7 @@ function generateSidebarMenu() {
                 </div>
                 <div class="text">Logout</div>
             </button>
-            <img src="../assets/Logo_Agora.png" alt="Ágora Logo" class="logo">
+            <img src="/assets/Logo_Agora.png" alt="Ágora Logo" class="logo">
         </ul>
     </div>
     <!-- Menu Lateral -->
@@ -151,6 +145,26 @@ function generateSidebarMenu() {
     addMenuEventListeners(); // Adicionar os event listeners após gerar o menu
 }
 
-// Inicializar tudo
-autenticacao();
+// Função para adicionar redirecionamento aos botões
+function addNavigationListeners() {
+    const btn1 = document.getElementById('btn1'); // Botão "Criar Análise"
+    const btn2 = document.getElementById('btn2'); // Botão "Suas Análises"
+
+    if (btn1) {
+        btn1.addEventListener('click', () => {
+            window.location.href = '/home/CriaAnalise/cria_analise.html'; // Caminho fixo a partir da raiz do projeto
+        });
+    }
+
+    if (btn2) {
+        btn2.addEventListener('click', () => {
+            window.location.href = '/home/SuasAnalises/suas_analises.html'; // Altere para o caminho correto
+        });
+    }
+}
+
+
 generateSidebarMenu();
+addNavigationListeners();
+autenticacao();
+

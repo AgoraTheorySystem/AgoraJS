@@ -149,6 +149,11 @@ body {
   padding: auto;
   font-size: 19px;
   margin-left: 50px;
+  font-weight: bold;
+}
+
+#espaco a:hover {
+  color: rgb(0, 204, 255);
 }
 
 
@@ -289,7 +294,6 @@ body {
 }
 
 .user-info h2 {
-  font-size: 20px;
   margin: 0;
   /* Remove margens padrão dos <h2> */
   line-height: 1.5;
