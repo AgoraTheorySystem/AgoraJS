@@ -1,15 +1,29 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js";
-import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-database.js";
+import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-database.js";
 import firebaseConfig from "../../firebase.js"; // Importa a configuração do Firebase
+import { getAuth, deleteUser as deleteAuthUser } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-auth.js";
+
 
 // Inicializa o Firebase
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
+let currentPage = 1; // Página inicial
+const cardsPerPage = 9; // Máximo de cards por página
+let allCardsData = Array.from({ length: 100 }, (_, i) => ({
+    userId: `user-${i + 1}`,
+    cardData: {
+        tipo: `Tipo ${i + 1}`,
+        email: `usuario${i + 1}@exemplo.com`,
+    },
+}));
+
 
 function createUserCard(data, userId) {
     const card = document.createElement("div");
     const cardClass = `card-${(data.tipo || "default").toLowerCase().replace(/[\s/]/g, "-")}`;
     card.classList.add("card", cardClass);
+
+    card.setAttribute("data-id", userId);
 
     card.innerHTML = `
         <h1>${data.tipo}</h1>
@@ -84,20 +98,106 @@ function deleteUser(userId, cardElement) {
     console.log(`Tentando excluir usuário com ID: ${userId}`);
 
     const userRef = ref(database, `users/${userId}`);
+    const auth = getAuth();
+
     if (confirm("Tem certeza que deseja excluir este usuário?")) {
+        // Excluir do Realtime Database
         remove(userRef)
             .then(() => {
-                console.log("Usuário excluído com sucesso!");
-                alert("Usuário excluído com sucesso!");
-                cardElement.remove(); // Remove o card da interface
+                console.log(`Usuário excluído do Realtime Database com ID ${userId}.`);
+
+                // Excluir do Firebase Authentication
+                const user = auth.currentUser; // Certifique-se de que o usuário autenticado é o que será excluído
+                if (user) {
+                    deleteAuthUser(user)
+                        .then(() => {
+                            console.log("Usuário excluído do Firebase Authentication.");
+                            alert("Usuário excluído com sucesso!");
+                            cardElement.remove(); // Remove o card da interface
+                        })
+                        .catch((error) => {
+                            console.error("Erro ao excluir usuário do Firebase Authentication:", error);
+                            alert("Erro ao excluir usuário do Firebase Authentication. Verifique o console.");
+                        });
+                }
             })
             .catch((error) => {
-                console.error("Erro ao excluir o usuário:", error);
-                alert("Não foi possível excluir o usuário. Verifique o console.");
+                console.error("Erro ao excluir o usuário do Realtime Database:", error);
+                alert("Erro ao excluir o usuário. Verifique o console.");
             });
     }
 }
 
+function updatePaginationControls(totalCards, onPageChange) {
+    const paginationControls = document.getElementById("pagination-controls");
+    paginationControls.innerHTML = ""; // Limpa os controles existentes
+
+    const totalPages = Math.ceil(totalCards / cardsPerPage);
+    const maxVisibleButtons = 5; // Máximo de botões visíveis ao mesmo tempo
+    const halfRange = Math.floor(maxVisibleButtons / 2);
+
+    let startPage = Math.max(1, currentPage - halfRange);
+    let endPage = Math.min(totalPages, startPage + maxVisibleButtons - 1);
+
+    if (endPage - startPage + 1 < maxVisibleButtons) {
+        startPage = Math.max(1, endPage - maxVisibleButtons + 1);
+    }
+
+    // Botão "Anterior"
+    if (currentPage > 1) {
+        const prevButton = document.createElement("button");
+        prevButton.textContent = "Anterior";
+        prevButton.classList.add("pagination-button");
+        prevButton.addEventListener("click", () => {
+            currentPage--;
+            onPageChange();
+            updatePaginationControls(totalCards, onPageChange);
+        });
+        paginationControls.appendChild(prevButton);
+    }
+
+    // Botões de página
+    for (let i = startPage; i <= endPage; i++) {
+        const button = document.createElement("button");
+        button.textContent = i;
+        button.classList.add("pagination-button");
+        if (i === currentPage) {
+            button.classList.add("active");
+        }
+        button.addEventListener("click", () => {
+            currentPage = i;
+            onPageChange(); // Atualiza os cards da página atual
+            updatePaginationControls(totalCards, onPageChange); // Atualiza os controles
+        });
+        paginationControls.appendChild(button);
+    }
+
+    // Botão "Próximo"
+    if (currentPage < totalPages) {
+        const nextButton = document.createElement("button");
+        nextButton.textContent = "Próximo";
+        nextButton.classList.add("pagination-button");
+        nextButton.addEventListener("click", () => {
+            currentPage++;
+            onPageChange();
+            updatePaginationControls(totalCards, onPageChange);
+        });
+        paginationControls.appendChild(nextButton);
+    }
+}
+
+function renderCards(allCardsData, createCardFunction) {
+    const container = document.getElementById("containerCards");
+    container.innerHTML = ""; // Limpa os cards exibidos
+
+    const startIndex = (currentPage - 1) * cardsPerPage;
+    const endIndex = startIndex + cardsPerPage;
+
+    // Exibe apenas os cards da página atual
+    allCardsData.slice(startIndex, endIndex).forEach(({ userId, cardData }) => {
+        createCardFunction(cardData, userId);
+    });
+}
 
 function showExpandedCard(data, cardClass) {
     // Esconde o container principal
@@ -139,23 +239,35 @@ function capitalizeFirstLetter(string) {
 
 // Função para buscar os dados do Realtime Database
 async function fetchData() {
-    const dbRef = ref(database, "users"); // Caminho para a coleção "users"
+    const dbRef = ref(database, "users");
 
     onValue(dbRef, (snapshot) => {
         if (snapshot.exists()) {
-            const users = snapshot.val(); // Retorna todos os dados dentro de "users"
+            const users = snapshot.val();
 
-            // Itera sobre os objetos (documentos) dentro de "users"
-            Object.entries(users).forEach(([userId, userData]) => {
-                createUserCard(userData, userId); // Passa os dados e o ID
+            // Armazena os dados na variável global
+            allCardsData = Object.entries(users).map(([userId, cardData]) => ({
+                userId,
+                cardData,
+            }));
+
+            // Atualiza os controles de paginação dinamicamente
+            updatePaginationControls(allCardsData.length, () => {
+                renderCards(allCardsData, createUserCard);
             });
+
+            // Renderiza a primeira página
+            renderCards(allCardsData, createUserCard);
         } else {
             console.error("Nenhum dado encontrado no Firebase.");
+            document.getElementById("containerCards").innerHTML = "<p>Nenhum usuário encontrado.</p>";
         }
     }, (error) => {
         console.error("Erro ao buscar dados do Firebase:", error);
     });
 }
+
+
 
 // Chama a função para buscar e exibir os cards
 fetchData();
