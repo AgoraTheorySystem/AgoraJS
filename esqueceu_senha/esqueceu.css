@@ -12,6 +12,7 @@ body {
     background-color: white;
 }
 
+/* Lado esquerdo - Banner */
 .Left {
     background-image: url(../assets/Banner_Entrada.png);
     background-size: cover;
@@ -24,8 +25,9 @@ body {
     align-items: center;
     text-align: center;
     color: white;
-    font-size: 2em;
+    font-size: clamp(1.5rem, 2vw, 2.5rem);
     font-weight: bold;
+    padding: 10px;
 }
 
 .highlight {
@@ -33,6 +35,7 @@ body {
     text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.7);
 }
 
+/* Lado direito - Formulário */
 .Right {
     width: 50%;
     height: 100%;
@@ -41,6 +44,8 @@ body {
     justify-content: center;
     align-items: center;
     text-align: center;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
 .Right h2 {
@@ -102,7 +107,7 @@ body {
     text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Responsividade para telas menores */
+/* Responsividade para telas médias */
 @media (max-width: 1200px) {
     body {
         flex-direction: column;
@@ -112,7 +117,7 @@ body {
         width: 100%;
         height: 300px;
         padding: 10px;
-        font-size: 1.5rem;
+        font-size: clamp(1.2rem, 2vw, 1.5rem);
     }
 
     .Right {
@@ -125,13 +130,17 @@ body {
     }
 }
 
+/* Responsividade para telas pequenas */
 @media (max-width: 600px) {
     .Left {
         height: 250px;
-        font-size: 1.2rem;
+        font-size: clamp(1rem, 2vw, 1.2rem);
+        padding: 10px;
+        text-align: center;
     }
 
     .Right {
+        width: 100%;
         padding: 20px;
     }
 
@@ -153,5 +162,3 @@ body {
         font-size: 0.9rem;
     }
 }
-
-
