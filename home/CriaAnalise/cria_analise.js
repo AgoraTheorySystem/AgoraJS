@@ -70,13 +70,17 @@ document.getElementById('uploadButton').addEventListener('click', async () => {
       icon: 'success',
       title: 'Sucesso',
       text: 'A planilha foi enviada com sucesso!',
+    }).then((result) => {
+      // Esta função será executada quando o alerta for fechado
+      window.location.href = `/home/SuasAnalises/suas_analises.html`;
     });
+
   } catch (error) {
     // Ocultar o símbolo de carregamento
     toggleLoading(false);
 
     // Exibir alerta de erro
-    Swal.fire({
+    await Swal.fire({
       icon: 'error',
       title: 'Erro',
       text: 'Houve um erro ao enviar a planilha. Tente novamente.',
@@ -116,15 +120,15 @@ async function readExcelFile(file) {
 
 // Função para preencher células vazias com NULL
 function fillEmptyCellsWithNull(data) {
-  return data.map(row => 
+  return data.map(row =>
     row.map(cell => (cell === undefined || cell === null || cell === '') ? null : cell)
   );
 }
 
 // Função para converter toda a planilha para maiúsculas
 function convertToUppercase(data) {
-  return data.map(row => 
-    row.map(cell => 
+  return data.map(row =>
+    row.map(cell =>
       typeof cell === 'string' ? cell.toUpperCase() : cell // Converter apenas strings para maiúsculas
     )
   );
@@ -139,7 +143,7 @@ async function sendInChunks(data, fileName) {
   for (let i = 0; i < totalRows; i += chunkSize) {
     const chunk = data.slice(i, i + chunkSize);
     const chunkRef = ref(database, `/users/${user.uid}/planilhas/${fileName}/chunk_${chunkIndex}`);
-    
+
     try {
       await set(chunkRef, chunk);
       console.log(`Chunk ${chunkIndex} enviado com sucesso para a planilha ${fileName}!`);

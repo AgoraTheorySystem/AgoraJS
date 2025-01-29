@@ -1,0 +1,204 @@
+/* Estilos Gerais */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    color: white;
+    justify-items: center;
+}
+
+/* Barra do Menu */
+.menu-bar {
+    margin-top: 60px;
+    background-color: #1c436b;
+    padding: 15px;
+    text-align: center;
+    font-weight: bold;
+    color: white;
+    width: 95%;
+    border-radius: 10px;
+}
+
+/* Container Responsivo */
+.container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 30px;
+    flex-wrap: wrap;
+}
+
+/* Blocos de Configuração */
+.config-box {
+    background-color: #0e2b3f;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    min-width: 280px;
+    width: 300px;
+}
+
+/* Input e Botões */
+input {
+    width: 90%;
+    padding: 8px;
+    margin-top: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+button {
+    background-color: gray;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+button:hover {
+    background-color: #00925a;
+}
+
+/* Botão de Exclusão */
+.delete-button {
+    background-color: gray;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 15px;
+    width: 100%;
+    border-radius: 10px;
+}
+
+.delete-button:hover {
+    background-color: rgb(255, 0, 0);
+}
+
+/* From Uiverse.io by Nawsome */
+.loader {
+    position: absolute;
+    margin: auto;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 6.250em;
+    height: 6.250em;
+    animation: rotate5123 2.4s linear infinite;
+  }
+  
+  .white {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    animation: flash 2.4s linear infinite;
+    opacity: 0;
+  }
+  
+  .dot {
+    position: absolute;
+    margin: auto;
+    width: 2.4em;
+    height: 2.4em;
+    border-radius: 100%;
+    transition: all 1s ease;
+  }
+  
+  .dot:nth-child(2) {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    background: #FF4444;
+    animation: dotsY 2.4s linear infinite;
+  }
+  
+  .dot:nth-child(3) {
+    left: 0;
+    right: 0;
+    top: 0;
+    background: #FFBB33;
+    animation: dotsX 2.4s linear infinite;
+  }
+  
+  .dot:nth-child(4) {
+    top: 0;
+    bottom: 0;
+    right: 0;
+    background: #99CC00;
+    animation: dotsY 2.4s linear infinite;
+  }
+  
+  .dot:nth-child(5) {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #33B5E5;
+    animation: dotsX 2.4s linear infinite;
+  }
+  
+  @keyframes rotate5123 {
+    0% {
+      transform: rotate(0);
+    }
+  
+    10% {
+      width: 6.250em;
+      height: 6.250em;
+    }
+  
+    66% {
+      width: 2.4em;
+      height: 2.4em;
+    }
+  
+    100% {
+      transform: rotate(360deg);
+      width: 6.250em;
+      height: 6.250em;
+    }
+  }
+  
+  @keyframes dotsY {
+    66% {
+      opacity: .1;
+      width: 2.4em;
+    }
+  
+    77% {
+      opacity: 1;
+      width: 0;
+    }
+  }
+  
+  @keyframes dotsX {
+    66% {
+      opacity: .1;
+      height: 2.4em;
+    }
+  
+    77% {
+      opacity: 1;
+      height: 0;
+    }
+  }
+  
+  @keyframes flash {
+    33% {
+      opacity: 0;
+      border-radius: 0%;
+    }
+  
+    55% {
+      opacity: .6;
+      border-radius: 100%;
+    }
+  
+    66% {
+      opacity: 0;
+    }
+  }
