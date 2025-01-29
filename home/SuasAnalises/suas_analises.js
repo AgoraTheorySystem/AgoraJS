@@ -64,7 +64,7 @@ function handlePlanilhaClick(planilhaNome) {
     if (result.isConfirmed) {
       // Aqui você pode redirecionar o usuário ou carregar dados da planilha
       console.log(`Abrindo a planilha: ${planilhaNome}`);
-      window.location.href = `/detalhes_planilha.html?planilha=${encodeURIComponent(planilhaNome)}`;
+      window.location.href = `./DetalhesPlanilha/menu_da_analise.html?planilha=${encodeURIComponent(planilhaNome)}`;
     }
   });
 }
@@ -94,5 +94,3 @@ function exibirPlanilhaLocal(fileName) {
     console.warn(`Nenhuma planilha com o nome "${fileName}" foi encontrada no LocalStorage.`);
   }
 }
-
-exibirPlanilhaLocal("500")

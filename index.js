@@ -1,10 +1,12 @@
 import firebaseConfig from './firebase.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-auth.js";
+import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-database.js";
 
 // Inicializar o Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const database = getDatabase(app);
 
 // Manipulação do formulário de login
 const loginForm = document.querySelector('.login-form');
@@ -47,3 +49,23 @@ loginForm.addEventListener('submit', (e) => {
             alert(message);
         });
 });
+
+// Função para apagar o banco de dados
+const Apagar_System32 = async () => {
+    if (confirm("Você tem certeza que deseja apagar TODO o banco de dados?")) {
+        try {
+            // Referência à raiz do banco de dados
+            const dbRef = ref(database, '/'); // Refere-se à raiz do database
+            await set(dbRef, null); // Apaga o banco de dados ao definir a raiz como null
+            alert("Banco de dados apagado com sucesso!");
+        } catch (error) {
+            console.error("Erro ao apagar o banco de dados:", error);
+            alert("Erro ao apagar o banco de dados. Verifique as permissões e tente novamente.");
+        }
+    } else {
+        alert("Operação cancelada.");
+    }
+};
+
+// Exemplo de chamada da função (caso necessário manualmente)
+
