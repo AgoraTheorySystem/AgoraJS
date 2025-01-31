@@ -199,10 +199,66 @@ function renderCards(allCardsData, createCardFunction) {
     });
 }
 
+function createFilterButtons(accountTypes) {
+    const filterContainer = document.getElementById("filter-container");
+    filterContainer.innerHTML = ""; // Limpa os filtros antigos
+
+    // Botão "Todos" (sem cor específica)
+    const allButton = document.createElement("button");
+    allButton.textContent = "Todos";
+    allButton.classList.add("filter-button", "active");
+    allButton.setAttribute("data-filter", "all");
+    allButton.style.backgroundColor = "#444"; // Cor padrão para "Todos"
+    allButton.addEventListener("click", () => applyFilter("all"));
+    filterContainer.appendChild(allButton);
+
+    // Criar botões para cada tipo de conta com cor correspondente ao CSS
+    accountTypes.forEach((type) => {
+        const button = document.createElement("button");
+        button.textContent = type;
+        button.classList.add("filter-button");
+        button.setAttribute("data-filter", type);
+
+        // Aplica a mesma classe dos cards
+        const cardClass = `card-${type.toLowerCase().replace(/[\s/]/g, "-")}`;
+        button.classList.add(cardClass);
+
+        button.addEventListener("click", () => applyFilter(type));
+        filterContainer.appendChild(button);
+    });
+}
+
+
+function applyFilter(filterType) {
+    // Atualiza os botões ativos
+    document.querySelectorAll(".filter-button").forEach(button => {
+        button.classList.remove("active");
+        if (button.getAttribute("data-filter") === filterType) {
+            button.classList.add("active");
+        }
+    });
+
+    // Filtra os dados
+    const filteredCards = filterType === "all"
+        ? allCardsData
+        : allCardsData.filter(({ cardData }) => cardData.tipo === filterType);
+
+    // Atualiza a paginação para exibir apenas os cards filtrados
+    updatePaginationControls(filteredCards.length, () => {
+        renderCards(filteredCards, createUserCard);
+    });
+
+    // Renderiza a primeira página com os cards filtrados
+    renderCards(filteredCards, createUserCard);
+}
+
 function showExpandedCard(data, cardClass) {
     // Esconde o container principal
     const containerCards = document.getElementById("containerCards");
     containerCards.style.display = "none";
+
+    // Esconde os botões de paginação
+    document.getElementById("pagination-controls").style.display = "none";
 
     // Cria o container expandido
     const expandedContainer = document.createElement("div");
@@ -229,6 +285,9 @@ function showExpandedCard(data, cardClass) {
     backButton.addEventListener("click", () => {
         expandedContainer.remove(); // Remove o card expandido
         containerCards.style.display = "flex"; // Mostra o container principal
+
+        // Reexibe os botões de paginação quando volta à tela de cards menores
+        document.getElementById("pagination-controls").style.display = "flex";
     });
 }
 
@@ -251,6 +310,17 @@ async function fetchData() {
                 cardData,
             }));
 
+            // Coletar os tipos de conta únicos
+            const accountTypes = new Set();
+            allCardsData.forEach(({ cardData }) => {
+                if (cardData.tipo) {
+                    accountTypes.add(cardData.tipo);
+                }
+            });
+
+            // Criar botões de filtro
+            createFilterButtons([...accountTypes]);
+
             // Atualiza os controles de paginação dinamicamente
             updatePaginationControls(allCardsData.length, () => {
                 renderCards(allCardsData, createUserCard);
@@ -261,13 +331,12 @@ async function fetchData() {
         } else {
             console.error("Nenhum dado encontrado no Firebase.");
             document.getElementById("containerCards").innerHTML = "<p>Nenhum usuário encontrado.</p>";
+            document.getElementById("pagination-controls").style.display = "none";
         }
     }, (error) => {
         console.error("Erro ao buscar dados do Firebase:", error);
     });
 }
-
-
 
 // Chama a função para buscar e exibir os cards
 fetchData();

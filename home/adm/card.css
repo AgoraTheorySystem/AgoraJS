@@ -135,36 +135,22 @@
     background-color: #313131;
 }
 
-.pagination-controls {
-    display: flex;
-    justify-content: center;
-    margin: 20px 0;
-    gap: 10px;
-}
-
-.pagination-controls button {
-    padding: 10px 15px;
-    background-color: #e8661a;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: 0.3s ease;
-}
-
-.pagination-controls button:hover {
-    background-color: #c0392b;
-}
-
-.pagination-controls button.active {
-    background-color: #c0392b;
-    font-weight: bold;
-}
-
-
 @media (max-width: 900px){
+    .filter-container{
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .filter-button{
+        padding: 40px;
+    }
+
+    .card{
+        box-shadow: none;
+    }
+
     .container{
-        width: 100%
+        width: 100%;
     }
 
     .container .menu{
@@ -173,6 +159,7 @@
         justify-content: space-between;
         height: auto;
         border-radius: 0;
+        box-shadow: none;
     }
 }
     

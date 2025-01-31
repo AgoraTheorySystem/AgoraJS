@@ -1,7 +1,8 @@
 .expanded-card {
     max-width: 90%; /* Usa até 90% da largura disponível */
     width: calc(100% - 40px); /* Garante ajuste dinâmico com padding */
-    margin-top: 50px;
+    margin-top: 20px;
+    margin-bottom: 25px;
     margin-left: auto;
     margin-right: auto;
     border-radius: 25px;

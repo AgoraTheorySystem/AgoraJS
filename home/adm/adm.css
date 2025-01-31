@@ -35,10 +35,64 @@ body{
     color: #fdd200;
 }
 
+.filter-container {
+    display: flex;
+    justify-content: center;
+    gap: 7px;
+    margin-top: 20px;
+}
+
+.filter-button {
+    padding: 20px 30px;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: 0.3s ease;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-family: "Montserrat", sans-serif;
+
+}
+
+.filter-button:hover {
+    background-color: #c0392b;
+}
+
+.filter-button.active {
+    background-color: #c0392b;
+    font-weight: bold;
+}
+
 .containerCards{
-    margin-top: 50px;
+    margin-top: 20px;
     max-width: 1620px;
     display: flex;
     flex-wrap: wrap;
     gap: 30px;
+}
+
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+    gap: 10px;
+}
+
+.pagination-controls button {
+    padding: 10px 15px;
+    background-color: #e8661a;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.pagination-controls button:hover {
+    background-color: #c0392b;
+}
+
+.pagination-controls button.active {
+    background-color: #c0392b;
+    font-weight: bold;
 }
