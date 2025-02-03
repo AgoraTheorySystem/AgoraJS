@@ -94,3 +94,5 @@ function exibirPlanilhaLocal(fileName) {
     console.warn(`Nenhuma planilha com o nome "${fileName}" foi encontrada no LocalStorage.`);
   }
 }
+
+exibirPlanilhaLocal("30");
