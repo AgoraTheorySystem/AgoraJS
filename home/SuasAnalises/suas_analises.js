@@ -18,7 +18,7 @@ async function loadPlanilhas() {
   toggleLoading(true); // Mostrar o símbolo de carregamento
 
   const planilhasRef = ref(database, `/users/${user.uid}/planilhas`);
-  
+
   try {
     // Obter dados do Firebase
     const snapshot = await get(planilhasRef);
@@ -26,15 +26,23 @@ async function loadPlanilhas() {
 
     if (snapshot.exists()) {
       const planilhas = snapshot.val();
-      
+
       // Obter os nomes das planilhas
       const planilhaNomes = Object.keys(planilhas);
-      
+
       // Exibir os botões na página
       const listElement = document.getElementById('planilhasContainer');
       listElement.innerHTML = ''; // Limpar antes de preencher
-      
+
       planilhaNomes.forEach(planilhaNome => {
+        const key = `planilha_${planilhaNome}`;
+
+        // Verificar se a planilha já está no LocalStorage
+        if (!localStorage.getItem(key)) {
+          fetchAndSavePlanilha(planilhaNome);
+        }
+
+        // Criar botão para a planilha
         const button = document.createElement('button');
         button.textContent = planilhaNome; // Nome da planilha no botão
         button.classList.add('planilha-button'); // Classe para estilização (opcional)
@@ -50,6 +58,44 @@ async function loadPlanilhas() {
     document.getElementById('planilhasContainer').innerHTML = "<p>Erro ao carregar as planilhas.</p>";
   }
 }
+
+// Função para buscar e salvar a planilha no LocalStorage, unindo os chunks
+async function fetchAndSavePlanilha(planilhaNome) {
+  const fileRef = ref(database, `/users/${user.uid}/planilhas/${planilhaNome}`);
+
+  try {
+    const snapshot = await get(fileRef);
+
+    if (snapshot.exists()) {
+      const planilhaChunks = snapshot.val(); // Pega os chunks da planilha
+      let fullPlanilhaData = [];
+
+      // Reunir os chunks em um único array
+      Object.keys(planilhaChunks).forEach(chunkKey => {
+        const chunkData = planilhaChunks[chunkKey];
+        fullPlanilhaData = fullPlanilhaData.concat(chunkData); // Concatenar os pedaços
+      });
+
+      saveToLocalStorage(planilhaNome, fullPlanilhaData); // Salvar no LocalStorage
+    } else {
+      console.warn(`A planilha "${planilhaNome}" não foi encontrada.`);
+    }
+  } catch (error) {
+    console.error("Erro ao buscar a planilha:", error);
+  }
+}
+
+// Função para salvar dados no LocalStorage de forma consistente
+function saveToLocalStorage(fileName, data) {
+  try {
+    const key = `planilha_${fileName}`; // Usar o nome da planilha como chave
+    localStorage.setItem(key, JSON.stringify(data)); // Salvar no localStorage
+    console.log(`Planilha "${fileName}" salva no LocalStorage.`);
+  } catch (error) {
+    console.error("Erro ao salvar no LocalStorage:", error);
+  }
+}
+
 
 // Função para tratar o clique em uma planilha
 function handlePlanilhaClick(planilhaNome) {
@@ -72,11 +118,7 @@ function handlePlanilhaClick(planilhaNome) {
 // Função para exibir ou ocultar o símbolo de carregamento
 function toggleLoading(show) {
   const loadingElement = document.getElementById('loading');
-  if (show) {
-    loadingElement.style.display = 'flex'; // Mostrar o spinner
-  } else {
-    loadingElement.style.display = 'none'; // Ocultar o spinner
-  }
+  loadingElement.style.display = show ? 'flex' : 'none';
 }
 
 // Chamar a função para carregar as planilhas ao carregar a página
@@ -95,4 +137,29 @@ function exibirPlanilhaLocal(fileName) {
   }
 }
 
-exibirPlanilhaLocal("30");
+async function verificarPlanilhasLocalStorage() {
+  const planilhasSalvas = Object.keys(localStorage).filter(key => key.startsWith("planilha_"));
+  const planilhasRef = ref(database, `/users/${user.uid}/planilhas`);
+
+  try {
+    const snapshot = await get(planilhasRef);
+    const planilhasNoFirebase = snapshot.exists() ? Object.keys(snapshot.val()) : [];
+
+    planilhasSalvas.forEach(planilhaKey => {
+      const nomePlanilha = planilhaKey.replace("planilha_", "");
+      if (!planilhasNoFirebase.includes(nomePlanilha)) {
+        localStorage.removeItem(planilhaKey);
+        console.log(`Planilha "${nomePlanilha}" removida do LocalStorage.`);
+      }
+    });
+  } catch (error) {
+    console.error("Erro ao verificar planilhas no Firebase:", error);
+  }
+}
+
+// Chamar a função ao carregar a página
+document.addEventListener('DOMContentLoaded', verificarPlanilhasLocalStorage);
+
+
+// Teste para exibir a planilha salva localmente
+exibirPlanilhaLocal("TesteBom");

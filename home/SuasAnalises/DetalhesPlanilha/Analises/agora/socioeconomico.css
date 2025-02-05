@@ -4,14 +4,13 @@ body {
   background-color: #f4f4f4;
   margin: 0;
   padding: 20px;
-  text-align: center;
 }
 
 header h1 {
   margin-bottom: 20px;
 }
 
-/* Estilos da tabela */
+/* Estilos da tabela */ 
 table {
   width: 100%;
   max-width: 900px;
