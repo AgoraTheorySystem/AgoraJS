@@ -41,7 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!query) return text;
       const escapedQuery = escapeRegExp(query);
       const regex = new RegExp(`(${escapedQuery})`, 'gi');
-      return text.replace(regex, '<span style="color: red; font-weight: bold;">$1</span>');
+      return text.replace(regex, '<span style="color: blue; font-weight: bold;">$1</span>');
     }
     
     // Renderiza o cabeçalho da tabela com base nas chaves do primeiro objeto
