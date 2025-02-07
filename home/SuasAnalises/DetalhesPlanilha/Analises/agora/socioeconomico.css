@@ -322,3 +322,25 @@ tbody tr:nth-child(even) {
     text-align: center;
   }
 }
+
+/* Faz a tabela ser rolável horizontalmente */
+.table-container {
+  overflow-x: auto; /* Rolagem horizontal se necessário */
+  max-width: 100vw; /* Largura máxima da viewport */
+  
+}
+
+#data-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px; /* Defina um tamanho mínimo para evitar colapsos */
+  border: 5px solid;
+}
+
+#data-table th,
+#data-table td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: left;
+}
+
