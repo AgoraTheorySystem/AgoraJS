@@ -1,5 +1,6 @@
+// socioeconomico.js
 document.addEventListener("DOMContentLoaded", () => {
-  // Recupera o parâmetro "planilha" da URL
+  // Recupera o parâmetro "planilha" da URL atual
   const urlParams = new URLSearchParams(window.location.search);
   const planilhaNome = urlParams.get("planilha");
 
@@ -14,8 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let filteredData = [];
   let currentQuery = "";
 
-  // Seleciona os elementos do DOM
-  const menuAnalisesBtn = document.querySelector(".menu_analises");
+  // Seleciona os elementos do DOM referentes à tabela, paginação e filtro
   const table = document.getElementById("data-table");
   const tableHead = table.querySelector("thead");
   const tableBody = table.querySelector("tbody");
@@ -48,7 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return text.replace(regex, '<span style="color: blue; font-weight: bold;">$1</span>');
   }
 
-  // Renderiza o cabeçalho da tabela com base nas chaves do primeiro item
+  // Renderiza o cabeçalho da tabela com base nas chaves do primeiro item dos dados
   function renderTableHeader() {
     tableHead.innerHTML = "";
     if (filteredData.length > 0) {
@@ -62,7 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Renderiza o corpo da tabela com os dados paginados e destaca o termo de busca
+  // Renderiza o corpo da tabela com os dados paginados e destaca o termo pesquisado
   function renderTable(page) {
     tableBody.innerHTML = "";
     const start = (page - 1) * rowsPerPage;
@@ -72,7 +72,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (paginatedData.length === 0) {
       const row = document.createElement("tr");
       const cell = document.createElement("td");
-      // Se houver cabeçalho, define a coluna com base no número de chaves; caso contrário, 1.
       cell.colSpan = filteredData.length > 0 ? Object.keys(filteredData[0]).length : 1;
       cell.textContent = "Nenhum registro encontrado.";
       cell.style.textAlign = "center";
@@ -93,13 +92,64 @@ document.addEventListener("DOMContentLoaded", () => {
     updatePagination();
   }
 
-  // Atualiza as informações e botões de paginação
+  // Atualiza os botões e os números da paginação
   function updatePagination() {
     const totalPages = Math.max(1, Math.ceil(filteredData.length / rowsPerPage));
     pageInfo.textContent = `Página ${currentPage} de ${totalPages}`;
-
     prevBtn.disabled = currentPage <= 1;
     nextBtn.disabled = currentPage >= totalPages;
+
+    // Renderiza os números das páginas
+    const pageNumbersContainer = document.getElementById("page-numbers");
+    if (pageNumbersContainer) {
+      pageNumbersContainer.innerHTML = "";
+      const pagesToDisplay = getPageNumbers(totalPages, currentPage);
+      pagesToDisplay.forEach(page => {
+        if (page === "...") {
+          const span = document.createElement("span");
+          span.textContent = "...";
+          span.className = "ellipsis";
+          pageNumbersContainer.appendChild(span);
+        } else {
+          const btn = document.createElement("button");
+          btn.textContent = page;
+          btn.className = "page-btn";
+          if (page === currentPage) {
+            btn.classList.add("active");
+          }
+          btn.addEventListener("click", () => {
+            currentPage = page;
+            renderTable(currentPage);
+          });
+          pageNumbersContainer.appendChild(btn);
+        }
+      });
+    }
+  }
+
+  // Função auxiliar para determinar quais números de página exibir
+  function getPageNumbers(totalPages, currentPage) {
+    const delta = 2; // quantidade de páginas antes e depois da atual
+    const range = [];
+    const rangeWithDots = [];
+    let l;
+    for (let i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || (i >= currentPage - delta && i <= currentPage + delta)) {
+        range.push(i);
+      }
+    }
+    for (let i of range) {
+      if (l) {
+        if (i - l === 2) {
+          rangeWithDots.push(l + 1);
+        } else if (i - l > 2) {
+          rangeWithDots.push("...");
+        }
+      }
+      rangeWithDots.push(i);
+      l = i;
+    }
+    return rangeWithDots;
   }
 
   // Aplica o filtro de busca na tabela
@@ -135,7 +185,7 @@ document.addEventListener("DOMContentLoaded", () => {
     loadingDiv.style.display = show ? "block" : "none";
   }
 
-  // Funções para navegação entre páginas
+  // Navegação entre páginas
   function goToPreviousPage() {
     if (currentPage > 1) {
       currentPage--;
@@ -151,27 +201,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Adiciona os eventos aos botões e campo de filtro
+  // Atribui os eventos aos botões e ao campo de filtro
   prevBtn.addEventListener("click", goToPreviousPage);
   nextBtn.addEventListener("click", goToNextPage);
   filterInput.addEventListener("input", debounce((e) => {
     applyFilter(e.target.value.trim().toLowerCase());
   }, 300));
 
-  // Evento para o botão de "menu análises"
-  if (menuAnalisesBtn) {
-    menuAnalisesBtn.addEventListener("click", () => {
-      // Ajuste o caminho abaixo de acordo com a estrutura do seu projeto.
-      // Se o arquivo "menu_da_analise.html" estiver na mesma pasta, o caminho relativo funcionará.
-      const targetUrl = `/home/SuasAnalises/DetalhesPlanilha/menu_da_analise.html?planilha=${encodeURIComponent(planilhaNome)}`;
-      window.location.href = targetUrl;
-    });
-  }
-
-  // Inicializa a tabela com os dados do localStorage
+  // Inicializa a tabela com os dados do LocalStorage
   function init() {
     showLoading(true);
-    // Simulação de carregamento; se não for necessário, pode remover o setTimeout.
+    // Simulação de carregamento – remova o setTimeout se não for necessário
     setTimeout(() => {
       data = loadFromLocalStorage(planilhaNome);
       filteredData = data;

@@ -1,0 +1,67 @@
+/* Container do menu */
+.container {
+    margin-top: 50px;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 1620px;
+  }
+  
+  /* Estilização padrão do menu para telas maiores */
+  .container .menu {
+    background-color: #17426C;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-radius: 25px;
+    box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.5);
+    margin-top: 35px;
+  }
+  
+  .container .menu a {
+    padding: 30px 0;
+    text-decoration: none;
+    color: white;
+    font-family: "Montserrat", sans-serif;
+    font-size: 20px;
+    font-weight: bold;
+    text-transform: uppercase;
+    transition: color 0.3s;
+    cursor: pointer;
+  }
+  
+  .container .menu a:hover {
+    color: #fdd200;
+  }
+  
+  /* Media query para dispositivos móveis */
+  @media (max-width: 768px) {
+    .container {
+      padding: 0 15px; /* Espaço lateral para evitar que o conteúdo grude nas bordas */
+    }
+    
+    .container .menu {
+      flex-direction: column; /* Empilha os links verticalmente */
+      justify-content: center;
+      align-items: center;
+      margin-top: 20px;
+      padding: 10px;
+    }
+    
+    .container .menu a {
+      padding: 15px 0;
+      font-size: 18px;
+      width: 100%;
+      text-align: center;
+    }
+  }
+
+  /* Estilização do menu ativo */
+.menu a.active {
+  color: #fdd200; /* Amarelo */
+  /* Você também pode adicionar outros estilos, como fundo, borda, etc. */
+  /* Exemplo:
+  background-color: #17426C;
+  border-bottom: 3px solid #fdd200;
+  */
+}
+  

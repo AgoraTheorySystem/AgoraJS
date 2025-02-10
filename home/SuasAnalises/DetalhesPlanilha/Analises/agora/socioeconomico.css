@@ -295,6 +295,7 @@ tbody tr:nth-child(even) {
   font-weight: bold;
   text-transform: uppercase;
   transition: color 0.3s;
+  cursor: pointer;
 }
 
 .container .menu a:hover {
