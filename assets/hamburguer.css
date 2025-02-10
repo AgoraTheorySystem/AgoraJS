@@ -118,12 +118,21 @@ body {
   cursor: pointer;
 }
 
+#btn3{
+  background-color: #00a316;
+  cursor: pointer;
+}
+
 #btn1:hover{
   background-color: #740036;
 }
 
 #btn2:hover{
   background-color: #116176;
+}
+
+#btn3:hover{
+  background-color: #00550b;
 }
 
 .btnmenu{

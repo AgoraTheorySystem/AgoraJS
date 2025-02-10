@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let filteredData = [];
   let currentQuery = "";
 
-  // Seleção dos elementos
+  // Seleciona os elementos do DOM
   const menuAnalisesBtn = document.querySelector(".menu_analises");
   const table = document.getElementById("data-table");
   const tableHead = table.querySelector("thead");
@@ -29,13 +29,16 @@ document.addEventListener("DOMContentLoaded", () => {
   function loadFromLocalStorage(fileName) {
     const key = `planilha_${fileName}`;
     const storedData = localStorage.getItem(key);
-    return storedData ? JSON.parse(storedData) : [];
+    try {
+      return storedData ? JSON.parse(storedData) : [];
+    } catch (error) {
+      console.error("Erro ao ler os dados do LocalStorage:", error);
+      return [];
+    }
   }
 
   // Função para escapar caracteres especiais para uso em regex
-  function escapeRegExp(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  }
+  const escapeRegExp = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
   // Função para destacar o termo pesquisado dentro do texto
   function highlightText(text, query) {
@@ -45,7 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return text.replace(regex, '<span style="color: blue; font-weight: bold;">$1</span>');
   }
 
-  // Renderiza o cabeçalho da tabela
+  // Renderiza o cabeçalho da tabela com base nas chaves do primeiro item
   function renderTableHeader() {
     tableHead.innerHTML = "";
     if (filteredData.length > 0) {
@@ -59,7 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Renderiza o corpo da tabela com paginação e destaca o termo pesquisado
+  // Renderiza o corpo da tabela com os dados paginados e destaca o termo de busca
   function renderTable(page) {
     tableBody.innerHTML = "";
     const start = (page - 1) * rowsPerPage;
@@ -69,6 +72,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (paginatedData.length === 0) {
       const row = document.createElement("tr");
       const cell = document.createElement("td");
+      // Se houver cabeçalho, define a coluna com base no número de chaves; caso contrário, 1.
       cell.colSpan = filteredData.length > 0 ? Object.keys(filteredData[0]).length : 1;
       cell.textContent = "Nenhum registro encontrado.";
       cell.style.textAlign = "center";
@@ -89,7 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
     updatePagination();
   }
 
-  // Atualiza os botões de paginação
+  // Atualiza as informações e botões de paginação
   function updatePagination() {
     const totalPages = Math.max(1, Math.ceil(filteredData.length / rowsPerPage));
     pageInfo.textContent = `Página ${currentPage} de ${totalPages}`;
@@ -98,14 +102,16 @@ document.addEventListener("DOMContentLoaded", () => {
     nextBtn.disabled = currentPage >= totalPages;
   }
 
-  // Função para aplicar o filtro na tabela
+  // Aplica o filtro de busca na tabela
   function applyFilter(query) {
     currentQuery = query;
     if (query === "") {
       filteredData = data;
     } else {
-      filteredData = data.filter((item) => 
-        Object.values(item).some((value) => value.toString().toLowerCase().includes(query))
+      filteredData = data.filter((item) =>
+        Object.values(item).some((value) =>
+          value.toString().toLowerCase().includes(query)
+        )
       );
     }
     currentPage = 1;
@@ -113,12 +119,23 @@ document.addEventListener("DOMContentLoaded", () => {
     renderTable(currentPage);
   }
 
-  // Exibe ou oculta o loading
+  // Função debounce para otimizar o filtro enquanto o usuário digita
+  function debounce(func, delay) {
+    let timeoutId;
+    return function (...args) {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        func.apply(this, args);
+      }, delay);
+    };
+  }
+
+  // Exibe ou oculta o elemento de loading
   function showLoading(show) {
     loadingDiv.style.display = show ? "block" : "none";
   }
 
-  // Navegação entre páginas
+  // Funções para navegação entre páginas
   function goToPreviousPage() {
     if (currentPage > 1) {
       currentPage--;
@@ -127,29 +144,36 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function goToNextPage() {
-    if (currentPage < Math.ceil(filteredData.length / rowsPerPage)) {
+    const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+    if (currentPage < totalPages) {
       currentPage++;
       renderTable(currentPage);
     }
   }
 
-  // Eventos dos botões e do campo de filtro
+  // Adiciona os eventos aos botões e campo de filtro
   prevBtn.addEventListener("click", goToPreviousPage);
   nextBtn.addEventListener("click", goToNextPage);
-  filterInput.addEventListener("input", (e) => applyFilter(e.target.value.trim().toLowerCase()));
+  filterInput.addEventListener("input", debounce((e) => {
+    applyFilter(e.target.value.trim().toLowerCase());
+  }, 300));
 
-  // Verifica se o botão de análise existe antes de adicionar o evento
+  // Evento para o botão de "menu análises"
   if (menuAnalisesBtn) {
     menuAnalisesBtn.addEventListener("click", () => {
-      window.location.href = `/home/SuasAnalises/DetalhesPlanilha/menu_da_analise.html?planilha=${encodeURIComponent(planilhaNome)}`;
+      // Ajuste o caminho abaixo de acordo com a estrutura do seu projeto.
+      // Se o arquivo "menu_da_analise.html" estiver na mesma pasta, o caminho relativo funcionará.
+      const targetUrl = `/home/SuasAnalises/DetalhesPlanilha/menu_da_analise.html?planilha=${encodeURIComponent(planilhaNome)}`;
+      window.location.href = targetUrl;
     });
   }
 
-  // Inicialização da tabela
+  // Inicializa a tabela com os dados do localStorage
   function init() {
     showLoading(true);
+    // Simulação de carregamento; se não for necessário, pode remover o setTimeout.
     setTimeout(() => {
-      data = loadFromLocalStorage(planilhaNome) || [];
+      data = loadFromLocalStorage(planilhaNome);
       filteredData = data;
       renderTableHeader();
       renderTable(currentPage);

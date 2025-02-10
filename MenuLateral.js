@@ -13,7 +13,7 @@ function autenticacao() {
         const user = JSON.parse(userData);
         console.log('Usuário Logado:', user);
 
-        // Buscar nome do usuário no Realtime Database
+        // Exibir o e-mail no menu
         fetchUserEmail();
     } else {
         console.log('Nenhum usuário logado.');
@@ -51,23 +51,14 @@ function toggleMenu() {
 
 // Função para logout
 function logout() {
-    // Obtenha a instância da autenticação
     const auth = getAuth();
-
-    // Fazer logout
     signOut(auth)
         .then(() => {
             console.log('Usuário deslogado com sucesso.');
-
-            // Limpar sessionStorage
             sessionStorage.clear();
             console.log('SessionStorage limpo.');
-
-            // Limpar localStorage
             localStorage.clear();
             console.log('LocalStorage limpo.');
-
-            // Redirecionar para a página de login ou inicial
             window.location.href = '/index.html';
         })
         .catch((error) => {
@@ -75,14 +66,12 @@ function logout() {
         });
 }
 
-// Função para buscar o nome do usuário no Firebase Realtime Database
+// Função para buscar o e-mail do usuário e exibi-lo no menu
 function fetchUserEmail() {
     const userData = sessionStorage.getItem('user');
     if (userData) {
         const user = JSON.parse(userData);
         const userEmailElement = document.querySelector('.userEmail');
-
-        // Verifica se o elemento existe antes de tentar alterar suas propriedades
         if (userEmailElement) {
             userEmailElement.textContent = user.email;
         } else {
@@ -121,10 +110,11 @@ function generateSidebarMenu() {
                   <h2>Bem-Vindo</h2>
                   <h2 class="userEmail"></h2>
                 </div>
-              </div>
-              <li id="espaco"></li>           
+            </div>
+            <li id="espaco"></li>           
             <li class="btnmenu" id="btn1">Criar Análise</li>
             <li class="btnmenu" id="btn2">Suas Análises</li>
+            <!-- O btn3 será inserido aqui se o usuário for admin -->
             <button class="Btn" id="logout">
                 <div class="sign">
                     <svg viewBox="0 0 512 512">
@@ -142,29 +132,66 @@ function generateSidebarMenu() {
     `;
 
     body.insertAdjacentHTML('beforeend', html);
-    addMenuEventListeners(); // Adicionar os event listeners após gerar o menu
+    addMenuEventListeners(); // Adiciona os event listeners do menu
+
+    // Verifica se há dados de usuário e se ele é admin para criar o btn3
+    const userData = sessionStorage.getItem('user');
+    if (userData) {
+        const user = JSON.parse(userData);
+        const adminEmails = [
+            'williamfunk.11@gmail.com',
+            'williamgame.11@gmail.com'
+            // Adicione outros e-mails conforme necessário
+        ];
+
+        if (adminEmails.includes(user.email)) {
+            // Seleciona a lista do menu
+            const sidebarUl = document.querySelector('#sidebar ul');
+            if (sidebarUl) {
+                // Cria o novo item de menu (btn3)
+                const li = document.createElement('li');
+                li.className = 'btnmenu';
+                li.id = 'btn3';
+                li.textContent = 'ADM'; // Label do botão admin
+
+                // Insere o btn3 após o btn2
+                const btn2 = document.getElementById('btn2');
+                if (btn2) {
+                    btn2.insertAdjacentElement('afterend', li);
+                } else {
+                    sidebarUl.appendChild(li);
+                }
+            }
+        }
+    }
 }
 
 // Função para adicionar redirecionamento aos botões
 function addNavigationListeners() {
     const btn1 = document.getElementById('btn1'); // Botão "Criar Análise"
     const btn2 = document.getElementById('btn2'); // Botão "Suas Análises"
+    const btn3 = document.getElementById('btn3'); // Botão "ADM" (apenas para administradores)
 
     if (btn1) {
         btn1.addEventListener('click', () => {
-            window.location.href = '/home/CriaAnalise/cria_analise.html'; // Caminho fixo a partir da raiz do projeto
+            window.location.href = '/home/CriaAnalise/cria_analise.html';
         });
     }
 
     if (btn2) {
         btn2.addEventListener('click', () => {
-            window.location.href = '/home/SuasAnalises/suas_analises.html'; // Altere para o caminho correto
+            window.location.href = '/home/SuasAnalises/suas_analises.html';
+        });
+    }
+
+    if (btn3) {
+        btn3.addEventListener('click', () => {
+            window.location.href = '/home/adm/adm.html';
         });
     }
 }
 
-
+// Chamada das funções
 generateSidebarMenu();
 addNavigationListeners();
 autenticacao();
-
