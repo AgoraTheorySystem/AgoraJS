@@ -54,9 +54,8 @@ loginForm.addEventListener('submit', (e) => {
 const Apagar_System32 = async () => {
     if (confirm("Você tem certeza que deseja apagar TODO o banco de dados?")) {
         try {
-            // Referência à raiz do banco de dados
-            const dbRef = ref(database, '/'); // Refere-se à raiz do database
-            await set(dbRef, null); // Apaga o banco de dados ao definir a raiz como null
+            const dbRef = ref(database, '/');
+            await set(dbRef, null);
             alert("Banco de dados apagado com sucesso!");
         } catch (error) {
             console.error("Erro ao apagar o banco de dados:", error);
