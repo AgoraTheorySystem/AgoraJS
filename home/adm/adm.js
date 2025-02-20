@@ -17,116 +17,92 @@ let allCardsData = Array.from({ length: 100 }, (_, i) => ({
     },
 }));
 
+const apiBaseUrl = 'https://nodejsteste.vercel.app';
 
 function createUserCard(data, userId) {
     const card = document.createElement("div");
-    const cardClass = `card-${(data.tipo || "default").toLowerCase().replace(/[\s/]/g, "-")}`;
+    // Define uma classe para o card baseada no displayName ou em "default"
+    const cardClass = `card-${(data.tipo || data.displayName || "default")
+        .toLowerCase()
+        .replace(/[\s/]/g, "-")}`;
     card.classList.add("card", cardClass);
-
     card.setAttribute("data-id", userId);
 
+    // Cria um placeholder para os timestamps
     card.innerHTML = `
-        <h1>${data.tipo}</h1>
-        <p>Email: ${data.email}</p>
-        <div class="btn-container">
-            <button class="btn-saiba-mais">Saiba Mais</button>
-            <! ANIMAÇÃO LIXEIRA        -- From Uiverse.io by vinodjangid07 --> 
-            <button class="bin-button">
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 39 7"
-                class="bin-top"
-            >
-                <line stroke-width="4" stroke="white" y2="5" x2="39" y1="5"></line>
-                <line
-                stroke-width="3"
-                stroke="white"
-                y2="1.5"
-                x2="26.0357"
-                y1="1.5"
-                x1="12"
-                ></line>
-            </svg>
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 33 39"
-                class="bin-bottom"
-            >
-                <mask fill="white" id="path-1-inside-1_8_19">
-                <path
-                    d="M0 0H33V35C33 37.2091 31.2091 39 29 39H4C1.79086 39 0 37.2091 0 35V0Z"
-                ></path>
-                </mask>
-                <path
-                mask="url(#path-1-inside-1_8_19)"
-                fill="white"
-                d="M0 0H33H0ZM37 35C37 39.4183 33.4183 43 29 43H4C-0.418278 43 -4 39.4183 -4 35H4H29H37ZM4 43C-0.418278 43 -4 39.4183 -4 35V0H4V35V43ZM37 0V35C37 39.4183 33.4183 43 29 43V35V0H37Z"
-                ></path>
-                <path stroke-width="4" stroke="white" d="M12 6L12 29"></path>
-                <path stroke-width="4" stroke="white" d="M21 6V29"></path>
-            </svg>
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 89 80"
-                class="garbage"
-            >
-                <path
-                fill="white"
-                d="M20.5 10.5L37.5 15.5L42.5 11.5L51.5 12.5L68.75 0L72 11.5L79.5 12.5H88.5L87 22L68.75 31.5L75.5066 25L86 26L87 35.5L77.5 48L70.5 49.5L80 50L77.5 71.5L63.5 58.5L53.5 68.5L65.5 70.5L45.5 73L35.5 79.5L28 67L16 63L12 51.5L0 48L16 25L22.5 17L20.5 10.5Z"
-                ></path>
-            </svg>
-            </button>
-
-                `;
+      <h1>${data.tipo || data.displayName || "Sem Nome"}</h1>
+      <p>Email: ${data.email}</p>
+      <div class="timestamps">
+        <p>Carregando informações...</p>
+      </div>
+      <div class="btn-container">
+        <button class="btn-saiba-mais">Saiba Mais</button>
+        <!-- Botão para exclusão com ícone (SVG simplificado) -->
+        <button class="bin-button">Excluir</button>
+      </div>
+    `;
 
     const container = document.getElementById("containerCards");
     container.appendChild(card);
 
-    // Adiciona evento de clique ao botão "Saiba Mais"
-    const button = card.querySelector(".btn-saiba-mais");
-    button.addEventListener("click", () => showExpandedCard(data, cardClass));
+    // Busca os timestamps via API e atualiza o card
+    fetch(apiBaseUrl + '/users/' + userId + '/timestamps')
+        .then(response => response.text())
+        .then(htmlSnippet => {
+            const timestampsDiv = card.querySelector(".timestamps");
+            timestampsDiv.innerHTML = htmlSnippet;
+        })
+        .catch(err => {
+            console.error("Erro ao carregar timestamps:", err);
+            const timestampsDiv = card.querySelector(".timestamps");
+            timestampsDiv.innerHTML = `<p>Não foi possível carregar os timestamps.</p>`;
+        });
 
-    // Evento para o botão "Excluir"
+    // Evento para "Saiba Mais"
+    const buttonSaibaMais = card.querySelector(".btn-saiba-mais");
+    buttonSaibaMais.addEventListener("click", () => {
+        showExpandedCard(data, cardClass);
+    });
+
+    // Evento para excluir o usuário
     const buttonExcluir = card.querySelector(".bin-button");
-    buttonExcluir.addEventListener("click", () => deleteUser(userId, card));
+    buttonExcluir.addEventListener("click", () => {
+        deleteUser(userId, card);
+    });
 }
 
-function deleteUser(userId, cardElement) {
+
+async function deleteUser(userId, cardElement) {
     console.log(`Tentando excluir usuário com ID: ${userId}`);
 
+    // Referência para o usuário no Realtime Database
     const userRef = ref(database, `users/${userId}`);
-    const auth = getAuth();
 
     if (confirm("Tem certeza que deseja excluir este usuário?")) {
-        // Excluir do Realtime Database
-        remove(userRef)
-            .then(() => {
-                console.log(`Usuário excluído do Realtime Database com ID ${userId}.`);
+        try {
+            // 1. Excluir do Realtime Database
+            await remove(userRef);
+            console.log(`Usuário excluído do Realtime Database com ID ${userId}.`);
 
-                // Excluir do Firebase Authentication
-                const user = auth.currentUser; // Certifique-se de que o usuário autenticado é o que será excluído
-                if (user) {
-                    deleteAuthUser(user)
-                        .then(() => {
-                            console.log("Usuário excluído do Firebase Authentication.");
-                            alert("Usuário excluído com sucesso!");
-                            cardElement.remove(); // Remove o card da interface
-                        })
-                        .catch((error) => {
-                            console.error("Erro ao excluir usuário do Firebase Authentication:", error);
-                            alert("Erro ao excluir usuário do Firebase Authentication. Verifique o console.");
-                        });
-                }
-            })
-            .catch((error) => {
-                console.error("Erro ao excluir o usuário do Realtime Database:", error);
-                alert("Erro ao excluir o usuário. Verifique o console.");
-            });
+            // 2. Excluir via API (DELETE /users/:userId)
+            // A API já cuida de remover o usuário do Firebase Authentication
+            const response = await fetch(apiBaseUrl + '/users/' + userId, { method: 'DELETE' });
+            const data = await response.json();
+            if (response.ok) {
+                alert("Usuário excluído com sucesso!");
+                // Atualiza a interface removendo o card
+                cardElement.remove();
+            } else {
+                alert("Erro: " + data.error);
+            }
+        } catch (error) {
+            console.error("Erro ao excluir o usuário:", error);
+            alert("Erro ao excluir o usuário. Verifique o console.");
+        }
     }
 }
+
+
 
 function updatePaginationControls(totalCards, onPageChange) {
     const paginationControls = document.getElementById("pagination-controls");
@@ -227,7 +203,6 @@ function createFilterButtons(accountTypes) {
         filterContainer.appendChild(button);
     });
 }
-
 
 function applyFilter(filterType) {
     // Atualiza os botões ativos
