@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-database.js";
-import firebaseConfig from "../../firebase.js"; // Certifique-se de que o caminho está correto
+import firebaseConfig from "../../firebase.js";
 
 // Inicializa o Firebase
 const app = initializeApp(firebaseConfig);
@@ -9,7 +9,7 @@ const database = getDatabase(app);
 // Referência para os usuários no Realtime Database
 const dbRef = ref(database, "users");
 
-// Funções auxiliares
+// === Funções auxiliares ===
 function getCardColor(tipo) {
   const tempDiv = document.createElement("div");
   tempDiv.className = `card-${tipo.toLowerCase().replace(/[\s/]/g, "-")}`;
@@ -39,31 +39,37 @@ function getLegendPosition() {
   return window.innerWidth <= 900 ? "bottom" : "right";
 }
 
-// Aguarda o carregamento completo do DOM
+// === Lógica principal ===
 window.addEventListener("load", () => {
-  // === Gráfico de Tipos de Contas ===
   onValue(dbRef, (snapshot) => {
     if (snapshot.exists()) {
       const users = snapshot.val();
+
+      // =================================
+      // GRÁFICO 1: Distribuição por Tipo
+      // =================================
       const tipoContas = {};
       let totalUsuarios = 0;
+
       Object.values(users).forEach(user => {
         const tipo = user.tipo || "Desconhecido";
         tipoContas[tipo] = (tipoContas[tipo] || 0) + 1;
         totalUsuarios++;
       });
-      const labels = Object.keys(tipoContas);
-      const data = Object.values(tipoContas);
-      const wrappedLabels = labels.map(label => wrapLabel(label, 12));
+
+      const labelsTipos = Object.keys(tipoContas);
+      const dataTipos = Object.values(tipoContas);
+      const wrappedLabels = labelsTipos.map(label => wrapLabel(label, 12));
 
       const ctxTipos = document.getElementById("graficoTiposContas").getContext("2d");
       const chartTipos = new Chart(ctxTipos, {
         type: "bar",
         data: {
-          labels: [""], // Espaço para empilhar os blocos
-          datasets: labels.map((label, index) => ({
+          // Usamos um array vazio para que todos os tipos sejam empilhados em uma única barra
+          labels: [""],
+          datasets: labelsTipos.map((label, index) => ({
             label: wrappedLabels[index],
-            data: [data[index]],
+            data: [dataTipos[index]],
             backgroundColor: getCardColor(label),
             borderColor: "#000",
             borderWidth: 2
@@ -94,7 +100,10 @@ window.addEventListener("load", () => {
             }
           },
           scales: {
-            x: { stacked: true, display: false },
+            x: {
+              stacked: true,
+              display: false
+            },
             y: {
               stacked: true,
               beginAtZero: true,
@@ -111,70 +120,93 @@ window.addEventListener("load", () => {
         chartTipos.options.plugins.legend.position = getLegendPosition();
         chartTipos.update();
       });
+
+      // ======================================
+      // GRÁFICO 2: Tamanho de cada Usuário (MB)
+      // ======================================
+      const userSizes = [];
+
+      // 1) Calcula o tamanho (em MB) de cada usuário
+      Object.entries(users).forEach(([uid, userData]) => {
+        // Converte o objeto em JSON
+        const userJson = JSON.stringify(userData);
+
+        // Calcula o tamanho em bytes
+        const sizeInBytes = new TextEncoder().encode(userJson).length;
+        // ou: const sizeInBytes = new Blob([userJson]).size; (outra forma)
+
+        // Converte para MB
+        const sizeInMB = sizeInBytes / (1024 * 1024);
+
+        // Usa o e-mail como rótulo (fallback para UID se não houver email)
+        const userEmail = userData.email || uid;
+
+        userSizes.push({
+          email: userEmail,
+          sizeInMB: sizeInMB
+        });
+      });
+
+      // 2) Cria o gráfico usando Chart.js
+      //    Aqui usamos "indexAxis: 'y'" para ter um gráfico HORIZONTAL
+      const ctxTamanho = document.getElementById("graficoTamanhoUsuarios").getContext("2d");
+      const chartTamanho = new Chart(ctxTamanho, {
+        type: "bar",
+        data: {
+          labels: userSizes.map(item => item.email), // Exibe o email como rótulo (no eixo Y)
+          datasets: [{
+            label: "Tamanho (MB)",
+            data: userSizes.map(item => item.sizeInMB),
+            backgroundColor: "rgba(54, 162, 235, 0.7)",
+            borderColor: "rgba(54, 162, 235, 1)",
+            borderWidth: 1
+          }]
+        },
+        options: {
+          indexAxis: 'y', // Gera o gráfico horizontal
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: "top",
+              labels: {
+                color: "#000",
+                font: { weight: "bold", size: 14 }
+              }
+            },
+            datalabels: {
+              color: "#000",
+              font: { weight: "bold", size: 12 },
+              anchor: "end",
+              align: "right",
+              formatter: (value) => value.toFixed(2) + " MB"
+            }
+          },
+          scales: {
+            y: {
+              // Como o eixo Y agora tem as labels (nomes/emails), habilite autoSkip = false
+              ticks: {
+                color: "#000",
+                font: { size: 12 },
+                autoSkip: false // para não pular labels se tiver muitos
+              }
+            },
+            x: {
+              beginAtZero: true,
+              ticks: {
+                color: "#000",
+                font: { size: 12 }
+              }
+            }
+          }
+        },
+        plugins: [ChartDataLabels]
+      });
+
     } else {
       console.error("Nenhum dado encontrado no Firebase.");
     }
   }, (error) => {
     console.error("Erro ao buscar dados do Firebase:", error);
   });
-
-  // === Gráfico: Tamanho dos Dados dos Usuários (Uso MB) ===
-  fetch('https://nodejsteste.vercel.app/users/size')
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`Erro na resposta da API: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then(sizes => {
-      // Os dados devem vir no formato: { uid1: tamanhoEmMB, uid2: tamanhoEmMB, ... }
-      const labels = Object.keys(sizes);
-      const data = Object.values(sizes);
-
-      const ctxSize = document.getElementById("graficoTamanhoUsuarios").getContext("2d");
-      new Chart(ctxSize, {
-        type: "bar",
-        data: {
-          labels: labels, // UID de cada usuário
-          datasets: [{
-            label: "Tamanho dos Dados (MB)",
-            data: data,
-            backgroundColor: "rgba(75, 192, 192, 0.5)",
-            borderColor: "rgba(75, 192, 192, 1)",
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              display: true,
-              labels: {
-                font: { weight: "bold", size: 14 },
-                color: "#000"
-              }
-            },
-            tooltip: {
-              callbacks: {
-                label: context => `${context.parsed.y} MB`
-              }
-            }
-          },
-          scales: {
-            x: {
-              title: { display: true, text: "UID do Usuário" },
-              ticks: { autoSkip: false }
-            },
-            y: {
-              beginAtZero: true,
-              title: { display: true, text: "Tamanho (MB)" }
-            }
-          }
-        }
-      });
-    })
-    .catch(error => {
-      console.error("Erro ao buscar os tamanhos dos dados:", error);
-    });
 });

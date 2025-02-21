@@ -1,47 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Adm Gráficos</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="icon" type="image/png" href="/assets/icon.png" />
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
-        rel="stylesheet" />
-    <link rel="stylesheet" href="card.css" />
-    <link rel="stylesheet" href="adm.css" />
-    <link rel="stylesheet" href="admgraficos.css" />
-    <link rel="stylesheet" href="/assets/hamburguer.css" />
-    <script src="/MenuLateral.js" type="module" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js" type="module" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels" type="module" defer></script>
-    <script src="admgraficos.js" type="module" defer></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Adm Gráficos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link rel="icon" type="image/png" href="/assets/icon.png"/>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="card.css"/>
+  <link rel="stylesheet" href="adm.css"/>
+  <link rel="stylesheet" href="admgraficos.css"/>
+  <link rel="stylesheet" href="/assets/hamburguer.css"/>
+  <script src="/MenuLateral.js" type="module" defer></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" type="module" defer></script>
+  <!-- Plugin DataLabels -->
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels" type="module" defer></script>
+  <!-- Seu script principal -->
+  <script src="admgraficos.js" type="module" defer></script>
 </head>
 
 <body>
-    <div class="container">
-        <div class="menu">
-            <a href="../home.html">Página Inicial</a>
-            <a href="adm.html">Gestão de usuários</a>
-            <a href="">Gráficos</a>
-        </div>
+  <div class="container">
+    <div class="menu">
+      <a href="../home.html">Página Inicial</a>
+      <a href="adm.html">Gestão de usuários</a>
+      <a href="">Gráficos</a>
     </div>
+  </div>
 
-    <div class="titulo_graficos">
-        <h1>Gráficos de Uso</h1>
-    </div>
+  <div class="titulo_graficos">
+    <h1>Gráficos de Uso</h1>
+  </div>
 
-    <div class="grafico-container">
-        <canvas id="graficoTiposContas"></canvas>
-      </div>
-      
-      <div class="grafico-container">
-        <canvas id="graficoTamanhoUsuarios"></canvas>
-      </div>
-      
+  <!-- Gráfico de Tipos de Contas (já existente) -->
+  <div class="grafico-container">
+    <canvas id="graficoTiposContas"></canvas>
+  </div>
 
+  <!-- Gráfico de Tamanho em MB de cada usuário (novo) -->
+  <div class="grafico-container">
+    <canvas id="graficoTamanhoUsuarios"></canvas>
+  </div>
 </body>
-
 </html>

@@ -1,34 +1,93 @@
-.titulo_graficos{
-    max-width: 1620px;
-    margin: 0 auto;
-    margin-top: 20px;
-    padding: 20px 0;
-    background-color: #e4e4e4;
-    border: solid black;
-    border-radius: 25px;
-    display: flex;
-    justify-content: center;
-}
-
-.grafico-container {
-    max-width: 1620px;
-    margin: 0 auto;
-    margin-top: 20px;
-    margin-bottom: 20px;
-    background-color: #e4e4e4;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 70vh; /* Define a altura da div */
-    border: solid black;
-    border-radius: 25px;
-    padding: 20px; /* Adiciona um espaço interno para não colar no limite */
+/* Reset básico */
+* {
+    margin: 0;
+    padding: 0;
     box-sizing: border-box;
-}
-
-#graficoTiposContas {
-    width: 80%;  /* Reduz a largura do gráfico */
-    height: 80%; /* Reduz a altura do gráfico */
-    max-width: 800px; /* Define um limite máximo para a largura */
-    max-height: 500px; /* Define um limite máximo para a altura */
-}
+  }
+  
+  body {
+    font-family: 'Montserrat', sans-serif;
+    background-color: #f9f9f9;
+    color: #333;
+    line-height: 1.6;
+    padding: 10px;
+  }
+  
+  /* Título dos gráficos */
+  .titulo_graficos {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #e4e4e4;
+    border: 2px solid #333;
+    border-radius: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    font-size: 1.5rem;
+  }
+  
+  /* Container para os gráficos */
+  .grafico-container {
+    max-width: 1200px;
+    width: 100%;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #e4e4e4;
+    border: 2px solid #333;
+    border-radius: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow-y: auto; /* Permite rolagem vertical quando necessário */
+    height: 600px;   /* Altura fixa para manter a área de visualização */
+  }
+  
+  /* Estilo para os canvas dos gráficos */
+  #graficoTiposContas,
+  #graficoTamanhoUsuarios {
+    width: 90%;
+    height: 90%;
+    max-width: 800px;
+    max-height: 500px;
+  }
+  
+  /* Responsividade para telas menores */
+  @media (max-width: 768px) {
+    .titulo_graficos {
+      max-width: 90%;
+      padding: 15px;
+      font-size: 1.3rem;
+    }
+    
+    .grafico-container {
+      max-width: 90%;
+      height: 400px;
+      padding: 15px;
+    }
+    
+    #graficoTiposContas,
+    #graficoTamanhoUsuarios {
+      max-width: 100%;
+      max-height: 300px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .titulo_graficos {
+      padding: 10px;
+      font-size: 1.1rem;
+    }
+    
+    .grafico-container {
+      height: 300px;
+      padding: 10px;
+    }
+    
+    #graficoTiposContas,
+    #graficoTamanhoUsuarios {
+      max-height: 200px;
+    }
+  }
+  
