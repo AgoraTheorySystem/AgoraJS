@@ -210,3 +210,46 @@ window.addEventListener("load", () => {
     console.error("Erro ao buscar dados do Firebase:", error);
   });
 });
+
+// Aguarda o carregamento do DOM
+window.addEventListener("load", () => {
+  document.getElementById("gerarRelatorio").addEventListener("click", () => {
+    // Acessa a instância jsPDF a partir do objeto global (usando a UMD do jsPDF)
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+
+    // Seleciona os elementos canvas dos gráficos
+    const canvas1 = document.getElementById("graficoTiposContas");
+    const canvas2 = document.getElementById("graficoTamanhoUsuarios");
+
+    // Converte os canvas em imagens (formato PNG)
+    const imgData1 = canvas1.toDataURL("image/png");
+    const imgData2 = canvas2.toDataURL("image/png");
+
+    // Calcula as dimensões para centralizar as imagens na página A4
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const margin = 10; // margem de 10mm
+    const imgWidth = pageWidth - margin * 2;
+    const imgHeight1 = imgWidth * (canvas1.height / canvas1.width);
+    const imgHeight2 = imgWidth * (canvas2.height / canvas2.width);
+
+    // Adiciona o primeiro gráfico à primeira página
+    pdf.addImage(imgData1, "PNG", margin, margin, imgWidth, imgHeight1);
+
+    // Adiciona uma nova página para o segundo gráfico
+    pdf.addPage();
+    pdf.addImage(imgData2, "PNG", margin, margin, imgWidth, imgHeight2);
+
+    // Gera uma string com a data atual no formato YYYY-MM-DD
+    const hoje = new Date();
+    const dataFormatada =
+      hoje.getFullYear() +
+      "-" +
+      (hoje.getMonth() + 1).toString().padStart(2, "0") +
+      "-" +
+      hoje.getDate().toString().padStart(2, "0");
+
+    // Salva o PDF com o nome "RelatorioAgora(Data).pdf"
+    pdf.save(`RelatorioAgora(${dataFormatada}).pdf`);
+  });
+});
