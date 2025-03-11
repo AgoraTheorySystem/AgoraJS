@@ -10,16 +10,23 @@ header h1 {
   margin-bottom: 20px;
 }
 
-/* Estilos da tabela */ 
+/* Container geral para a tabela (permite rolagem horizontal e limita largura) */
+.table-container {
+  overflow-x: auto;         /* Rolagem horizontal, se necessário */
+  max-width: 90%;         /* Largura máxima menor para compactar */
+  margin: 20px auto;        /* Centraliza o container na tela */
+}
+
+/* Estilos da tabela */
 table {
   width: 100%;
-  max-width: 900px;
-  margin: 20px auto;
   border-collapse: collapse;
   background-color: #fff;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  border-radius: 10px;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.1); /* Reduz a sombra */
+  border-radius: 8px;                    /* Ajusta o raio do canto */
   overflow: hidden;
+  margin: 0;                             /* Remove margens extras */
+  font-size: 14px;                       /* Diminui a fonte para compactar */
 }
 
 thead {
@@ -28,7 +35,7 @@ thead {
 }
 
 th, td {
-  padding: 12px;
+  padding: 8px;             /* Reduz o padding das células */
   text-align: left;
   border-bottom: 1px solid #ddd;
 }
@@ -39,6 +46,18 @@ th {
 
 tbody tr:nth-child(even) {
   background-color: #f9f9f9;
+}
+
+/* Ajuste específico para a borda do #data-table */
+#data-table {
+  border: 1px solid #ccc; 
+  min-width: 600px;        /* Define uma largura mínima menor */
+}
+
+/* Ajuste para as células do #data-table */
+#data-table th,
+#data-table td {
+  border: 1px solid #ccc;
 }
 
 /* Estilos da paginação */
@@ -54,10 +73,10 @@ tbody tr:nth-child(even) {
   background-color: #007bff;
   color: #fff;
   border: none;
-  padding: 10px 15px;
+  padding: 6px 12px;  /* Reduz o padding */
   cursor: pointer;
-  font-size: 16px;
-  border-radius: 5px;
+  font-size: 14px;    /* Reduz a fonte */
+  border-radius: 4px;
   transition: background 0.3s;
 }
 
@@ -71,7 +90,7 @@ tbody tr:nth-child(even) {
 }
 
 #page-info {
-  font-size: 16px;
+  font-size: 14px;   /* Reduz a fonte */
   font-weight: bold;
 }
 
@@ -86,7 +105,7 @@ tbody tr:nth-child(even) {
   right: 0;
 }
 
-/* From Uiverse.io by Nawsome */
+/* Animação do loader - mantida conforme exemplo original */
 .loader {
   position: absolute;
   margin: auto;
@@ -154,17 +173,14 @@ tbody tr:nth-child(even) {
   0% {
     transform: rotate(0);
   }
-
   10% {
     width: 6.250em;
     height: 6.250em;
   }
-
   66% {
     width: 2.4em;
     height: 2.4em;
   }
-
   100% {
     transform: rotate(360deg);
     width: 6.250em;
@@ -177,7 +193,6 @@ tbody tr:nth-child(even) {
     opacity: .1;
     width: 2.4em;
   }
-
   77% {
     opacity: 1;
     width: 0;
@@ -189,7 +204,6 @@ tbody tr:nth-child(even) {
     opacity: .1;
     height: 2.4em;
   }
-
   77% {
     opacity: 1;
     height: 0;
@@ -201,12 +215,10 @@ tbody tr:nth-child(even) {
     opacity: 0;
     border-radius: 0%;
   }
-
   55% {
     opacity: .6;
     border-radius: 100%;
   }
-
   66% {
     opacity: 0;
   }
@@ -214,68 +226,72 @@ tbody tr:nth-child(even) {
 
 /* Estilos do filtro */
 .filter-container {
-  max-width: 900px;
+  max-width: 800px;         /* Ajuste para ficar mais compacto */
   width: 100%;
-  padding: 0 15px;         /* espaçamento interno para evitar encostar nas bordas */
+  padding: 0 15px;          /* Espaçamento interno lateral */
   text-align: right;
-  margin-top: 20px;
+  margin: 20px auto;
 }
 
 .filter-container input {
   width: 100%;
-  max-width: 300px;        /* limita a largura do input em telas maiores */
-  padding: 10px 15px;
+  max-width: 250px;         /* Limita a largura do input em telas maiores */
+  padding: 6px 10px;        /* Reduz o padding */
   border: 1px solid #ddd;
   border-radius: 5px;
-  font-size: 16px;
+  font-size: 14px;          /* Reduz a fonte */
   transition: border-color 0.3s ease;
 }
 
-/* Efeito de foco para melhor usabilidade */
+/* Efeito de foco no input */
 .filter-container input:focus {
   outline: none;
   border-color: #17426C;
 }
 
+.page-btn {
+  margin-left: 5px;
+  font-size: 14px;
+  padding: 6px 10px;
+}
+
 /* Estilos para dispositivos móveis */
 @media (max-width: 768px) {
   .filter-container {
-    text-align: center;  /* centraliza o conteúdo em telas menores */
+    text-align: center;     /* Centraliza o filtro em telas menores */
   }
 
   .filter-container input {
-    max-width: none;     /* permite que o input ocupe toda a largura disponível */
+    max-width: none;       /* Permite que o input ocupe toda a largura */
   }
 }
 
-
-/* Responsividade */
+/* Responsividade adicional para telas muito pequenas */
 @media screen and (max-width: 600px) {
   table {
-    font-size: 15px;
+    font-size: 13px;       /* Reduz ainda mais a fonte */
   }
-  
   th, td {
-    padding: 10px;
+    padding: 6px;
   }
-  
   .pagination {
     flex-direction: column;
+    gap: 5px;
   }
-  
   .pagination button {
-    width: 50%;
+    width: 100px;
   }
 }
 
+/* Container geral da página */
 .container {
-  margin-top: 50px;
+  margin-top: 30px;
   margin-left: auto;
   margin-right: auto;
   max-width: 1620px;
 }
 
-/* Estilização padrão para telas maiores */
+/* Menu principal */
 .container .menu {
   background-color: #17426C;
   display: flex;
@@ -283,15 +299,15 @@ tbody tr:nth-child(even) {
   align-items: center;
   border-radius: 25px;
   box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.5);
-  margin-top: 35px;
+  margin-top: 20px;
 }
 
 .container .menu a {
-  padding: 30px 0;
+  padding: 20px 0;
   text-decoration: none;
   color: white;
   font-family: "Montserrat", sans-serif;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: bold;
   text-transform: uppercase;
   transition: color 0.3s;
@@ -302,46 +318,24 @@ tbody tr:nth-child(even) {
   color: #fdd200;
 }
 
-/* Media query para dispositivos móveis */
+/* Menu em dispositivos móveis */
 @media (max-width: 768px) {
   .container {
-    padding: 0 15px; /* adiciona um padding lateral para evitar que o conteúdo grude nas bordas */
+    padding: 0 15px;
   }
-  
+
   .container .menu {
-    flex-direction: column; /* empilha os links verticalmente */
+    flex-direction: column; 
     justify-content: center;
     align-items: center;
     margin-top: 20px;
     padding: 10px;
   }
-  
+
   .container .menu a {
-    padding: 15px 0;
-    font-size: 18px;
+    padding: 10px 0;
+    font-size: 16px;
     width: 100%;
     text-align: center;
   }
 }
-
-/* Faz a tabela ser rolável horizontalmente */
-.table-container {
-  overflow-x: auto; /* Rolagem horizontal se necessário */
-  max-width: 100vw; /* Largura máxima da viewport */
-  
-}
-
-#data-table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 800px; /* Defina um tamanho mínimo para evitar colapsos */
-  border: 5px solid;
-}
-
-#data-table th,
-#data-table td {
-  border: 1px solid #ccc;
-  padding: 8px;
-  text-align: left;
-}
-

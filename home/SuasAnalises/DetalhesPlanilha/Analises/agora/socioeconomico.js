@@ -9,11 +9,14 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  let currentPage = 1;
-  const rowsPerPage = 20;
   let data = [];
   let filteredData = [];
+  let headerData = [];
+  let tableData = [];
   let currentQuery = "";
+  let currentPage = 1;
+  const rowsPerPage = 10;
+  
 
   // Seleciona os elementos do DOM referentes à tabela, paginação e filtro
   const table = document.getElementById("data-table");
@@ -51,16 +54,17 @@ document.addEventListener("DOMContentLoaded", () => {
   // Renderiza o cabeçalho da tabela com base nas chaves do primeiro item dos dados
   function renderTableHeader() {
     tableHead.innerHTML = "";
-    if (filteredData.length > 0) {
+    if (headerData) {
       const headerRow = document.createElement("tr");
-      Object.keys(filteredData[0]).forEach((key) => {
+      headerData.forEach((cell) => {
         const th = document.createElement("th");
-        th.textContent = key;
+        th.textContent = cell;
         headerRow.appendChild(th);
       });
       tableHead.appendChild(headerRow);
     }
   }
+  
 
   // Renderiza o corpo da tabela com os dados paginados e destaca o termo pesquisado
   function renderTable(page) {
@@ -68,29 +72,29 @@ document.addEventListener("DOMContentLoaded", () => {
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
     const paginatedData = filteredData.slice(start, end);
-
+  
     if (paginatedData.length === 0) {
       const row = document.createElement("tr");
       const cell = document.createElement("td");
-      cell.colSpan = filteredData.length > 0 ? Object.keys(filteredData[0]).length : 1;
+      cell.colSpan = headerData ? headerData.length : 1;
       cell.textContent = "Nenhum registro encontrado.";
       cell.style.textAlign = "center";
       row.appendChild(cell);
       tableBody.appendChild(row);
     } else {
-      paginatedData.forEach((item) => {
+      paginatedData.forEach((rowData) => {
         const row = document.createElement("tr");
-        Object.values(item).forEach((value) => {
+        rowData.forEach((cellData) => {
           const cell = document.createElement("td");
-          cell.innerHTML = highlightText(String(value), currentQuery);
+          cell.innerHTML = highlightText(String(cellData), currentQuery);
           row.appendChild(cell);
         });
         tableBody.appendChild(row);
       });
     }
-
     updatePagination();
   }
+  
 
   // Atualiza os botões e os números da paginação
   function updatePagination() {
@@ -98,8 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
     pageInfo.textContent = `Página ${currentPage} de ${totalPages}`;
     prevBtn.disabled = currentPage <= 1;
     nextBtn.disabled = currentPage >= totalPages;
-
-    // Renderiza os números das páginas
+    // Renderiza os números das páginas, conforme já implementado
     const pageNumbersContainer = document.getElementById("page-numbers");
     if (pageNumbersContainer) {
       pageNumbersContainer.innerHTML = "";
@@ -126,6 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
   }
+  
 
   // Função auxiliar para determinar quais números de página exibir
   function getPageNumbers(totalPages, currentPage) {
@@ -156,18 +160,16 @@ document.addEventListener("DOMContentLoaded", () => {
   function applyFilter(query) {
     currentQuery = query;
     if (query === "") {
-      filteredData = data;
+      filteredData = tableData;
     } else {
-      filteredData = data.filter((item) =>
-        Object.values(item).some((value) =>
-          value.toString().toLowerCase().includes(query)
-        )
+      filteredData = tableData.filter((row) =>
+        row.some((cell) => cell.toString().toLowerCase().includes(query))
       );
     }
     currentPage = 1;
-    renderTableHeader();
     renderTable(currentPage);
   }
+  
 
   // Função debounce para otimizar o filtro enquanto o usuário digita
   function debounce(func, delay) {
@@ -211,15 +213,23 @@ document.addEventListener("DOMContentLoaded", () => {
   // Inicializa a tabela com os dados do LocalStorage
   function init() {
     showLoading(true);
-    // Simulação de carregamento – remova o setTimeout se não for necessário
     setTimeout(() => {
       data = loadFromLocalStorage(planilhaNome);
-      filteredData = data;
+      if (data.length === 0) {
+        showLoading(false);
+        return;
+      }
+      // Separa a primeira linha (cabeçalho) dos dados
+      headerData = data[0];
+      tableData = data.slice(1);
+      // Inicialmente, o filtro utiliza todos os dados do corpo
+      filteredData = tableData;
       renderTableHeader();
       renderTable(currentPage);
       showLoading(false);
     }, 1000);
   }
+  
 
   init();
 });
