@@ -17,7 +17,6 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentPage = 1;
   const rowsPerPage = 10;
   
-
   // Seleciona os elementos do DOM referentes à tabela, paginação e filtro
   const table = document.getElementById("data-table");
   const tableHead = table.querySelector("thead");
@@ -65,7 +64,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
   
-
   // Renderiza o corpo da tabela com os dados paginados e destaca o termo pesquisado
   function renderTable(page) {
     tableBody.innerHTML = "";
@@ -95,65 +93,44 @@ document.addEventListener("DOMContentLoaded", () => {
     updatePagination();
   }
   
-
   // Atualiza os botões e os números da paginação
   function updatePagination() {
     const totalPages = Math.max(1, Math.ceil(filteredData.length / rowsPerPage));
     pageInfo.textContent = `Página ${currentPage} de ${totalPages}`;
     prevBtn.disabled = currentPage <= 1;
     nextBtn.disabled = currentPage >= totalPages;
-    // Renderiza os números das páginas, conforme já implementado
+
+    // Renderiza os números das páginas
     const pageNumbersContainer = document.getElementById("page-numbers");
     if (pageNumbersContainer) {
       pageNumbersContainer.innerHTML = "";
       const pagesToDisplay = getPageNumbers(totalPages, currentPage);
       pagesToDisplay.forEach(page => {
-        if (page === "...") {
-          const span = document.createElement("span");
-          span.textContent = "...";
-          span.className = "ellipsis";
-          pageNumbersContainer.appendChild(span);
-        } else {
-          const btn = document.createElement("button");
-          btn.textContent = page;
-          btn.className = "page-btn";
-          if (page === currentPage) {
-            btn.classList.add("active");
-          }
-          btn.addEventListener("click", () => {
-            currentPage = page;
-            renderTable(currentPage);
-          });
-          pageNumbersContainer.appendChild(btn);
+        const btn = document.createElement("button");
+        btn.textContent = page;
+        btn.className = "page-btn";
+        if (page === currentPage) {
+          btn.classList.add("active");
         }
+        btn.addEventListener("click", () => {
+          currentPage = page;
+          renderTable(currentPage);
+        });
+        pageNumbersContainer.appendChild(btn);
       });
     }
   }
   
-
-  // Função auxiliar para determinar quais números de página exibir
+  // Função auxiliar para determinar quais números de página exibir:
+  // Exibe somente 2 páginas anteriores e 2 posteriores à página atual.
   function getPageNumbers(totalPages, currentPage) {
-    const delta = 2; // quantidade de páginas antes e depois da atual
-    const range = [];
-    const rangeWithDots = [];
-    let l;
-    for (let i = 1; i <= totalPages; i++) {
-      if (i === 1 || i === totalPages || (i >= currentPage - delta && i <= currentPage + delta)) {
-        range.push(i);
-      }
+    const start = Math.max(1, currentPage - 2);
+    const end = Math.min(totalPages, currentPage + 2);
+    const pages = [];
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
     }
-    for (let i of range) {
-      if (l) {
-        if (i - l === 2) {
-          rangeWithDots.push(l + 1);
-        } else if (i - l > 2) {
-          rangeWithDots.push("...");
-        }
-      }
-      rangeWithDots.push(i);
-      l = i;
-    }
-    return rangeWithDots;
+    return pages;
   }
 
   // Aplica o filtro de busca na tabela
@@ -170,7 +147,6 @@ document.addEventListener("DOMContentLoaded", () => {
     renderTable(currentPage);
   }
   
-
   // Função debounce para otimizar o filtro enquanto o usuário digita
   function debounce(func, delay) {
     let timeoutId;
@@ -181,12 +157,12 @@ document.addEventListener("DOMContentLoaded", () => {
       }, delay);
     };
   }
-
+  
   // Exibe ou oculta o elemento de loading
   function showLoading(show) {
     loadingDiv.style.display = show ? "block" : "none";
   }
-
+  
   // Navegação entre páginas
   function goToPreviousPage() {
     if (currentPage > 1) {
@@ -194,7 +170,7 @@ document.addEventListener("DOMContentLoaded", () => {
       renderTable(currentPage);
     }
   }
-
+  
   function goToNextPage() {
     const totalPages = Math.ceil(filteredData.length / rowsPerPage);
     if (currentPage < totalPages) {
@@ -202,14 +178,14 @@ document.addEventListener("DOMContentLoaded", () => {
       renderTable(currentPage);
     }
   }
-
+  
   // Atribui os eventos aos botões e ao campo de filtro
   prevBtn.addEventListener("click", goToPreviousPage);
   nextBtn.addEventListener("click", goToNextPage);
   filterInput.addEventListener("input", debounce((e) => {
     applyFilter(e.target.value.trim().toLowerCase());
   }, 300));
-
+  
   // Inicializa a tabela com os dados do LocalStorage
   function init() {
     showLoading(true);
@@ -230,6 +206,5 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 1000);
   }
   
-
   init();
 });

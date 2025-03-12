@@ -28,7 +28,7 @@ body {
     color: #fff;
   }
   
-  th, 
+  th,
   td {
     padding: 8px;
     text-align: left;
@@ -56,7 +56,7 @@ body {
     padding: 6px 12px;
     font-size: 14px;
     border-radius: 4px;
-    transition: background 0.3s;
+    transition: background 0.3s, transform 0.3s, border 0.3s;
     cursor: pointer;
     margin-left: 5px;
   }
@@ -77,6 +77,14 @@ body {
     font-weight: bold;
   }
   
+  /* Destaque para a página ativa */
+  .page-btn.active {
+    background-color: #0056b3; /* tom mais escuro */
+    border: 4px solid #109fff; /* borda amarela para destaque */
+    font-weight: bold;
+    transform: scale(1.1);
+  }
+  
   /* Loading */
   #loading {
     display: none;
@@ -88,17 +96,152 @@ body {
     right: 0;
   }
   
-  /* Loader minimal */
-  .loader {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #007bff;
-    border-top: 4px solid transparent;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
   
-  @keyframes spin {
-    to { transform: rotate(360deg); }
+  /* Estilos do filtro */
+  .filter-container {
+    max-width: 800px;
+    width: 100%;
+    padding: 0 15px;
+    text-align: right;
+    margin: 20px;
+  }
+  
+  .filter-container input {
+    width: 100%;
+    max-width: 250px;
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+  }
+  
+  .filter-container input:focus {
+    outline: none;
+    border-color: #17426C;
+  }
+  
+  /* From Uiverse.io by Nawsome */
+  .loader {
+    position: absolute;
+    margin: auto;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 6.250em;
+    height: 6.250em;
+    animation: rotate5123 2.4s linear infinite;
+  }
+  
+  .white {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    animation: flash 2.4s linear infinite;
+    opacity: 0;
+  }
+  
+  .dot {
+    position: absolute;
+    margin: auto;
+    width: 2.4em;
+    height: 2.4em;
+    border-radius: 100%;
+    transition: all 1s ease;
+  }
+  
+  .dot:nth-child(2) {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    background: #FF4444;
+    animation: dotsY 2.4s linear infinite;
+  }
+  
+  .dot:nth-child(3) {
+    left: 0;
+    right: 0;
+    top: 0;
+    background: #FFBB33;
+    animation: dotsX 2.4s linear infinite;
+  }
+  
+  .dot:nth-child(4) {
+    top: 0;
+    bottom: 0;
+    right: 0;
+    background: #99CC00;
+    animation: dotsY 2.4s linear infinite;
+  }
+  
+  .dot:nth-child(5) {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #33B5E5;
+    animation: dotsX 2.4s linear infinite;
+  }
+  
+  @keyframes rotate5123 {
+    0% {
+      transform: rotate(0);
+    }
+    10% {
+      width: 6.250em;
+      height: 6.250em;
+    }
+    66% {
+      width: 2.4em;
+      height: 2.4em;
+    }
+    100% {
+      transform: rotate(360deg);
+      width: 6.250em;
+      height: 6.250em;
+    }
+  }
+  
+  @keyframes dotsY {
+    66% {
+      opacity: 0.1;
+      width: 2.4em;
+    }
+    77% {
+      opacity: 1;
+      width: 0;
+    }
+  }
+  
+  @keyframes dotsX {
+    66% {
+      opacity: 0.1;
+      height: 2.4em;
+    }
+    77% {
+      opacity: 1;
+      height: 0;
+    }
+  }
+  
+  @keyframes flash {
+    33% {
+      opacity: 0;
+      border-radius: 0%;
+    }
+    55% {
+      opacity: 0.6;
+      border-radius: 100%;
+    }
+    66% {
+      opacity: 0;
+    }
   }
   

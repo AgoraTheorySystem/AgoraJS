@@ -69,25 +69,42 @@ tbody tr:nth-child(even) {
   margin-top: 20px;
 }
 
-.pagination button {
+.pagination button,
+.page-btn {
   background-color: #007bff;
   color: #fff;
   border: none;
-  padding: 6px 12px;  /* Reduz o padding */
-  cursor: pointer;
-  font-size: 14px;    /* Reduz a fonte */
+  padding: 6px 12px;
+  font-size: 14px;
   border-radius: 4px;
-  transition: background 0.3s;
+  transition: background 0.3s, transform 0.3s, border 0.3s;
+  cursor: pointer;
+  margin-left: 5px;
 }
 
-.pagination button:disabled {
+.pagination button:disabled,
+.page-btn:disabled {
   background-color: #ccc;
   cursor: not-allowed;
 }
 
-.pagination button:hover:not(:disabled) {
+.pagination button:hover:not(:disabled),
+.page-btn:hover:not(:disabled) {
   background-color: #0056b3;
 }
+
+/* Destaque para a página ativa */
+.page-btn.active {
+  background-color: #0056b3; /* tom mais escuro */
+  border: 4px solid #109fff; /* borda amarela para destaque */
+  font-weight: bold;
+  transform: scale(1.1);
+}
+#page-info {
+  font-size: 14px;
+  font-weight: bold;
+}
+
 
 #page-info {
   font-size: 14px;   /* Reduz a fonte */
@@ -230,7 +247,7 @@ tbody tr:nth-child(even) {
   width: 100%;
   padding: 0 15px;          /* Espaçamento interno lateral */
   text-align: right;
-  margin: 20px auto;
+  margin: 20px;
 }
 
 .filter-container input {

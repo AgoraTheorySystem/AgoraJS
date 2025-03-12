@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +7,7 @@
   <link href="/assets/hamburguer.css" rel="stylesheet">
   <script src="/MenuLateral.js" type="module" defer></script>
   <link href="evocacoes.css" rel="stylesheet">
+  <!-- Script principal de evocações -->
   <script src="evocacoes.js" type="module" defer></script>
   <script src="menu.js" type="module" defer></script>
   <link href="menu.css" rel="stylesheet">
@@ -36,6 +36,11 @@
       </figure>
     </div>
 
+    <!-- Campo de busca -->
+    <div class="filter-container">
+      <input type="text" id="search-input" placeholder="Buscar na tabela" />
+    </div>
+
     <!-- Tabela de dados -->
     <div class="table-container">
       <table id="data-table">
@@ -51,6 +56,6 @@
       <button id="next-btn">Próximo</button>
       <span id="page-info"></span>
     </div>
-
-
+  </main>
+</body>
 </html>
