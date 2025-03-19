@@ -2,10 +2,15 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.3/firebase
 import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
 import firebaseConfig from '/firebase.js';
 
-// Inicializar o Firebase
+// 1. Inicializar o Firebase
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
+/* ==============================
+   FUNÇÕES AUXILIARES
+============================== */
+
+// Recupera o usuário da sessão
 function getUserFromSession() {
   try {
     const userData = sessionStorage.getItem('user');
@@ -20,10 +25,12 @@ function getUserFromSession() {
   }
 }
 
+// Extrai o nome do arquivo sem extensão
 function extractFileName(fullName) {
   return fullName.replace(/\.[^/.]+$/, "");
 }
 
+// Verifica se uma planilha com o mesmo nome já existe no Firebase
 async function checkIfFileExists(user, fileName) {
   const fileRef = ref(database, `/users/${user.uid}/planilhas/${fileName}`);
   try {
@@ -35,6 +42,7 @@ async function checkIfFileExists(user, fileName) {
   }
 }
 
+// Lê o arquivo Excel e converte para array de arrays
 async function readExcelFile(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -56,15 +64,38 @@ async function readExcelFile(file) {
   });
 }
 
+// Preenche células vazias com "Vazio"
 function fillEmptyCellsWithVazio(data) {
   const maxColumns = Math.max(...data.map(row => row.length));
   return data.map(row => Array.from({ length: maxColumns }, (_, i) => row[i] || "Vazio"));
 }
 
+// Converte tudo para maiúsculas
 function convertToUppercase(data) {
   return data.map(row => row.map(cell => (typeof cell === 'string' ? cell.toUpperCase() : cell)));
 }
 
+// Salva dados no LocalStorage
+function saveToLocalStorage(key, data) {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+    console.log(`Dados salvos no LocalStorage com a chave "${key}".`);
+  } catch (error) {
+    console.error("Erro ao salvar no LocalStorage:", error);
+  }
+}
+
+// Mostra ou oculta o "loading"
+function toggleLoading(show) {
+  const loadingElement = document.getElementById('loading');
+  if (loadingElement) {
+    loadingElement.style.display = show ? 'block' : 'none';
+  }
+}
+
+/* ==============================
+   1) SALVAR PLANILHA ORIGINAL
+============================== */
 async function saveData(user, data, fileName) {
   const chunkSize = 500;
   const totalRows = data.length;
@@ -72,34 +103,125 @@ async function saveData(user, data, fileName) {
 
   for (let i = 0; i < totalRows; i += chunkSize) {
     const chunk = data.slice(i, i + chunkSize);
+    // Exemplo: /users/uid/planilhas/500/chunk_0
     const chunkRef = ref(database, `/users/${user.uid}/planilhas/${fileName}/chunk_${chunkIndex}`);
     try {
       await set(chunkRef, chunk);
-      console.log(`Chunk ${chunkIndex} salvo para ${fileName}`);
+      console.log(`Chunk ${chunkIndex} salvo para planilha "${fileName}".`);
       chunkIndex++;
     } catch (error) {
       throw new Error(`Erro ao salvar chunk ${chunkIndex}: ${error.message}`);
     }
   }
 
-  saveToLocalStorage(fileName, data);
+  // Salva no LocalStorage com a chave "planilha_{fileName}"
+  saveToLocalStorage(`planilha_${fileName}`, data);
 }
 
-function saveToLocalStorage(fileName, data) {
-  try {
-    const key = `planilha_${fileName}`;
-    localStorage.setItem(key, JSON.stringify(data));
-    console.log(`Planilha "${fileName}" salva no LocalStorage.`);
-  } catch (error) {
-    console.error("Erro ao salvar no LocalStorage:", error);
+/* ==============================
+   2) CRIAR E SALVAR TABELA AUXILIAR
+============================== */
+function processEvocData(rawData) {
+  const header = rawData[0];
+  const rows = rawData.slice(1);
+
+  // Identifica colunas evoc1..evoc5 => EGO, evoc6..evoc10 => ALTER
+  const evocEgoIndices = [];
+  const evocAlterIndices = [];
+
+  header.forEach((colName, idx) => {
+    const colNameLower = colName.toLowerCase();
+    if (/^evoc[1-5]$/.test(colNameLower)) {
+      evocEgoIndices.push(idx);
+    } else if (/^evoc(6|7|8|9|10)$/.test(colNameLower)) {
+      evocAlterIndices.push(idx);
+    }
+  });
+
+  // Dicionário para contar ocorrências
+  const wordCounts = {};
+  rows.forEach((row) => {
+    // EGO
+    evocEgoIndices.forEach((colIdx) => {
+      const word = (row[colIdx] || "").trim();
+      if (word) {
+        if (!wordCounts[word]) wordCounts[word] = { ego: 0, alter: 0 };
+        wordCounts[word].ego++;
+      }
+    });
+    // ALTER
+    evocAlterIndices.forEach((colIdx) => {
+      const word = (row[colIdx] || "").trim();
+      if (word) {
+        if (!wordCounts[word]) wordCounts[word] = { ego: 0, alter: 0 };
+        wordCounts[word].alter++;
+      }
+    });
+  });
+
+  // Monta array final: cabeçalho + linhas
+  const bodyTable = [];
+  Object.keys(wordCounts).forEach((word) => {
+    if (word.toUpperCase() !== "VAZIO") {
+      const { ego, alter } = wordCounts[word];
+      bodyTable.push([word, alter, ego, ego + alter]);
+    }
+  });
+  // Ordena decrescentemente
+  bodyTable.sort((a, b) => b[3] - a[3]);
+
+  return [
+    ["PALAVRA", "QUANTIDADE_ALTER", "QUANTIDADE_EGO", "QUANTIDADE_TOTAL"],
+    ...bodyTable
+  ];
+}
+
+async function saveAuxiliaryTable(user, auxiliaryData, fileName) {
+  const chunkSize = 500;
+  const totalRows = auxiliaryData.length;
+  let chunkIndex = 0;
+
+  for (let i = 0; i < totalRows; i += chunkSize) {
+    const chunk = auxiliaryData.slice(i, i + chunkSize);
+    // Exemplo: /users/uid/tabelasAuxiliares/500/chunk_0
+    const chunkRef = ref(database, `/users/${user.uid}/tabelasAuxiliares/${fileName}/chunk_${chunkIndex}`);
+    try {
+      await set(chunkRef, chunk);
+      console.log(`Chunk ${chunkIndex} salvo para a tabela auxiliar "${fileName}".`);
+      chunkIndex++;
+    } catch (error) {
+      throw new Error(`Erro ao salvar chunk ${chunkIndex} da tabela auxiliar: ${error.message}`);
+    }
   }
+  // Salva no LocalStorage => "planilha_auxiliar_500"
+  saveToLocalStorage(`planilha_auxiliar_${fileName}`, auxiliaryData);
 }
 
-function toggleLoading(show) {
-  const loadingElement = document.getElementById('loading');
-  if (loadingElement) loadingElement.style.display = show ? 'block' : 'none';
+/* ==============================
+   3) SALVAR DATA DE ÚLTIMA ALTERAÇÃO
+============================== */
+async function saveLastModification(user, fileName) {
+  const today = new Date();
+  const formattedDate = today.toISOString().split("T")[0]; // YYYY-MM-DD
+  const modificationData = {
+    date: formattedDate,
+    timestamp: today.getTime()
+  };
+  // Exemplo: /users/uid/UltimasAlteracoes/500/2023-05-01
+  const modRef = ref(database, `/users/${user.uid}/UltimasAlteracoes/${fileName}/${formattedDate}`);
+  try {
+    await set(modRef, modificationData);
+    console.log(`Data de última alteração registrada para "${fileName}" em ${formattedDate}.`);
+  } catch (error) {
+    throw new Error(`Erro ao salvar data de última alteração: ${error.message}`);
+  }
+  // Salva no LocalStorage => "planilha_ultima_alteracao_500"
+  saveToLocalStorage(`planilha_ultima_alteracao_${fileName}`, modificationData);
 }
 
+/* ==============================
+   4) UPLOAD DA PLANILHA
+============================== */
 async function handleFileUpload(user) {
   const fileInput = document.getElementById('fileInput');
   const file = fileInput.files[0];
@@ -113,19 +235,35 @@ async function handleFileUpload(user) {
   const fileExists = await checkIfFileExists(user, fileName);
   if (fileExists) {
     const result = await Swal.fire({
-      icon: 'warning', title: 'Arquivo já existe', text: `Substituir ${fileName}?`,
-      showCancelButton: true, confirmButtonText: 'Substituir', cancelButtonText: 'Cancelar'
+      icon: 'warning',
+      title: 'Arquivo já existe',
+      text: `Substituir ${fileName}?`,
+      showCancelButton: true,
+      confirmButtonText: 'Substituir',
+      cancelButtonText: 'Cancelar'
     });
     if (!result.isConfirmed) return;
   }
 
   toggleLoading(true);
   try {
+    // Lê e processa o arquivo Excel
     const rawData = await readExcelFile(file);
     const processedData = convertToUppercase(fillEmptyCellsWithVazio(rawData));
+    
+    // 1) Salva a planilha original
     await saveData(user, processedData, fileName);
+
+    // 2) Cria e salva a tabela auxiliar
+    const auxiliaryData = processEvocData(processedData);
+    await saveAuxiliaryTable(user, auxiliaryData, fileName);
+
+    // 3) Registra a data de última alteração
+    await saveLastModification(user, fileName);
+
     toggleLoading(false);
     await Swal.fire({ icon: 'success', title: 'Sucesso', text: 'Planilha enviada!' });
+    // Redireciona para a página de listagem
     window.location.href = `/home/SuasAnalises/suas_analises.html`;
   } catch (error) {
     toggleLoading(false);
@@ -134,14 +272,20 @@ async function handleFileUpload(user) {
   }
 }
 
+/* ==============================
+   EVENTO DE INICIALIZAÇÃO
+============================== */
 document.addEventListener("DOMContentLoaded", () => {
   const user = getUserFromSession();
   if (!user) return;
-  document.getElementById('uploadButton').addEventListener('click', async () => {
-    try {
-      await handleFileUpload(user);
-    } catch (error) {
-      console.error("Erro inesperado na operação de upload:", error);
-    }
-  });
+  const uploadBtn = document.getElementById('uploadButton');
+  if (uploadBtn) {
+    uploadBtn.addEventListener('click', async () => {
+      try {
+        await handleFileUpload(user);
+      } catch (error) {
+        console.error("Erro inesperado na operação de upload:", error);
+      }
+    });
+  }
 });
