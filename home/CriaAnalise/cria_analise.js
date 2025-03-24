@@ -164,14 +164,14 @@ function processEvocData(rawData) {
   Object.keys(wordCounts).forEach((word) => {
     if (word.toUpperCase() !== "VAZIO") {
       const { ego, alter } = wordCounts[word];
-      bodyTable.push([word, alter, ego, ego + alter]);
+      bodyTable.push([word, ego, alter, ego + alter]);
     }
   });
   // Ordena decrescentemente
   bodyTable.sort((a, b) => b[3] - a[3]);
 
   return [
-    ["PALAVRA", "QUANTIDADE_ALTER", "QUANTIDADE_EGO", "QUANTIDADE_TOTAL"],
+    ["PALAVRA", "QUANTIDADE_EGO", "QUANTIDADE_ALTER", "QUANTIDADE_TOTAL"],
     ...bodyTable
   ];
 }

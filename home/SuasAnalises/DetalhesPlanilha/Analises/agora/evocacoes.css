@@ -1,247 +1,305 @@
+/* === Estilo global === */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    margin: 0;
-    padding: 20px;
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+  margin: 0;
+  padding: 20px;
+}
+
+/* === MENU LATERAL === */
+.menu-lateral {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  margin-top: 230px;
+  width: 80px;
+  background-color: #007bff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 20px;
+  gap: 25px;
+  border-top-right-radius: 15px;
+  border-bottom-right-radius: 15px;
+}
+
+.menu-botao {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: white;
+  font-weight: bold;
+  font-size: 12px;
+  text-align: center;
+  width: 60px;
+}
+
+.icone-circulo {
+  background-color: white;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 5px;
+}
+
+.icone-circulo i {
+  font-size: 18px;
+  color: #00334f;
+}
+
+/* === TABELA === */
+.table-container {
+  overflow-x: auto;
+  max-width: calc(100% - 100px); /* compensação do menu lateral */
+  margin: 20px auto 0 100px;
+  margin-left: 80px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #fff;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 14px;
+}
+
+thead {
+  background-color: #007bff;
+  color: #fff;
+}
+
+th,
+td {
+  padding: 8px;
+  text-align: left;
+  border: 1px solid #ccc;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+/* === PAGINAÇÃO === */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+  margin-left: 100px;
+}
+
+.pagination button,
+.page-btn {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  font-size: 14px;
+  border-radius: 4px;
+  transition: background 0.3s, transform 0.3s, border 0.3s;
+  cursor: pointer;
+  margin-left: 5px;
+}
+
+.pagination button:disabled,
+.page-btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.pagination button:hover:not(:disabled),
+.page-btn:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.page-btn.active {
+  background-color: #0056b3;
+  border: 4px solid #109fff;
+  font-weight: bold;
+  transform: scale(1.1);
+}
+
+#page-info {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* === CAMPO DE BUSCA === */
+.filter-container {
+  max-width: 800px;
+  width: 100%;
+  padding: 0 15px;
+  margin: 20px auto 0 100px;
+}
+
+.filter-container input {
+  width: 100%;
+  max-width: 250px;
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+}
+
+.filter-container input:focus {
+  outline: none;
+  border-color: #17426C;
+}
+
+/* === LOADING ANIMATION === */
+#loading {
+  display: none;
+  position: absolute;
+  margin: auto;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 999;
+}
+
+.loader {
+  position: absolute;
+  margin: auto;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 6.250em;
+  height: 6.250em;
+  animation: rotate5123 2.4s linear infinite;
+}
+
+.white {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  animation: flash 2.4s linear infinite;
+  opacity: 0;
+}
+
+.dot {
+  position: absolute;
+  margin: auto;
+  width: 2.4em;
+  height: 2.4em;
+  border-radius: 100%;
+  transition: all 1s ease;
+}
+
+.dot:nth-child(2) {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  background: #FF4444;
+  animation: dotsY 2.4s linear infinite;
+}
+
+.dot:nth-child(3) {
+  left: 0;
+  right: 0;
+  top: 0;
+  background: #FFBB33;
+  animation: dotsX 2.4s linear infinite;
+}
+
+.dot:nth-child(4) {
+  top: 0;
+  bottom: 0;
+  right: 0;
+  background: #99CC00;
+  animation: dotsY 2.4s linear infinite;
+}
+
+.dot:nth-child(5) {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #33B5E5;
+  animation: dotsX 2.4s linear infinite;
+}
+
+/* === ANIMAÇÕES DO LOADING === */
+@keyframes rotate5123 {
+  0% {
+    transform: rotate(0);
   }
-  
-  /* Container para a tabela (rolagem horizontal se necessário) */
-  .table-container {
-    overflow-x: auto;
-    max-width: 90%;
-    margin: 20px auto;
-  }
-  
-  /* Estilos da tabela */
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    background-color: #fff;
-    box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    overflow: hidden;
-    font-size: 14px;
-  }
-  
-  thead {
-    background-color: #007bff;
-    color: #fff;
-  }
-  
-  th,
-  td {
-    padding: 8px;
-    text-align: left;
-    border: 1px solid #ccc;
-  }
-  
-  tbody tr:nth-child(even) {
-    background-color: #f9f9f9;
-  }
-  
-  /* Paginação */
-  .pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    margin-top: 20px;
-  }
-  
-  .pagination button,
-  .page-btn {
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    padding: 6px 12px;
-    font-size: 14px;
-    border-radius: 4px;
-    transition: background 0.3s, transform 0.3s, border 0.3s;
-    cursor: pointer;
-    margin-left: 5px;
-  }
-  
-  .pagination button:disabled,
-  .page-btn:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
-  }
-  
-  .pagination button:hover:not(:disabled),
-  .page-btn:hover:not(:disabled) {
-    background-color: #0056b3;
-  }
-  
-  #page-info {
-    font-size: 14px;
-    font-weight: bold;
-  }
-  
-  /* Destaque para a página ativa */
-  .page-btn.active {
-    background-color: #0056b3; /* tom mais escuro */
-    border: 4px solid #109fff; /* borda amarela para destaque */
-    font-weight: bold;
-    transform: scale(1.1);
-  }
-  
-  /* Loading */
-  #loading {
-    display: none;
-    position: absolute;
-    margin: auto;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-  }
-  
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-  
-  /* Estilos do filtro */
-  .filter-container {
-    max-width: 800px;
-    width: 100%;
-    padding: 0 15px;
-    text-align: right;
-    margin: 20px;
-  }
-  
-  .filter-container input {
-    width: 100%;
-    max-width: 250px;
-    padding: 6px 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 14px;
-    transition: border-color 0.3s ease;
-  }
-  
-  .filter-container input:focus {
-    outline: none;
-    border-color: #17426C;
-  }
-  
-  /* From Uiverse.io by Nawsome */
-  .loader {
-    position: absolute;
-    margin: auto;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
+  10% {
     width: 6.250em;
     height: 6.250em;
-    animation: rotate5123 2.4s linear infinite;
   }
-  
-  .white {
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: white;
-    animation: flash 2.4s linear infinite;
-    opacity: 0;
-  }
-  
-  .dot {
-    position: absolute;
-    margin: auto;
+  66% {
     width: 2.4em;
     height: 2.4em;
+  }
+  100% {
+    transform: rotate(360deg);
+    width: 6.250em;
+    height: 6.250em;
+  }
+}
+
+@keyframes dotsY {
+  66% {
+    opacity: 0.1;
+    width: 2.4em;
+  }
+  77% {
+    opacity: 1;
+    width: 0;
+  }
+}
+
+@keyframes dotsX {
+  66% {
+    opacity: 0.1;
+    height: 2.4em;
+  }
+  77% {
+    opacity: 1;
+    height: 0;
+  }
+}
+
+@keyframes flash {
+  33% {
+    opacity: 0;
+    border-radius: 0%;
+  }
+  55% {
+    opacity: 0.6;
     border-radius: 100%;
-    transition: all 1s ease;
   }
-  
-  .dot:nth-child(2) {
-    top: 0;
-    bottom: 0;
-    left: 0;
-    background: #FF4444;
-    animation: dotsY 2.4s linear infinite;
+  66% {
+    opacity: 0;
   }
-  
-  .dot:nth-child(3) {
-    left: 0;
-    right: 0;
-    top: 0;
-    background: #FFBB33;
-    animation: dotsX 2.4s linear infinite;
+}
+
+@media (max-width: 800px) {
+  .menu-lateral{
+    margin-top: 370px;
   }
-  
-  .dot:nth-child(4) {
-    top: 0;
-    bottom: 0;
-    right: 0;
-    background: #99CC00;
-    animation: dotsY 2.4s linear infinite;
-  }
-  
-  .dot:nth-child(5) {
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: #33B5E5;
-    animation: dotsX 2.4s linear infinite;
-  }
-  
-  @keyframes rotate5123 {
-    0% {
-      transform: rotate(0);
-    }
-    10% {
-      width: 6.250em;
-      height: 6.250em;
-    }
-    66% {
-      width: 2.4em;
-      height: 2.4em;
-    }
-    100% {
-      transform: rotate(360deg);
-      width: 6.250em;
-      height: 6.250em;
-    }
-  }
-  
-  @keyframes dotsY {
-    66% {
-      opacity: 0.1;
-      width: 2.4em;
-    }
-    77% {
-      opacity: 1;
-      width: 0;
-    }
-  }
-  
-  @keyframes dotsX {
-    66% {
-      opacity: 0.1;
-      height: 2.4em;
-    }
-    77% {
-      opacity: 1;
-      height: 0;
-    }
-  }
-  
-  @keyframes flash {
-    33% {
-      opacity: 0;
-      border-radius: 0%;
-    }
-    55% {
-      opacity: 0.6;
-      border-radius: 100%;
-    }
-    66% {
-      opacity: 0;
-    }
-  }
-  
+}
+
+#cancelRemovalBtn{
+  margin: 0px;
+  margin-top: 10px;
+  border-color: rgb(255, 90, 90);
+  background-color: rgb(238, 66, 66);
+  color: white;
+  font-weight: bold;
+}

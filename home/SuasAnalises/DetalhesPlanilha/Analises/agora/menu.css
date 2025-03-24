@@ -34,7 +34,7 @@
   }
   
   /* Media query para dispositivos móveis */
-  @media (max-width: 768px) {
+  @media (max-width: 800px) {
     .container {
       padding: 0 15px; /* Espaço lateral para evitar que o conteúdo grude nas bordas */
     }
