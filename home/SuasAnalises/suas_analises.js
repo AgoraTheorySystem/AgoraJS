@@ -72,8 +72,6 @@ async function verificarPlanilhasLocalStorage() {
   }
 }
 
-
-
 // 5. Carregar e exibir a lista de planilhas originais
 async function loadPlanilhas() {
   if (!user) return;
@@ -188,13 +186,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 2) Depois, carrega a lista de planilhas
   await loadPlanilhas();
 });
-
-
-
-
-
-
-
 
 //teste
 function obterPlanilhasLocalStorage() {
