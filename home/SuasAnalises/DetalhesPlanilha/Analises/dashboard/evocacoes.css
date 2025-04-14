@@ -303,3 +303,6 @@ tbody tr:nth-child(even) {
   color: white;
   font-weight: bold;
 }
+.selected {
+  background-color: #cce5ff !important;
+}

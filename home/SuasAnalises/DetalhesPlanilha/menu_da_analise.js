@@ -24,7 +24,7 @@ function handlePlanilhaClick(planilhaNome, categoria) {
 }
 
 // Mapeamento das categorias para as classes de botões
-const categorias = ["agora", "persona", "prototipicas", "configuracoes"];
+const categorias = ["dashboard", "persona", "prototipicas", "configuracoes"];
 
 // Adicionar eventos de clique de forma dinâmica
 categorias.forEach(categoria => {

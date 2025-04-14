@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="/assets/icon.png">
+  <!-- Font Awesome para ícones -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="/assets/hamburguer.css" rel="stylesheet">
+  <link href="dashboard.css" rel="stylesheet">
+  <link href="menu.css" rel="stylesheet">
+  <script src="/MenuLateral.js" type="module" defer></script>
+  <script src="/home/SuasAnalises/DetalhesPlanilha/Analises/agora/atualizacao.js" type="module" defer></script>
+  <script src="dashboard.js" type="module" defer></script>
+  <script src="menu.js" type="module" defer></script>
+  <title>Ágora - Dashboard</title>
+</head>
+<body class="dashboard">
+  <main>
+    <div class="container">
+      <nav class="menu">
+        <a class="menu_analises" href="#">Menu Das Analises</a>
+        <a href="./dashboard.html?planilha=">Dashboard</a>
+        <a href="./agora.html?planilha=">Socio Econômico</a>
+        <a href="./evocacoes.html?planilha=">Evocações</a>
+        <a href="./formaragora.html?planilha=">Formar Ágoras</a>
+      </nav>
+    </div>
+
+    <h1>Dashboard de Análise de Dados</h1>
+  
+    <!-- Indicador de loading -->
+    <div id="loading" aria-live="polite" aria-busy="true">Carregando dados...</div>
+  
+    <!-- Container dos cards (os ícones serão exibidos em cada card) -->
+    <div class="cards-container">
+      <div class="card" id="totalPessoasCard"></div>
+      <div class="card" id="qtdeHomensCard"></div>
+      <div class="card" id="qtdeMulheresCard"></div>
+      <div class="card" id="idadeMediaHomensCard"></div>
+      <div class="card" id="idadeMediaMulheresCard"></div>
+      <div class="card" id="regiaoTopCard"></div>
+      <div class="card" id="evocTopCard"></div>
+      <div class="card" id="cursoTopCard"></div>
+      <div class="card" id="universidadeTopCard"></div>
+      <div class="card" id="rendaMediaCard"></div>
+      <div class="card" id="livrosMedioCard"></div>
+      <div class="card" id="cursoSuperiorCard"></div>
+      <div class="card" id="computadorCard"></div>
+      <div class="card" id="extracurricularesCard"></div>
+    </div>
+  </main>
+</body>
+</html>

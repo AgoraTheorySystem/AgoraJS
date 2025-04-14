@@ -1,0 +1,250 @@
+/* Definição de variáveis para facilitar a manutenção e consistência visual */
+:root {
+  --primary-color: #336699;
+  --secondary-color: #2a527f;
+  --accent-color: #f0c040;
+  --light-gray: #f0f0f0;
+  --text-color: #333;
+  --sub-text-color: #555;
+  --white: #ffffff;
+  --transition-speed: 0.3s;
+}
+
+/* Menu e controles iniciais */
+#menu_agoras {
+  display: flex;
+  gap: 40px;
+  align-items: center;
+  padding: 20px;
+  margin: 15px auto;
+  max-width: 100%;
+}
+
+/* Estilos para os botões de níveis e controles de análise */
+.niveis,
+.analise,
+.aspecto {
+  display: flex;
+  flex-direction: column;
+}
+
+.niveis button {
+  width: 40px;
+  height: 40px;
+  border: none;
+  margin: 2px;
+  background-color: var(--light-gray);
+  color: var(--text-color);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color var(--transition-speed), transform var(--transition-speed);
+}
+
+.niveis button:hover {
+  transform: scale(1.1);
+}
+
+.niveis button.selected {
+  background-color: var(--accent-color);
+  color: var(--text-color);
+}
+
+.analise input,
+.aspecto input {
+  margin-right: 5px;
+}
+
+/* Botão de ação principal */
+.rodar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.rodar button {
+  background-color: var(--primary-color);
+  color: var(--white);
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color var(--transition-speed);
+}
+
+.rodar button:hover {
+  background-color: var(--secondary-color);
+}
+
+.extra-opcao {
+  margin-left: 20px;
+  display: none;
+  flex-direction: column;
+}
+
+.extra-opcao label {
+  margin-bottom: 5px;
+}
+
+input[type="number"] {
+  width: 180px;
+  padding: 6px;
+  border: 1px solid var(--light-gray);
+  border-radius: 4px;
+}
+
+/* Loading moderno e centralizado */
+#loading {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.8);
+  z-index: 9999;
+}
+
+.loader {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 60px;
+  height: 60px;
+  margin: -30px 0 0 -30px;
+  border: 6px solid var(--light-gray);
+  border-top: 6px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Layout responsivo para as planilhas */
+#planilhasContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+  padding: 20px;
+  background-color: var(--bg-color);
+}
+
+/* Estilo moderno para cada planilha */
+.planilha {
+  background-color: var(--white);
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+.planilha:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.planilha h2 {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+  color: var(--text-color);
+}
+
+.planilha p {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--sub-text-color);
+}
+
+/* Área de ações internas */
+.planilha .actions {
+  margin-top: auto;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.planilha .actions button {
+  background-color: var(--primary-color);
+  color: var(--white);
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color var(--transition-speed);
+}
+
+.planilha .actions button:hover {
+  background-color: var(--secondary-color);
+}
+
+/* Estilos para a tabela dentro das planilhas */
+.planilha table.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+
+.planilha table.data-table th,
+.planilha table.data-table td {
+  padding: 10px;
+  border: 1px solid #e0e0e0;
+  text-align: left;
+}
+
+.planilha table.data-table th {
+  background-color: var(--light-gray);
+  font-weight: bold;
+}
+
+/* Paginação com botões modernos */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.pagination button {
+  background-color: var(--primary-color);
+  color: var(--white);
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color var(--transition-speed);
+}
+
+.pagination button:hover:not(:disabled) {
+  background-color: var(--secondary-color);
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination .page-info {
+  font-size: 0.9rem;
+  color: var(--text-color);
+}
+
+.pagination .page-numbers button {
+  background-color: var(--light-gray);
+  color: var(--text-color);
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color var(--transition-speed);
+}
+
+.pagination .page-numbers button.active,
+.pagination .page-numbers button:hover {
+  background-color: var(--accent-color);
+}

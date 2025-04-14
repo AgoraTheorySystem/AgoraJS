@@ -208,15 +208,15 @@ async function saveLastModification(user, fileName) {
     timestamp: today.getTime()
   };
   // Exemplo: /users/uid/UltimasAlteracoes/500/2023-05-01
-  const modRef = ref(database, `/users/${user.uid}/UltimasAlteracoes/${fileName}/${formattedDate}`);
+  const modRef = ref(database, `/users/${user.uid}/UltimasAlteracoes/${fileName}/${today.getTime()}`);
   try {
-    await set(modRef, modificationData);
-    console.log(`Data de última alteração registrada para "${fileName}" em ${formattedDate}.`);
+    await set(modRef, today.getTime());
+    console.log(`Data de última alteração registrada para "${fileName}" em ${today.getTime()}.`);
   } catch (error) {
     throw new Error(`Erro ao salvar data de última alteração: ${error.message}`);
   }
   // Salva no LocalStorage => "planilha_ultima_alteracao_500"
-  saveToLocalStorage(`planilha_ultima_alteracao_${fileName}`, modificationData);
+  saveToLocalStorage(`planilha_ultima_alteracao_${fileName}`, today.getTime());
 }
 
 /* ==============================

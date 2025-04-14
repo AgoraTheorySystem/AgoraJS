@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-app.js";
-import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
 import firebaseConfig from '/firebase.js';
 
 // Inicializa o Firebase
@@ -27,50 +27,62 @@ function getUserFromSession() {
     }
 }
 
-// Compara os timestamps do localStorage e Firebase
-async function compareTimestamps(user, fileName) {
-    try {
-        const localStorageKey = `planilha_ultima_alteracao_${fileName}`;
-        const localStorageData = JSON.parse(localStorage.getItem(localStorageKey));
+const planilhasUltimaAlteracao = {};
 
-        if (!localStorageData?.timestamp) {
-            console.warn("Timestamp do localStorage não encontrado.");
+Object.keys(localStorage).forEach(key => {
+    try {
+        if (key.startsWith("planilha_") && key.startsWith("planilha_ultima_alteracao_")) {
+            const nomePlanilha = key.replace("planilha_ultima_alteracao_", "");
+            planilhasUltimaAlteracao[nomePlanilha] = JSON.parse(localStorage.getItem(key));
+        }
+    } catch (error) {
+        console.error(`Erro ao ler a chave "${key}" do LocalStorage:`, error);
+    }
+});
+
+// Compara os valores do localStorage e Firebase (agora usando números, não mais timestamp)
+async function compareData(user, fileName) {
+    try {
+        // A chave no localStorage que contém o número da última alteração
+        const localStorageKey = `planilha_ultima_alteracao_${fileName}`;
+        const today = new Date();
+
+        // Recupera o valor salvo no localStorage (número da última alteração)
+        const localStorageData = localStorage.getItem(localStorageKey);
+
+        if (!localStorageData) {
+            console.warn("Dado do localStorage não encontrado.");
             return;
         }
 
-        const localStorageTimestamp = localStorageData.timestamp;
-        console.log("Timestamp do localStorage:", localStorageTimestamp);
+        const localStorageValue = localStorageData;
+        console.log("Valor do localStorage:", localStorageValue);
 
+        // A referência no Firebase que contém o número da última alteração
         const firebaseRef = ref(database, `/users/${user.uid}/UltimasAlteracoes/${fileName}`);
         const snapshot = await get(firebaseRef);
 
         if (!snapshot.exists()) {
-            console.warn("Timestamp não encontrado no Firebase.");
+            console.warn("Dado não encontrado no Firebase.");
             return;
         }
 
         const firebaseData = snapshot.val();
-        const firebaseTimestamp = firebaseData?.[Object.keys(firebaseData)[0]]?.timestamp;
+        const firebaseValue = Object.keys(firebaseData)[0]; // O número da última alteração no Firebase
 
-        if (firebaseTimestamp === undefined) {
-            console.warn("Timestamp ausente nos dados do Firebase.");
-            return;
-        }
+        console.log("Valor do Firebase:", firebaseValue);
 
-        console.log("Timestamp do Firebase:", firebaseTimestamp);
-
-        if (localStorageTimestamp === firebaseTimestamp) {
-            console.log("Timestamps IGUAIS.");
+        if (localStorageValue === firebaseValue) {
+            console.log("Valores IGUAIS.");
         } else {
-            console.log("Timestamps DIFERENTES.");
+            console.log("Valores DIFERENTES.");
             await fetchAndSavePlanilha(user, fileName);
             await fetchAndSaveAuxiliaryTable(user, fileName);
-            saveTimestampToLocalStorage(fileName, firebaseTimestamp);
-
+            saveTimestampToLocalStorage(`${fileName}`, firebaseValue);
         }
 
     } catch (error) {
-        console.error("Erro ao comparar timestamps:", error);
+        console.error("Erro ao comparar dados:", error);
     }
 }
 
@@ -115,17 +127,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     const user = getUserFromSession();
     if (!user || !planilhaNome) return;
 
-    await compareTimestamps(user, planilhaNome);
+    await compareData(user, planilhaNome);
 });
 
-function saveTimestampToLocalStorage(fileName, timestamp) {
+// Salva o número no localStorage
+function saveTimestampToLocalStorage(fileName, value) {
     try {
         const key = `planilha_ultima_alteracao_${fileName}`;
-        const data = { timestamp };
-        localStorage.setItem(key, JSON.stringify(data));
-        console.log(`Timestamp atualizado no localStorage para "${fileName}":`, timestamp);
+        localStorage.setItem(key, value);
+        console.log(`Número salvo no localStorage para "${fileName}":`, value);
     } catch (error) {
-        console.error("Erro ao salvar o timestamp no localStorage:", error);
+        console.error("Erro ao salvar o número no localStorage:", error);
     }
 }
 
