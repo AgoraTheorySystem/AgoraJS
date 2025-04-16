@@ -1,67 +1,112 @@
 /* Container do menu */
 .container {
-    margin-top: 50px;
-    margin-left: auto;
-    margin-right: auto;
-    max-width: 1620px;
-  }
-  
-  /* Estilização padrão do menu para telas maiores */
+  margin-top: 50px;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 1620px;
+  padding: 0 15px; /* Adicionando espaçamento lateral */
+}
+
+/* Estilização do menu para telas maiores */
+.container .menu {
+  background: linear-gradient(135deg, #0a2e43, #17426C, #091d2e); /* Gradiente suave, criando profundidade */
+  display: flex;
+  justify-content: space-between; /* Usar espaço entre os itens para maior dinamismo */
+  align-items: center;
+  border-radius: 50px; /* Bordas arredondadas mais acentuadas */
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
+  padding: 15px 30px; /* Aumentando o padding para um efeito mais espaçoso */
+  transition: all 0.4s ease; /* Suavizando transições */
+  flex-wrap: wrap; /* Para permitir que o conteúdo se ajuste melhor em telas menores */
+  gap: 15px; /* Espaçamento entre os itens */
+}
+
+/* Estilo para os links do menu */
+.container .menu a {
+  padding: 20px 25px;
+  text-decoration: none;
+  color: white;
+  font-family: "Roboto", sans-serif; /* Mudando para uma fonte mais moderna */
+  font-size: 18px;
+  font-weight: bold;
+  text-transform: uppercase;
+  position: relative;
+  transition: color 0.3s ease, transform 0.3s ease;
+  cursor: pointer;
+  border-radius: 10px;
+  overflow: hidden;
+  display: inline-block;
+}
+
+/* Efeito de hover: destaque futurista */
+.container .menu a:hover {
+  color: #fdd200;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.8); /* Brilho intenso */
+  transform: scale(1.1); /* Aumento de tamanho ao passar o mouse */
+  background: rgba(255, 255, 255, 0.1); /* Fundo semitransparente */
+}
+
+/* Efeito de borda dinâmica ao passar o mouse */
+.container .menu a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background-color: #fdd200;
+  transform: scaleX(0);
+  transform-origin: bottom right;
+  transition: transform 0.3s ease;
+}
+
+.container .menu a:hover::after {
+  transform: scaleX(1);
+  transform-origin: bottom left;
+}
+
+/* Media query para dispositivos móveis (800px ou menos) */
+@media (max-width: 800px) {
   .container .menu {
-    background-color: #17426C;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    border-radius: 25px;
-    box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.5);
-    margin-top: 35px;
-  }
-  
-  .container .menu a {
-    padding: 30px 0;
-    text-decoration: none;
-    color: white;
-    font-family: "Montserrat", sans-serif;
-    font-size: 20px;
-    font-weight: bold;
-    text-transform: uppercase;
-    transition: color 0.3s;
-    cursor: pointer;
-  }
-  
-  .container .menu a:hover {
-    color: #fdd200;
-  }
-  
-  /* Media query para dispositivos móveis */
-  @media (max-width: 800px) {
-    .container {
-      padding: 0 15px; /* Espaço lateral para evitar que o conteúdo grude nas bordas */
-    }
-    
-    .container .menu {
-      flex-direction: column; /* Empilha os links verticalmente */
-      justify-content: center;
-      align-items: center;
-      margin-top: 20px;
-      padding: 10px;
-    }
-    
-    .container .menu a {
-      padding: 15px 0;
-      font-size: 18px;
-      width: 100%;
-      text-align: center;
-    }
+    flex-direction: column; /* Empilha os links verticalmente */
+    justify-content: flex-start;
+    align-items: stretch;
+    margin-top: 20px;
+    padding: 20px 0; /* Ajuste de padding para uma boa distribuição */
+    gap: 10px; /* Distância entre os links */
   }
 
-  /* Estilização do menu ativo */
-.menu a.active {
-  color: #fdd200; /* Amarelo */
-  /* Você também pode adicionar outros estilos, como fundo, borda, etc. */
-  /* Exemplo:
-  background-color: #17426C;
-  border-bottom: 3px solid #fdd200;
-  */
+  .container .menu a {
+    padding: 15px 20px;
+    font-size: 16px; /* Menor tamanho para melhor leitura */
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Efeito para quando o link é pressionado (ex: no mobile) */
+  .container .menu a:active {
+    transform: scale(0.98); /* Reduz o tamanho para simular um clique */
+  }
 }
-  
+
+/* Responsividade extrema - telas menores que 600px */
+@media (max-width: 600px) {
+  .container .menu a {
+    font-size: 14px; /* Tamanho de fonte otimizado para telas muito pequenas */
+    padding: 12px 15px;
+  }
+}
+
+/* Estilização do menu ativo */
+.menu a.active {
+  color: #fdd200;
+  border-bottom: 4px solid #fdd200; /* Borda mais espessa para o item ativo */
+  background-color: rgba(255, 255, 255, 0.15); /* Fundo sutil para item ativo */
+}
+
+/* Efeito de brilho suave ao passar o mouse sobre o menu */
+.container .menu:hover {
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
+  transform: translateY(-5px); /* Eleva o menu levemente */
+}
+
