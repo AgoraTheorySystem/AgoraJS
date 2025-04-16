@@ -1,204 +1,276 @@
 /* Estilos Gerais */
 body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    color: white;
-    justify-items: center;
+  font-family: 'Arial', sans-serif;
+  margin-top: 100px;
+  padding: 0;
+  background-color: #fff;
+  /* Fundo branco */
+  color: White;
+  /* Texto escuro para contraste */
+  display: flex;
+  align-items: flex-start;
+  /* Alinhamento à parte superior */
+  height: 100vh;
+  overflow: hidden;
+  font-size: 16px;
+  flex-direction: column;
+  /* Itens em uma coluna */
+  align-items: center;
 }
 
 /* Barra do Menu */
 .menu-bar {
-    margin-top: 60px;
-    background-color: #1c436b;
-    padding: 15px;
-    text-align: center;
-    font-weight: bold;
-    color: white;
-    width: 95%;
-    border-radius: 10px;
+  background-color: #0d2b3c;
+  padding: 15px;
+  text-align: center;
+  font-weight: bold;
+  color: white;
+  width: 90%;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 /* Container Responsivo */
 .container {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    padding: 30px;
-    flex-wrap: wrap;
+  display: flex;
+  flex-direction: column;
+  /* Itens empilhados verticalmente */
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  padding: 30px;
 }
 
 /* Blocos de Configuração */
 .config-box {
-    background-color: #0e2b3f;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
-    text-align: center;
-    min-width: 280px;
-    width: 300px;
+  background-color: #2b3e50;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.4);
+  text-align: center;
+  width: 100%;
+  max-width: 400px;
+  margin: 15px 0;
+  transition: all 0.3s ease-in-out;
+}
+
+.config-box:hover {
+  transform: scale(1.05);
+  box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.5);
 }
 
 /* Input e Botões */
 input {
-    width: 90%;
-    padding: 8px;
-    margin-top: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+  width: 90%;
+  padding: 12px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: all 0.3s;
 }
 
+input:focus {
+  outline: none;
+  border: 2px solid #666666;
+}
+
+/* Botão Principal */
 button {
-    background-color: gray;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-top: 10px;
+  background-color: #007db8;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 15px;
+  font-size: 18px;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+  width: 100%;
 }
 
 button:hover {
-    background-color: #00925a;
+  background-color: #ff3245;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 /* Botão de Exclusão */
 .delete-button {
-    background-color: gray;
-    color: white;
-    font-size: 16px;
-    font-weight: bold;
-    padding: 15px;
-    width: 100%;
-    border-radius: 10px;
+  background-color: #ff3b30;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  padding: 15px;
+  width: 100%;
+  border-radius: 12px;
+  transition: all 0.3s ease;
 }
 
 .delete-button:hover {
-    background-color: rgb(255, 0, 0);
+  background-color: #ff2a1d;
+  transform: scale(1.05);
 }
 
-/* From Uiverse.io by Nawsome */
+/* Loader */
 .loader {
-    position: absolute;
-    margin: auto;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
+  position: absolute;
+  margin: auto;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 6.250em;
+  height: 6.250em;
+  animation: rotate5123 2.4s linear infinite;
+}
+
+.white {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  animation: flash 2.4s linear infinite;
+  opacity: 0;
+}
+
+.dot {
+  position: absolute;
+  margin: auto;
+  width: 2.4em;
+  height: 2.4em;
+  border-radius: 100%;
+  transition: all 1s ease;
+}
+
+.dot:nth-child(2) {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  background: #FF4444;
+  animation: dotsY 2.4s linear infinite;
+}
+
+.dot:nth-child(3) {
+  left: 0;
+  right: 0;
+  top: 0;
+  background: #FFBB33;
+  animation: dotsX 2.4s linear infinite;
+}
+
+.dot:nth-child(4) {
+  top: 0;
+  bottom: 0;
+  right: 0;
+  background: #99CC00;
+  animation: dotsY 2.4s linear infinite;
+}
+
+.dot:nth-child(5) {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #33B5E5;
+  animation: dotsX 2.4s linear infinite;
+}
+
+@keyframes rotate5123 {
+  0% {
+    transform: rotate(0);
+  }
+
+  10% {
     width: 6.250em;
     height: 6.250em;
-    animation: rotate5123 2.4s linear infinite;
   }
-  
-  .white {
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: white;
-    animation: flash 2.4s linear infinite;
-    opacity: 0;
-  }
-  
-  .dot {
-    position: absolute;
-    margin: auto;
+
+  66% {
     width: 2.4em;
     height: 2.4em;
+  }
+
+  100% {
+    transform: rotate(360deg);
+    width: 6.250em;
+    height: 6.250em;
+  }
+}
+
+@keyframes dotsY {
+  66% {
+    opacity: .1;
+    width: 2.4em;
+  }
+
+  77% {
+    opacity: 1;
+    width: 0;
+  }
+}
+
+@keyframes dotsX {
+  66% {
+    opacity: .1;
+    height: 2.4em;
+  }
+
+  77% {
+    opacity: 1;
+    height: 0;
+  }
+}
+
+@keyframes flash {
+  33% {
+    opacity: 0;
+    border-radius: 0%;
+  }
+
+  55% {
+    opacity: .6;
     border-radius: 100%;
-    transition: all 1s ease;
   }
-  
-  .dot:nth-child(2) {
-    top: 0;
-    bottom: 0;
-    left: 0;
-    background: #FF4444;
-    animation: dotsY 2.4s linear infinite;
+
+  66% {
+    opacity: 0;
   }
-  
-  .dot:nth-child(3) {
-    left: 0;
-    right: 0;
-    top: 0;
-    background: #FFBB33;
-    animation: dotsX 2.4s linear infinite;
-  }
-  
-  .dot:nth-child(4) {
-    top: 0;
-    bottom: 0;
-    right: 0;
-    background: #99CC00;
-    animation: dotsY 2.4s linear infinite;
-  }
-  
-  .dot:nth-child(5) {
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: #33B5E5;
-    animation: dotsX 2.4s linear infinite;
-  }
-  
-  @keyframes rotate5123 {
-    0% {
-      transform: rotate(0);
-    }
-  
-    10% {
-      width: 6.250em;
-      height: 6.250em;
-    }
-  
-    66% {
-      width: 2.4em;
-      height: 2.4em;
-    }
-  
-    100% {
-      transform: rotate(360deg);
-      width: 6.250em;
-      height: 6.250em;
-    }
-  }
-  
-  @keyframes dotsY {
-    66% {
-      opacity: .1;
-      width: 2.4em;
-    }
-  
-    77% {
-      opacity: 1;
-      width: 0;
-    }
-  }
-  
-  @keyframes dotsX {
-    66% {
-      opacity: .1;
-      height: 2.4em;
-    }
-  
-    77% {
-      opacity: 1;
-      height: 0;
-    }
-  }
-  
-  @keyframes flash {
-    33% {
-      opacity: 0;
-      border-radius: 0%;
-    }
-  
-    55% {
-      opacity: .6;
-      border-radius: 100%;
-    }
-  
-    66% {
-      opacity: 0;
-    }
-  }
+}
+
+.btn_menu_analises {
+  margin-right: 200px;
+}
+
+.Title_Menu_da_análise {
+  white-space: nowrap;
+}
+
+/* Estilo para o link como botão */
+.btn_menu_analises {
+  display: inline-block; /* Para o link se comportar como um botão */
+  padding: 12px 25px;
+  background-color: #5c6bc0; /* Cor de fundo azul moderno */
+  color: white;
+  text-align: center;
+  text-decoration: none; /* Remover sublinhado do link */
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 8px;
+  box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.btn_menu_analises:hover {
+  background-color: #3f51b5; /* Cor mais escura ao passar o mouse */
+  transform: translateY(-3px); /* Levanta o botão */
+  box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.3);
+}
+
+.btn_menu_analises:active {
+  background-color: #303f9f; /* Cor mais escura ao clicar */
+  transform: translateY(1px); /* Efeito de pressão ao clicar */
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+}

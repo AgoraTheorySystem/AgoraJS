@@ -48,20 +48,17 @@ window.alterarNome = async function () {
         return;
     }
 
-    // 🔹 Exibir o loader animado e desativar botão
     loadingContainer.style.display = "block";
     botao.disabled = true;
     botao.innerText = "Alterando...";
 
-    // 🔹 Atualizar LocalStorage com a chave correta
     const oldKey = `planilha_${planilhaNome}`;
     const newKey = `planilha_${novoNome}`;
-
     let planilhaData = localStorage.getItem(oldKey);
 
     if (planilhaData) {
-        localStorage.setItem(newKey, planilhaData); // Criar nova chave com o novo nome
-        localStorage.removeItem(oldKey); // Remover a antiga
+        localStorage.setItem(newKey, planilhaData);
+        localStorage.removeItem(oldKey);
         console.log(`Planilha renomeada no LocalStorage: ${oldKey} → ${newKey}`);
     } else {
         Swal.fire({
@@ -70,46 +67,44 @@ window.alterarNome = async function () {
             text: "Planilha não encontrada no LocalStorage.",
             confirmButtonColor: "#d33",
         });
-        loadingContainer.style.display = "none"; // Ocultar loader
+        loadingContainer.style.display = "none";
         botao.disabled = false;
         botao.innerText = "Enviar";
         return;
     }
 
-    // 🔹 Atualizar Firebase (Banco de Dados)
-    const planilhaRef = ref(db, `users/${userId}/planilhas/${planilhaNome}`);
-    const novoPlanilhaRef = ref(db, `users/${userId}/planilhas/${novoNome}`);
+    // 🔹 Caminhos no Firebase a atualizar
+    const paths = [
+        "planilhas",
+        "UltimasAlteracoes",
+        "tabelasAuxiliares"
+    ];
 
     try {
-        // 🔹 Obter os dados atuais da planilha no Firebase
-        const snapshot = await get(planilhaRef);
+        for (const path of paths) {
+            const oldRef = ref(db, `users/${userId}/${path}/${planilhaNome}`);
+            const newRef = ref(db, `users/${userId}/${path}/${novoNome}`);
+            const snapshot = await get(oldRef);
 
-        if (snapshot.exists()) {
-            const planilhaData = snapshot.val();
-
-            // 🔹 Atualizar Firebase com o novo nome
-            await update(novoPlanilhaRef, planilhaData);
-            await remove(planilhaRef); // Remove a entrada antiga
-
-            loadingContainer.style.display = "none"; // Oculta o loading
-
-            Swal.fire({
-                icon: "success",
-                title: "Nome alterado!",
-                text: "A planilha foi renomeada com sucesso.",
-                confirmButtonColor: "#28a745",
-            }).then(() => {
-                window.location.href = `?planilha=${novoNome}`; // Atualiza a URL
-            });
-
-        } else {
-            Swal.fire({
-                icon: "error",
-                title: "Erro no Firebase",
-                text: "Planilha não encontrada no banco de dados.",
-                confirmButtonColor: "#d33",
-            });
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                await update(newRef, data);
+                await remove(oldRef);
+                console.log(`Renomeado: ${path}/${planilhaNome} → ${path}/${novoNome}`);
+            } else {
+                console.warn(`Não encontrado: ${path}/${planilhaNome}`);
+            }
         }
+
+        Swal.fire({
+            icon: "success",
+            title: "Nome alterado!",
+            text: "A planilha foi renomeada com sucesso.",
+            confirmButtonColor: "#28a745",
+        }).then(() => {
+            window.location.href = `?planilha=${novoNome}`;
+        });
+
     } catch (error) {
         console.error("Erro ao atualizar Firebase:", error);
         Swal.fire({
@@ -119,11 +114,12 @@ window.alterarNome = async function () {
             confirmButtonColor: "#d33",
         });
     } finally {
-        loadingContainer.style.display = "none"; // Oculta o loading
+        loadingContainer.style.display = "none";
         botao.disabled = false;
         botao.innerText = "Enviar";
     }
 };
+
 // 🔹 FUNÇÃO PARA EXCLUIR A PLANILHA
 window.excluirAnalise = async function () {
     Swal.fire({
@@ -137,7 +133,6 @@ window.excluirAnalise = async function () {
         cancelButtonText: "Cancelar"
     }).then(async (result) => {
         if (result.isConfirmed) {
-            // 🔹 Exibir o loader animado
             loadingContainer.style.display = "block";
 
             // 🔹 Remover do LocalStorage
@@ -147,14 +142,19 @@ window.excluirAnalise = async function () {
                 console.log(`Planilha "${planilhaNome}" removida do LocalStorage.`);
             }
 
-            // 🔹 Remover do Firebase
-            const planilhaRef = ref(db, `users/${userId}/planilhas/${planilhaNome}`);
-
             try {
-                await remove(planilhaRef);
-                console.log(`Planilha "${planilhaNome}" removida do Firebase.`);
+                // 🔹 Referências no Firebase
+                const pathsToDelete = [
+                    `users/${userId}/planilhas/${planilhaNome}`,
+                    `users/${userId}/UltimasAlteracoes/${planilhaNome}`,
+                    `users/${userId}/tabelasAuxiliares/${planilhaNome}`
+                ];
 
-                // 🔹 Ocultar loader e mostrar alerta de sucesso
+                for (const path of pathsToDelete) {
+                    await remove(ref(db, path));
+                    console.log(`Removido: ${path}`);
+                }
+
                 loadingContainer.style.display = "none";
 
                 Swal.fire({
@@ -163,7 +163,7 @@ window.excluirAnalise = async function () {
                     text: `A planilha "${planilhaNome}" foi removida com sucesso.`,
                     confirmButtonColor: "#28a745",
                 }).then(() => {
-                    window.location.href = "/home/SuasAnalises/suas_analises.html"; // Redirecionar para outra página
+                    window.location.href = "/home/SuasAnalises/suas_analises.html";
                 });
 
             } catch (error) {
@@ -179,3 +179,12 @@ window.excluirAnalise = async function () {
         }
     });
 };
+
+const menuAnalisesBtn = document.querySelector(".btn_menu_analises");
+    if (menuAnalisesBtn) {
+      menuAnalisesBtn.addEventListener("click", () => {
+        // Ajuste o caminho abaixo conforme a estrutura do seu projeto
+        const targetUrl = `/home/SuasAnalises/DetalhesPlanilha/menu_da_analise.html?planilha=${encodeURIComponent(planilhaNome)}`;
+        window.location.href = targetUrl;
+      });
+    }
