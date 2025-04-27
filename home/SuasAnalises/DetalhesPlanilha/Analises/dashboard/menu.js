@@ -36,6 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const linkPath = new URL(link.href, window.location.href).pathname;
       if (linkPath === currentPath) {
         link.classList.add("active");
+        console.log(link);
       }
     });
   });

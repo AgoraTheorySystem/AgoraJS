@@ -11,6 +11,7 @@
   <link href="menu.css" rel="stylesheet">
   <script src="/MenuLateral.js" type="module" defer></script>
   <script src="/home/SuasAnalises/DetalhesPlanilha/Analises/dashboard/atualizacao.js" type="module" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
   <script src="dashboard.js" type="module" defer></script>
   <script src="menu.js" type="module" defer></script>
   <title>Ágora - Dashboard</title>
@@ -26,29 +27,20 @@
         <a href="./formaragora.html?planilha=">Formar Ágoras</a>
       </nav>
     </div>
-
-    <h1>Dashboard de Análise de Dados</h1>
   
-    <!-- Indicador de loading -->
-    <div id="loading" aria-live="polite" aria-busy="true">Carregando dados...</div>
-  
-    <!-- Container dos cards (os ícones serão exibidos em cada card) -->
-    <div class="cards-container">
-      <div class="card" id="totalPessoasCard"></div>
-      <div class="card" id="qtdeHomensCard"></div>
-      <div class="card" id="qtdeMulheresCard"></div>
-      <div class="card" id="idadeMediaHomensCard"></div>
-      <div class="card" id="idadeMediaMulheresCard"></div>
-      <div class="card" id="regiaoTopCard"></div>
-      <div class="card" id="evocTopCard"></div>
-      <div class="card" id="cursoTopCard"></div>
-      <div class="card" id="universidadeTopCard"></div>
-      <div class="card" id="rendaMediaCard"></div>
-      <div class="card" id="livrosMedioCard"></div>
-      <div class="card" id="cursoSuperiorCard"></div>
-      <div class="card" id="computadorCard"></div>
-      <div class="card" id="extracurricularesCard"></div>
+    <!-- Loading (com aria-live para informar mudanças dinâmicas) -->
+    <div id="loading" aria-live="polite" aria-busy="true">
+      <figure class="loader">
+        <div class="dot white"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </figure>
     </div>
+
+    <main class="container"></main>
   </main>
+
 </body>
 </html>

@@ -1,239 +1,199 @@
 // dashboard.js
+(function() {
+  // 1) Função para injetar e carregar um script externo
+  function loadScript(url) {
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = url;
+      s.async = true;
+      s.onload = () => resolve();
+      s.onerror = () => reject(new Error(`Falha ao carregar ${url}`));
+      document.head.appendChild(s);
+    });
+  }
 
-document.addEventListener("DOMContentLoaded", () => {
-    // 1. Recupera o parâmetro "planilha" da URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const planilhaNome = urlParams.get("planilha");
-  
-    if (!planilhaNome) {
-      alert("Parâmetro 'planilha' ausente na URL.");
-      return;
-    }
-  
-    // 2. Função para carregar os dados do LocalStorage
-    function loadFromLocalStorage(fileName) {
-      const key = `planilha_${fileName}`;
-      const storedData = localStorage.getItem(key);
-      try {
-        return storedData ? JSON.parse(storedData) : [];
-      } catch (error) {
-        console.error("Erro ao ler os dados do LocalStorage:", error);
-        return [];
+  // 2) URL do plugin de DataLabels (versão estável)
+  const DATALABELS_URL = 'https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js';
+
+  // 3) Carrega o plugin e só então roda o dashboard
+  loadScript(DATALABELS_URL)
+    .then(() => {
+      if (window.ChartDataLabels) {
+        Chart.register(ChartDataLabels);
+      } else {
+        console.warn('ChartDataLabels não disponível após carregar o script.');
       }
+    })
+    .catch(err => console.warn(err))
+    .finally(() => {
+      runDashboard();
+    });
+
+  // 4) Todo o resto do dashboard dentro desta função
+  function runDashboard() {
+    // Pega parâmetro ?planilha=...
+    const params = new URLSearchParams(location.search);
+    const planilha = params.get('planilha');
+    if (!planilha) {
+      return alert("Parâmetro 'planilha' ausente na URL.");
     }
-  
-    // 3. Obtém os dados da planilha
-    const data = loadFromLocalStorage(planilhaNome);
-    if (data.length === 0) {
-      alert("Nenhum dado encontrado para a planilha: " + planilhaNome);
-      return;
-    }
-  
-    // 4. Separa o cabeçalho dos registros
-    const header = data[0];
-    const registros = data.slice(1);
-  
-    // 5. Localiza os índices das colunas de interesse
-    const indiceSexo = header.findIndex(col => col.trim().toUpperCase() === "SEXO");
-    const indiceIdade = header.findIndex(col => col.trim().toUpperCase() === "IDADE");
-    const indiceOndeMora = header.findIndex(col => col.trim().toUpperCase() === "ONDE VOCÊ MORA?");
-    const indiceCurso = header.findIndex(col => col.trim().toUpperCase() === "CURSO");
-    const indiceUniversidade = header.findIndex(col => col.trim().toUpperCase() === "UNIVERSIDADE");
-    const indiceRenda = header.findIndex(col => col.trim().toUpperCase().includes("RENDA MENSAL"));
-    const indiceLivros = header.findIndex(col => col.trim().toUpperCase().includes("LIVROS POR ANO"));
-    const indiceCursoSuperior = header.findIndex(col => col.trim().toUpperCase().includes("CURSO SUPERIOR"));
-    const indiceUtilizaComputador = header.findIndex(col => col.trim().toUpperCase().includes("VOCÊ UTILIZA COMPUTADOR"));
-    const indiceCursosExtracurriculares = header.findIndex(col => col.trim().toUpperCase().includes("CURSOS EXTRACURRICULARES"));
-    
-    // Índices para EVOC1..EVOC10 (ignorando valores "VAZIO")
-    const evocColumns = [];
-    for (let i = 1; i <= 10; i++) {
-      const colName = "EVOC" + i;
-      const idx = header.findIndex(col => col.trim().toUpperCase() === colName);
-      if (idx !== -1) {
-        evocColumns.push(idx);
+
+    // Seleciona e prepara <main>
+    const main = document.querySelector('main.container');
+    main.innerHTML = '<h1>Dashboard de Análise de Dados</h1>';
+
+    // Seções: Egos, Alters, Outros
+    const sections = [
+      { title: 'Egos',       id: 'egoCards'   },
+      { title: 'Alters',     id: 'alterCards' },
+      { title: 'Outros Campos', id: 'othersCards' }
+    ];
+    sections.forEach(sec => {
+      const s = document.createElement('section');
+      s.classList.add('group');
+      s.innerHTML = `
+        <h2>${sec.title}</h2>
+        <div id="${sec.id}" class="cards-container"></div>
+      `;
+      if (sec.id !== 'othersCards') {
+        const chartWrapper = document.createElement('div');
+        chartWrapper.classList.add('chart-container');
+        chartWrapper.innerHTML = `<canvas id="${sec.id}Chart"></canvas>`;
+        s.appendChild(chartWrapper);
       }
+      main.appendChild(s);
+    });
+
+    // Carrega JSON do localStorage
+    let data;
+    try {
+      data = JSON.parse(localStorage.getItem(`planilha_${planilha}`)) || [];
+    } catch {
+      data = [];
     }
-  
-    // 6. Função para exibir/ocultar o loading
-    function exibirLoading(mostrar) {
-      const loadingDiv = document.getElementById("loading");
-      if (loadingDiv) {
-        loadingDiv.style.display = mostrar ? "block" : "none";
-      }
+    if (data.length < 2) {
+      return alert('Nenhum dado válido encontrado na planilha.');
     }
-  
-    // 7. Função para atualizar os cards (com ícones)
-    const updateCard = (id, title, value, iconClass) => {
-      const card = document.getElementById(id);
-      if (card) {
-        card.innerHTML = `
-          <div class="card-icon"><i class="${iconClass}"></i></div>
-          <h3>${title}</h3>
-          <p>${value}</p>
-        `;
-      }
-    };
-  
-    // 8. Função principal para calcular as métricas e renderizar os cards
-    function renderDashboardCards() {
-      // a) Dados básicos
-      const totalPessoas = registros.length;
-      let totalHomens = 0;
-      let totalMulheres = 0;
-      let somaIdadeHomens = 0, countHomensComIdade = 0;
-      let somaIdadeMulheres = 0, countMulheresComIdade = 0;
-      const freqRegiao = {};
-      const freqEvoc = {};
-      const freqCurso = {};
-      const freqUniversidade = {};
-      let somaRenda = 0, countRenda = 0;
-      let somaLivros = 0, countLivros = 0;
-      let countCursoSuperior = 0;
-      let countUtilizaComputador = 0;
-      let countCursosExtracurriculares = 0;
-  
-      // b) Percorre cada registro para calcular as métricas
-      registros.forEach(reg => {
-        // Gênero
-        if (indiceSexo >= 0) {
-          const sexo = reg[indiceSexo]?.toString().trim().toUpperCase();
-          if (sexo === "M" || sexo === "MASCULINO") {
-            totalHomens++;
-          } else if (sexo === "F" || sexo === "FEMININO") {
-            totalMulheres++;
-          }
-        }
-  
-        // Idade
-        if (indiceIdade >= 0) {
-          const idade = parseFloat(reg[indiceIdade]);
-          if (!isNaN(idade)) {
-            const sexo = reg[indiceSexo]?.toString().trim().toUpperCase();
-            if (sexo === "M" || sexo === "MASCULINO") {
-              somaIdadeHomens += idade;
-              countHomensComIdade++;
-            } else if (sexo === "F" || sexo === "FEMININO") {
-              somaIdadeMulheres += idade;
-              countMulheresComIdade++;
-            }
-          }
-        }
-  
-        // Região
-        if (indiceOndeMora >= 0) {
-          const local = reg[indiceOndeMora]?.toString().trim();
-          if (local) {
-            freqRegiao[local] = (freqRegiao[local] || 0) + 1;
-          }
-        }
-  
-        // EVOCs (ignorando "VAZIO")
-        evocColumns.forEach(idx => {
-          const evocValue = reg[idx]?.toString().trim().toUpperCase();
-          if (evocValue && evocValue !== "VAZIO") {
-            freqEvoc[evocValue] = (freqEvoc[evocValue] || 0) + 1;
-          }
+
+    // Header e linhas
+    const header = data[0].map(h => String(h).trim().toUpperCase());
+    const rows   = data.slice(1);
+
+    // Calcula média (≥50% numérico) ou moda+contagem
+    function calc(colIdx) {
+      const vals = rows
+        .map(r => r[colIdx])
+        .filter(v => {
+          if (v == null) return false;
+          const s = String(v).trim();
+          return s && s.toUpperCase() !== 'VAZIO';
         });
-  
-        // Curso
-        if (indiceCurso >= 0) {
-          const curso = reg[indiceCurso]?.toString().trim();
-          if (curso) {
-            freqCurso[curso] = (freqCurso[curso] || 0) + 1;
-          }
-        }
-  
-        // Universidade
-        if (indiceUniversidade >= 0) {
-          const uni = reg[indiceUniversidade]?.toString().trim();
-          if (uni) {
-            freqUniversidade[uni] = (freqUniversidade[uni] || 0) + 1;
-          }
-        }
-  
-        // Renda familiar
-        if (indiceRenda >= 0) {
-          const rendaStr = reg[indiceRenda]?.toString();
-          const renda = parseFloat(rendaStr.replace(/[^\d.,]/g, '').replace(',', '.'));
-          if (!isNaN(renda)) {
-            somaRenda += renda;
-            countRenda++;
-          }
-        }
-  
-        // Livros por ano
-        if (indiceLivros >= 0) {
-          const livros = parseFloat(reg[indiceLivros]);
-          if (!isNaN(livros)) {
-            somaLivros += livros;
-            countLivros++;
-          }
-        }
-  
-        // Curso Superior iniciado
-        if (indiceCursoSuperior >= 0) {
-          const iniciado = reg[indiceCursoSuperior]?.toString().trim().toUpperCase();
-          if (iniciado === "SIM") {
-            countCursoSuperior++;
-          }
-        }
-  
-        // Utiliza Computador
-        if (indiceUtilizaComputador >= 0) {
-          const utiliza = reg[indiceUtilizaComputador]?.toString().trim().toUpperCase();
-          if (utiliza === "SIM") {
-            countUtilizaComputador++;
-          }
-        }
-  
-        // Cursos Extracurriculares
-        if (indiceCursosExtracurriculares >= 0) {
-          const extracurriculares = reg[indiceCursosExtracurriculares]?.toString().trim().toUpperCase();
-          if (extracurriculares === "SIM") {
-            countCursosExtracurriculares++;
-          }
-        }
+      const nums = vals
+        .map(v => parseFloat(String(v).replace(',', '.')))
+        .filter(n => !isNaN(n));
+      if (nums.length >= vals.length / 2) {
+        const sum = nums.reduce((a,b) => a + b, 0);
+        return { isNum: true, avg: (sum/nums.length).toFixed(2), total: vals.length };
+      } else {
+        const freq = {};
+        vals.forEach(v => {
+          const k = String(v).trim();
+          freq[k] = (freq[k]||0) + 1;
+        });
+        const [top, topCount] = Object.entries(freq)
+          .sort((a,b)=>b[1]-a[1])[0] || ['N/D',0];
+        return { isNum: false, top, topCount, total: vals.length };
+      }
+    }
+
+    // Índices EVOC1–5 e EVOC6–10
+    const egoIdxs   = [1,2,3,4,5].map(n => header.indexOf(`EVOC${n}`)).filter(i=>i>=0);
+    const alterIdxs = [6,7,8,9,10].map(n => header.indexOf(`EVOC${n}`)).filter(i=>i>=0);
+
+    const egoRes   = egoIdxs.map(i => calc(i));
+    const alterRes = alterIdxs.map(i => calc(i));
+
+    // Renderiza cards
+    function renderCards(containerId, results, prefix) {
+      const cont = document.getElementById(containerId);
+      results.forEach((r,i) => {
+        const card = document.createElement('div');
+        card.classList.add('card');
+        const label = `${prefix}${i+1}`;
+        const val = r.isNum ? r.avg : `${r.top} (${r.topCount})`;
+        card.innerHTML = `<h3>${label}</h3><p>${val}</p>`;
+        cont.appendChild(card);
       });
-  
-      // c) Cálculo das médias e valores top
-      const mediaIdadeHomens = countHomensComIdade ? (somaIdadeHomens / countHomensComIdade).toFixed(1) : "N/D";
-      const mediaIdadeMulheres = countMulheresComIdade ? (somaIdadeMulheres / countMulheresComIdade).toFixed(1) : "N/D";
-      const rendaMedia = countRenda ? (somaRenda / countRenda).toFixed(2) : "N/D";
-      const livrosMedio = countLivros ? (somaLivros / countLivros).toFixed(1) : "N/D";
-  
-      const topRegiao = Object.entries(freqRegiao).reduce((a, b) => b[1] > a[1] ? b : a, ["", 0])[0];
-      const topEvoc = Object.entries(freqEvoc).reduce((a, b) => b[1] > a[1] ? b : a, ["", 0])[0];
-      const topCurso = Object.entries(freqCurso).reduce((a, b) => b[1] > a[1] ? b : a, ["", 0])[0];
-      const topUniversidade = Object.entries(freqUniversidade).reduce((a, b) => b[1] > a[1] ? b : a, ["", 0])[0];
-  
-      // d) Atualiza os cards com os ícones (utilizando classes do Font Awesome)
-      updateCard("totalPessoasCard", "Total de Pessoas", totalPessoas, "fa-solid fa-users");
-      updateCard("qtdeHomensCard", "Homens", totalHomens, "fa-solid fa-mars");
-      updateCard("qtdeMulheresCard", "Mulheres", totalMulheres, "fa-solid fa-venus");
-      updateCard("idadeMediaHomensCard", "Média de Idade (Homens)", mediaIdadeHomens, "fa-solid fa-male");
-      updateCard("idadeMediaMulheresCard", "Média de Idade (Mulheres)", mediaIdadeMulheres, "fa-solid fa-female");
-      updateCard("regiaoTopCard", "Região Mais Comum", topRegiao || "N/D", "fa-solid fa-location-dot");
-      updateCard("evocTopCard", "EVOC Mais Frequente", topEvoc || "N/D", "fa-solid fa-bullhorn");
-      updateCard("cursoTopCard", "Curso Mais Popular", topCurso || "N/D", "fa-solid fa-book-open");
-      updateCard("universidadeTopCard", "Universidade Mais Popular", topUniversidade || "N/D", "fa-solid fa-university");
-      updateCard("rendaMediaCard", "Renda Média Familiar", rendaMedia, "fa-solid fa-dollar-sign");
-      updateCard("livrosMedioCard", "Média de Livros por Ano", livrosMedio, "fa-solid fa-book");
-      updateCard("cursoSuperiorCard", "Iniciaram Curso Superior", countCursoSuperior, "fa-solid fa-graduation-cap");
-      updateCard("computadorCard", "Utilizam Computador", countUtilizaComputador, "fa-solid fa-desktop");
-      updateCard("extracurricularesCard", "Cursos Extracurriculares", countCursosExtracurriculares, "fa-solid fa-chalkboard-teacher");
     }
-  
-    // 9. Inicializa o dashboard
-    function initDashboard() {
-      exibirLoading(true);
-      // Simulação de atraso para loading
-      setTimeout(() => {
-        renderDashboardCards();
-        exibirLoading(false);
-      }, 1000);
+    renderCards('egoCards',   egoRes,   'EGO ');
+    renderCards('alterCards', alterRes, 'ALTER ');
+
+    // Função que desenha gráfico de barras
+    function drawChart(canvasId, results, colors) {
+      const labels   = results.map((r,i)=> r.isNum ? `Col${i+1}` : r.top);
+      const freqData = results.map(r => r.isNum ? 0 : r.topCount);
+      const totData  = results.map(r => r.total);
+
+      new Chart(
+        document.getElementById(canvasId).getContext('2d'),
+        {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: 'Frequência',
+                data: freqData,
+                backgroundColor: colors
+              },
+              {
+                label: 'Total',
+                data: totData,
+                backgroundColor: 'rgba(200,200,200,0.7)'
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: { stacked: false },
+              y: { beginAtZero: true }
+            },
+            plugins: {
+              legend: { position:'top', labels:{boxWidth:12, padding:8} },
+              tooltip: { enabled:false },
+              datalabels: {
+                color: '#000',
+                formatter: val => val,
+                anchor: 'end',
+                align: 'start',
+                font: { weight:'bold', size:12 }
+              }
+            }
+          },
+          plugins: [ ChartDataLabels ]  // se plugin não foi registrado, ele é ignorado
+        }
+      );
     }
-  
-    initDashboard();
-  });
-  
+
+    const egoColors   = ['#f44336','#8bc34a','#2196f3','#ffeb3b','#4caf50'];
+    const alterColors = ['#e91e63','#9c27b0','#3f51b5','#009688','#ff9800'];
+
+    drawChart('egoCardsChart',   egoRes,   egoColors);
+    drawChart('alterCardsChart', alterRes, alterColors);
+
+    // Por fim, “Outros Campos”
+    const otherC = document.getElementById('othersCards');
+    header.forEach((col,i) => {
+      if (!col.startsWith('EVOC')) {
+        const r = calc(i);
+        const card = document.createElement('div');
+        card.classList.add('card');
+        const val = r.isNum ? r.avg : `${r.top} (${r.topCount})`;
+        card.innerHTML = `<h3>${col}</h3><p>${val}</p>`;
+        otherC.appendChild(card);
+      }
+    });
+  }
+})();
