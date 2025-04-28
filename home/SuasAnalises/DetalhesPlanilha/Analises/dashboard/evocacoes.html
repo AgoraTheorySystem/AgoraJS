@@ -10,29 +10,29 @@
   <script src="/home/SuasAnalises/DetalhesPlanilha/Analises/dashboard/atualizacao.js" type="module" defer></script>
   <link href="evocacoes.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <script type="module" src="./menuLateral_evocacoes.js"></script>
-  <!-- Script principal de evocações -->
   <script src="evocacoes.js" type="module" defer></script>
   <script src="menu.js" type="module" defer></script>
   <link href="menu.css" rel="stylesheet">
   <title>Ágora</title>
 </head>
 
-<body class="evocacoes">
+<body>
   <main>
     <div class="container">
       <div class="menu">
-        <a class="menu_analises">Menu Das Analises</a>
+        <a class="menu_analises">Menu Das Análises</a>
         <a href="./dashboard.html?planilha=">Dashboard</a>
-        <a href="./agora.html?planilha=">Socio Economico</a>
+        <a href="./agora.html?planilha=">Socio Econômico</a>
         <a href="./evocacoes.html?planilha=">Evocações</a>
         <a href="./formaragora.html?planilha=">Formar Ágoras</a>
       </div>
     </div>
 
-    <!-- Loading (com aria-live para informar mudanças dinâmicas) -->
+    <div id="tabela-evocacoes" class="table-container"></div>
+
     <div id="loading" aria-live="polite" aria-busy="true">
       <figure class="loader">
         <div class="dot white"></div>
@@ -41,27 +41,6 @@
         <div class="dot"></div>
         <div class="dot"></div>
       </figure>
-    </div>
-
-    <!-- Campo de busca -->
-    <div class="filter-container">
-      <input type="text" id="search-input" placeholder="Buscar na tabela" />
-    </div>
-
-    <!-- Tabela de dados -->
-    <div class="table-container">
-      <table id="data-table">
-        <thead></thead>
-        <tbody></tbody>
-      </table>
-    </div>
-
-    <!-- Controles de paginação -->
-    <div class="pagination">
-      <button id="prev-btn">Anterior</button>
-      <div id="page-numbers"></div>
-      <button id="next-btn">Próximo</button>
-      <span id="page-info"></span>
     </div>
   </main>
 </body>

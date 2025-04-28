@@ -137,9 +137,15 @@ window.excluirAnalise = async function () {
 
             // 🔹 Remover do LocalStorage
             const planilhaKey = `planilha_${planilhaNome}`;
+            const planilhaKey_auxiliar = `planilha_auxiliar_${planilhaNome}`;
+            const planilhaKey_ultima_alteracao = `planilha_ultima_alteracao_${planilhaNome}`;
             if (localStorage.getItem(planilhaKey)) {
                 localStorage.removeItem(planilhaKey);
-                console.log(`Planilha "${planilhaNome}" removida do LocalStorage.`);
+                localStorage.removeItem(planilhaKey_auxiliar);
+                localStorage.removeItem(planilhaKey_ultima_alteracao);
+                console.log(`Planilha "${planilhaKey}" removida do LocalStorage.`);
+                console.log(`Planilha "${planilhaKey_auxiliar}" removida do LocalStorage.`);
+                console.log(`Planilha "${planilhaKey_ultima_alteracao}" removida do LocalStorage.`);
             }
 
             try {

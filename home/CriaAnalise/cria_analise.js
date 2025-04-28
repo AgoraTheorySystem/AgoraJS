@@ -176,6 +176,7 @@ function processEvocData(rawData) {
   ];
 }
 
+/*
 async function saveAuxiliaryTable(user, auxiliaryData, fileName) {
   const chunkSize = 500;
   const totalRows = auxiliaryData.length;
@@ -196,6 +197,7 @@ async function saveAuxiliaryTable(user, auxiliaryData, fileName) {
   // Salva no LocalStorage => "planilha_auxiliar_500"
   saveToLocalStorage(`planilha_auxiliar_${fileName}`, auxiliaryData);
 }
+/*
 
 /* ==============================
    3) SALVAR DATA DE ÚLTIMA ALTERAÇÃO
@@ -254,10 +256,11 @@ async function handleFileUpload(user) {
     // 1) Salva a planilha original
     await saveData(user, processedData, fileName);
 
-    // 2) Cria e salva a tabela auxiliar
+    /* 2) Cria e salva a tabela auxiliar
     const auxiliaryData = processEvocData(processedData);
     await saveAuxiliaryTable(user, auxiliaryData, fileName);
-
+    */
+   
     // 3) Registra a data de última alteração
     await saveLastModification(user, fileName);
 
