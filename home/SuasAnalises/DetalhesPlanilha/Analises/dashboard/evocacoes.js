@@ -112,7 +112,7 @@ function renderizarTabela() {
         <th>QUANTIDADE TOTAL</th>
         <th>QUANTIDADE ALTER</th>
         <th>QUANTIDADE EGO</th>
-        <th>LEMATIZAÇÕES</th>
+        <th>Fusões</th>
       </tr>
     </thead>
     <tbody>
