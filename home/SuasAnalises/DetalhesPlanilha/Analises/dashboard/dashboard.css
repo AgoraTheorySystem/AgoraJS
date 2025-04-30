@@ -101,11 +101,6 @@ body {
   position: relative;
 }
 
-.chart-container canvas {
-  width: 100% !important;
-  height: 100% !important;
-}
-
 /* ——— Seção “Outros Campos” ——— */
 #othersCards {
   display: grid;
@@ -146,4 +141,56 @@ body {
 
 @media (max-width: 480px) {
   html { font-size: 14px; }
+}
+
+/* ——— Novo Estilo para os Gráficos EGO e ALTER ——— */
+
+/* Contêiner do gráfico de EGO */
+.chart-container-ego,
+.chart-container-alter {
+  width: 100%;
+  height: 300px; /* Ajuste a altura conforme necessário */
+  margin: 1rem auto 2rem;
+  position: relative;
+}
+
+/* Estilo específico para o gráfico de EGO */
+#egoChart {
+  margin: 0.5rem auto;
+  border-radius: 0.75rem;
+  background-color: #fff;
+  padding: 1rem;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* Estilo específico para o gráfico de ALTER */
+#alterChart {
+  margin: 0.5rem auto;
+  border-radius: 0.75rem;
+  background-color: #fff;
+  padding: 1rem;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* ——— Ajustes Responsivos para Gráficos ——— */
+@media (max-width: 768px) {
+  .chart-container-ego,
+  .chart-container-alter {
+    height: 250px; /* Ajuste a altura para telas menores */
+  }
+}
+
+@media (max-width: 480px) {
+  .chart-container-ego,
+  .chart-container-alter {
+    height: 200px; /* Ajuste ainda menor em telas muito pequenas */
+  }
+}
+
+#egoChart{
+  width: 30% !important;
+}
+
+#alterChart{
+  width: 30% !important;
 }

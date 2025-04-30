@@ -1,4 +1,3 @@
-// dashboard.js
 (function() {
   // 1) Função para injetar e carregar um script externo
   function loadScript(url) {
@@ -51,6 +50,7 @@
     sections.forEach(sec => {
       const s = document.createElement('section');
       s.classList.add('group');
+      s.classList.add(`${sec.id}`);
       s.innerHTML = `
         <h2>${sec.title}</h2>
         <div id="${sec.id}" class="cards-container"></div>
@@ -79,7 +79,7 @@
     const header = data[0].map(h => String(h).trim().toUpperCase());
     const rows   = data.slice(1);
 
-    // Calcula média (≥50% numérico) ou moda+contagem
+    // Função que calcula a média ou moda+contagem
     function calc(colIdx) {
       const vals = rows
         .map(r => r[colIdx])
@@ -128,7 +128,7 @@
     renderCards('egoCards',   egoRes,   'EGO ');
     renderCards('alterCards', alterRes, 'ALTER ');
 
-    // Função que desenha gráfico de barras
+    // Função para desenhar gráfico de barras
     function drawChart(canvasId, results, colors) {
       const labels   = results.map((r,i)=> r.isNum ? `Col${i+1}` : r.top);
       const freqData = results.map(r => r.isNum ? 0 : r.topCount);
@@ -182,6 +182,118 @@
 
     drawChart('egoCardsChart',   egoRes,   egoColors);
     drawChart('alterCardsChart', alterRes, alterColors);
+
+    // Função para calcular os 4 termos mais repetidos entre EVOC1 até EVOC5 (EGO)
+    function calcTopTermsEgo(rows) {
+      const egoTerms = [];
+      for (let i = 1; i <= 5; i++) {
+        const colIdx = header.indexOf(`EVOC${i}`);
+        if (colIdx >= 0) {
+          const values = rows.map(row => row[colIdx]).filter(val => val != null && val !== 'VAZIO');
+          egoTerms.push(...values);
+        }
+      }
+
+      const freq = {};
+      egoTerms.forEach(term => {
+        freq[term] = (freq[term] || 0) + 1;
+      });
+
+      const sortedTerms = Object.entries(freq)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 4); // Pega os 4 termos mais repetidos
+
+      return sortedTerms.map(([term, count]) => ({ term, count }));
+    }
+
+    // Função para calcular os 4 termos mais repetidos entre EVOC6 até EVOC10 (ALTER)
+    function calcTopTermsAlter(rows) {
+      const alterTerms = [];
+      for (let i = 6; i <= 10; i++) {
+        const colIdx = header.indexOf(`EVOC${i}`);
+        if (colIdx >= 0) {
+          const values = rows.map(row => row[colIdx]).filter(val => val != null && val !== 'VAZIO');
+          alterTerms.push(...values);
+        }
+      }
+
+      const freq = {};
+      alterTerms.forEach(term => {
+        freq[term] = (freq[term] || 0) + 1;
+      });
+
+      const sortedTerms = Object.entries(freq)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 4); // Pega os 4 termos mais repetidos
+
+      return sortedTerms.map(([term, count]) => ({ term, count }));
+    }
+
+    // Adicionar gráficos para todos os EGOS e ALTERS
+    function drawEgoChart() {
+      const topEgoTerms = calcTopTermsEgo(rows);
+      new Chart(document.getElementById('egoChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: topEgoTerms.map(term => term.term),
+          datasets: [{
+            label: 'Frequência',
+            data: topEgoTerms.map(term => term.count),
+            backgroundColor: '#4caf50'
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            x: { stacked: false },
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    function drawAlterChart() {
+      const topAlterTerms = calcTopTermsAlter(rows);
+      new Chart(document.getElementById('alterChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: topAlterTerms.map(term => term.term),
+          datasets: [{
+            label: 'Frequência',
+            data: topAlterTerms.map(term => term.count),
+            backgroundColor: '#009688'
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            x: { stacked: false },
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    // Adicionar contêineres para os gráficos EGO e ALTER
+    function addEgoChartContainer() {
+      const chartWrapper = document.createElement('div');
+      chartWrapper.classList.add('chart-container');
+      chartWrapper.innerHTML = `<canvas id="egoChart"></canvas>`;
+      document.querySelector('.egoCards').appendChild(chartWrapper);
+    }
+
+    function addAlterChartContainer() {
+      const chartWrapper = document.createElement('div');
+      chartWrapper.classList.add('chart-container');
+      chartWrapper.innerHTML = `<canvas id="alterChart"></canvas>`;
+      document.querySelector('.alterCards').appendChild(chartWrapper);
+    }
+
+    // Chamar as funções para adicionar os gráficos e desenhá-los
+    addEgoChartContainer();
+    addAlterChartContainer();
+    drawEgoChart();
+    drawAlterChart();
 
     // Por fim, “Outros Campos”
     const otherC = document.getElementById('othersCards');
