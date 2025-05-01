@@ -47,11 +47,30 @@ form.addEventListener("submit", async (e) => {
 
     const tipo = "ONG";
 
+    //Variável para os campos obrigatórios
+    const vazio = ""
+
     // Validações básicas
     if (senha !== confirmaSenha) {
         Swal.fire({
             icon: "error",
             title: "As senhas não coincidem!"
+        });
+        return;
+    }
+
+    if (nomeOng == vazio) {
+        Swal.fire({
+            icon: "error",
+            title: "Por favor informe o nome da sua ONG"
+        });
+        return;
+    }
+
+    if (telefone == vazio) {
+        Swal.fire({
+            icon: "error",
+            title: "Por favor informe o telefone da sua ONG"
         });
         return;
     }

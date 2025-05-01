@@ -48,11 +48,30 @@ form.addEventListener("submit", async (e) => {
 
     const tipo = "Universidade/Escola";
 
+    //Variável para os campos obrigatórios
+    const vazio = ""
+
     // Validações básicas
     if (senha !== confirmaSenha) {
         Swal.fire({
             icon: "error",
             title: "As senhas não coincidem!"
+        });
+        return;
+    }
+
+    if (nomeInstituicao == vazio) {
+        Swal.fire({
+            icon: "error",
+            title: "Por favor informe o nome da sua instituição"
+        });
+        return;
+    }
+
+    if (telefone == vazio) {
+        Swal.fire({
+            icon: "error",
+            title: "Por favor informe o telefone da sua instituição"
         });
         return;
     }

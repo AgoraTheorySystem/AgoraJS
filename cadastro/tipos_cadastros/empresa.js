@@ -52,11 +52,46 @@ form.addEventListener("submit", async (e) => {
 
     const tipo = "Empresa";
 
+    //Variável para os campos obrigatórios
+    const vazio = ""
+
     // Validações básicas
     if (senha !== confirmaSenha) {
         Swal.fire({
             icon: "error",
             title: "As senhas não coincidem!"
+        });
+        return;
+    }
+
+    if (nomeFantasia == vazio) {
+        Swal.fire({
+            icon: "error",
+            title: "Por favor informe o nome da empresa!"
+        });
+        return;
+    }
+
+    if (pais == vazio) {
+        Swal.fire({
+            icon: "error",
+            title: "Por favor informe o país da empresa!"
+        });
+        return;
+    }
+
+    if (cidade == vazio) {
+        Swal.fire({
+            icon: "error",
+            title: "Por favor informe a cidade da empresa!"
+        });
+        return;
+    }
+
+    if (telefone == vazio) {
+        Swal.fire({
+            icon: "error",
+            title: "Por favor informe o telefone da empresa!"
         });
         return;
     }

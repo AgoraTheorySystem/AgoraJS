@@ -66,11 +66,54 @@ form.addEventListener("submit", async (e) => {
     const formacao = document.getElementById("formacao").value;
     const tipo = "PessoaFisica";
 
+    //Variável para os campos obrigatórios
+    const vazio = ""
+
     // Validações básicas
     if (senha !== confirmaSenha) {
         Swal.fire({
             icon: "error",
             title: "As senhas não coincidem!"
+        });
+        return;
+    }
+
+    if (nome == vazio) {
+        Swal.fire({
+            icon: "error",
+            title: "Por favor informe seu nome"
+        });
+        return;
+    }
+
+    if (dataNascimento == vazio) {
+        Swal.fire({
+            icon: "error",
+            title: "Por favor informe sua data de nascimento"
+        });
+        return;
+    }
+
+    if (cidade == vazio) {
+        Swal.fire({
+            icon: "error",
+            title: "Por favor informe sua cidade"
+        });
+        return;
+    }
+
+    if (pais == vazio) {
+        Swal.fire({
+            icon: "error",
+            title: "Por favor informe seu país"
+        });
+        return;
+    }
+
+    if (telefone == vazio) {
+        Swal.fire({
+            icon: "error",
+            title: "Por favor informe seu telefone"
         });
         return;
     }
