@@ -11,6 +11,7 @@ const ITEMS_PER_PAGE = 20;
 let currentPage = 1;
 let allWords = [];
 let currentLematizacoes = {};
+let currentSearch = "";
 
 document.addEventListener("DOMContentLoaded", async () => {
   const urlParams = new URLSearchParams(window.location.search);
@@ -48,11 +49,7 @@ async function carregarLematizacoes(planilhaNome) {
     const { uid } = JSON.parse(userData);
     const lematizacoesRef = ref(database, `/users/${uid}/lematizacoes/${planilhaNome}`);
     const snapshot = await get(lematizacoesRef);
-    if (snapshot.exists()) {
-      return snapshot.val();
-    } else {
-      return {};
-    }
+    return snapshot.exists() ? snapshot.val() : {};
   } catch (error) {
     console.error("Erro ao carregar lematizações:", error);
     return {};
@@ -80,7 +77,7 @@ function processarTabela(data) {
 
         if (/^EVOC[1-5]$/.test(coluna)) {
           palavraContagem[palavra].ego++;
-        } else if (/^EVOC[6-9]$|^EVOC10$/.test(coluna)) {
+        } else {
           palavraContagem[palavra].alter++;
         }
       }
@@ -90,20 +87,26 @@ function processarTabela(data) {
   allWords = Object.entries(palavraContagem)
     .sort((a, b) => b[1].total - a[1].total);
 
-  renderizarTabela();
+  renderTabela();
 }
 
-function renderizarTabela() {
+function renderTabela() {
+  const termo = currentSearch;
+  const lista = termo
+    ? allWords.filter(([palavra]) => palavra.includes(termo))
+    : allWords;
+
   const container = document.getElementById("tabela-evocacoes");
   if (!container) return;
   container.innerHTML = "";
 
+  const regexHighlight = new RegExp(`(${termo})`, "gi");
+
   const start = (currentPage - 1) * ITEMS_PER_PAGE;
   const end = start + ITEMS_PER_PAGE;
-  const pageWords = allWords.slice(start, end);
+  const pageWords = lista.slice(start, end);
 
   const table = document.createElement("table");
-
   table.innerHTML = `
     <thead>
       <tr>
@@ -118,113 +121,55 @@ function renderizarTabela() {
     <tbody>
       ${pageWords.map(([palavra, contagem]) => {
         const lema = currentLematizacoes[palavra] ? currentLematizacoes[palavra].join(", ") : "";
+        const palavraDestacada = termo
+          ? palavra.replace(regexHighlight, `<span class="destaque">$1</span>`)
+          : palavra;
+
         return `
           <tr>
             <td><input type="checkbox"></td>
-            <td>${palavra}</td>
+            <td>${palavraDestacada}</td>
             <td>${contagem.total}</td>
             <td>${contagem.alter}</td>
             <td>${contagem.ego}</td>
             <td>${lema}</td>
           </tr>
         `;
-      }).join('')}
+      }).join("")}
     </tbody>
   `;
 
   container.appendChild(table);
 
-  renderizarPaginacao();
+  renderizarPaginacao(lista.length);
 }
 
-function renderizarPaginacao() {
-  let paginationContainer = document.getElementById('pagination');
+function renderizarPaginacao(totalItems) {
+  let paginationContainer = document.getElementById("pagination");
   if (!paginationContainer) {
-    paginationContainer = document.createElement('div');
-    paginationContainer.id = 'pagination';
-    paginationContainer.classList.add('pagination');
+    paginationContainer = document.createElement("div");
+    paginationContainer.id = "pagination";
+    paginationContainer.classList.add("pagination");
     document.body.appendChild(paginationContainer);
   }
+
   paginationContainer.innerHTML = "";
 
-  const totalPages = Math.ceil(allWords.length / ITEMS_PER_PAGE);
-
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
   for (let i = 1; i <= totalPages; i++) {
-    const btn = document.createElement('button');
+    const btn = document.createElement("button");
     btn.innerText = i;
     btn.className = "page-btn" + (i === currentPage ? " active" : "");
-    btn.addEventListener('click', () => {
+    btn.addEventListener("click", () => {
       currentPage = i;
-      renderizarTabela();
+      renderTabela();
     });
     paginationContainer.appendChild(btn);
   }
 }
 
 document.getElementById("busca-palavra")?.addEventListener("input", (e) => {
-  const termo = e.target.value.trim().toUpperCase();
-
-  if (termo === "") {
-    currentPage = 1;
-    renderizarTabela();
-    return;
-  }
-
-  const filtradas = Object.entries(allWords.reduce((acc, [palavra, contagem]) => {
-    if (palavra.includes(termo)) acc[palavra] = contagem;
-    return acc;
-  }, {}));
-
-  renderizarTabelaFiltrada(filtradas);
+  currentSearch = e.target.value.trim().toUpperCase();
+  currentPage = 1;
+  renderTabela();
 });
-
-function renderizarTabelaFiltrada(palavrasFiltradas) {
-  const container = document.getElementById("tabela-evocacoes");
-  if (!container) return;
-  container.innerHTML = "";
-
-  const termoBusca = document.getElementById("busca-palavra").value.trim();
-  const regexHighlight = new RegExp(`(${termoBusca})`, "gi");
-
-  const start = (currentPage - 1) * ITEMS_PER_PAGE;
-  const end = start + ITEMS_PER_PAGE;
-  const pageWords = palavrasFiltradas.slice(start, end);
-
-  const table = document.createElement("table");
-  table.innerHTML = `
-    <thead>
-      <tr>
-        <th></th>
-        <th>PALAVRA</th>
-        <th>QUANTIDADE TOTAL</th>
-        <th>QUANTIDADE ALTER</th>
-        <th>QUANTIDADE EGO</th>
-        <th>Fusões</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${pageWords.map(([palavra, contagem]) => {
-        const lema = currentLematizacoes[palavra] ? currentLematizacoes[palavra].join(", ") : "";
-
-        const palavraComDestaque = palavra.replace(regexHighlight, `<span class="destaque">${termoBusca.toUpperCase()}</span>`);
-
-        return `
-          <tr>
-            <td><input type="checkbox"></td>
-            <td>${palavraComDestaque}</td>
-            <td>${contagem.total}</td>
-            <td>${contagem.alter}</td>
-            <td>${contagem.ego}</td>
-            <td>${lema}</td>
-          </tr>
-        `;
-      }).join('')}
-    </tbody>
-  `;
-
-  container.appendChild(table);
-
-  const paginationContainer = document.getElementById('pagination');
-  if (paginationContainer) paginationContainer.style.display = 'none';
-}
-
