@@ -37,8 +37,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
-//Comentario legal para provar que isso pode gerar muitos conflitos
-
 // Referência ao formulário
 const form = document.querySelector(".cadastro-form");
 

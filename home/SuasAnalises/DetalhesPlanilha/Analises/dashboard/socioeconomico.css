@@ -356,3 +356,11 @@ tbody tr:nth-child(even) {
     text-align: center;
   }
 }
+
+.destaque {
+  color: #0d47a1;
+  font-weight: bold;
+  background-color: #e3f2fd;
+  padding: 0 2px;
+  border-radius: 3px;
+}

@@ -160,3 +160,71 @@ function renderizarPaginacao() {
     paginationContainer.appendChild(btn);
   }
 }
+
+document.getElementById("busca-palavra")?.addEventListener("input", (e) => {
+  const termo = e.target.value.trim().toUpperCase();
+
+  if (termo === "") {
+    currentPage = 1;
+    renderizarTabela();
+    return;
+  }
+
+  const filtradas = Object.entries(allWords.reduce((acc, [palavra, contagem]) => {
+    if (palavra.includes(termo)) acc[palavra] = contagem;
+    return acc;
+  }, {}));
+
+  renderizarTabelaFiltrada(filtradas);
+});
+
+function renderizarTabelaFiltrada(palavrasFiltradas) {
+  const container = document.getElementById("tabela-evocacoes");
+  if (!container) return;
+  container.innerHTML = "";
+
+  const termoBusca = document.getElementById("busca-palavra").value.trim();
+  const regexHighlight = new RegExp(`(${termoBusca})`, "gi");
+
+  const start = (currentPage - 1) * ITEMS_PER_PAGE;
+  const end = start + ITEMS_PER_PAGE;
+  const pageWords = palavrasFiltradas.slice(start, end);
+
+  const table = document.createElement("table");
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th></th>
+        <th>PALAVRA</th>
+        <th>QUANTIDADE TOTAL</th>
+        <th>QUANTIDADE ALTER</th>
+        <th>QUANTIDADE EGO</th>
+        <th>Fusões</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${pageWords.map(([palavra, contagem]) => {
+        const lema = currentLematizacoes[palavra] ? currentLematizacoes[palavra].join(", ") : "";
+
+        const palavraComDestaque = palavra.replace(regexHighlight, `<span class="destaque">${termoBusca.toUpperCase()}</span>`);
+
+        return `
+          <tr>
+            <td><input type="checkbox"></td>
+            <td>${palavraComDestaque}</td>
+            <td>${contagem.total}</td>
+            <td>${contagem.alter}</td>
+            <td>${contagem.ego}</td>
+            <td>${lema}</td>
+          </tr>
+        `;
+      }).join('')}
+    </tbody>
+  `;
+
+  container.appendChild(table);
+
+  const paginationContainer = document.getElementById('pagination');
+  if (paginationContainer) paginationContainer.style.display = 'none';
+}
+

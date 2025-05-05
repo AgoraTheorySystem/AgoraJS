@@ -280,3 +280,11 @@ tbody tr:nth-child(even) {
 .selected {
   background-color: #cce5ff !important;
 }
+
+.destaque {
+  color: #0d47a1;
+  font-weight: bold;
+  background-color: #e3f2fd;
+  padding: 0 2px;
+  border-radius: 3px;
+}
