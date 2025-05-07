@@ -15,7 +15,7 @@ body {
 
 /* Estilo do Menu Hamburguer */
 .burger {
-  position: absolute;
+  position: fixed; /* Fixa o botão na tela */
   top: 10px;
   left: 10px;
   width: 40px;
@@ -24,8 +24,7 @@ body {
   cursor: pointer;
   display: block;
   margin: 10px;
-  z-index: 1001;
-  /* Coloca o botão hamburguer acima da sidebar */
+  z-index: 1001; /* Garante que o botão fique sobre outros elementos */
 }
 
 .burger input {
