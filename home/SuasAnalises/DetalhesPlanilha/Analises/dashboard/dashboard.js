@@ -35,41 +35,83 @@
     const main = document.querySelector('main.container');
     main.innerHTML = '<h1>Dashboard de Análise de Dados</h1>';
 
+    // Modularização: função que gera todas as seções do dashboard
     const sections = [
       { title: 'Egos', id: 'egoCards' },
       { title: 'Alters', id: 'alterCards' },
       { title: 'Outros Campos', id: 'othersCards' }
     ];
-    sections.forEach(sec => {
-      const s = document.createElement('section');
-      s.classList.add('group');
-      s.classList.add(`${sec.id}`);
-      s.innerHTML = `
-        <h2>${sec.title}</h2>
-        <div id="${sec.id}" class="cards-container"></div>
-      `;
-      if (sec.id !== 'othersCards') {
-        const chartWrapper = document.createElement('div');
-        chartWrapper.classList.add('chart-container');
-        chartWrapper.innerHTML = `<canvas id="${sec.id}Chart"></canvas>`;
-        s.appendChild(chartWrapper);
-      }
-      main.appendChild(s);
-    });
 
-    let data;
-    try {
-      data = JSON.parse(localStorage.getItem(`planilha_${planilha}`)) || [];
-    } catch {
-      data = [];
-    }
-    if (data.length < 2) {
-      return alert('Nenhum dado válido encontrado na planilha.');
-    }
+    createSections(main, sections);
+    
+    // Carregar e validar os dados
+    let data = loadData(planilha);
+    if (!data) return;
 
     const header = data[0].map(h => String(h).trim().toUpperCase());
     const rows = data.slice(1);
 
+    const egoIdxs = [1, 2, 3, 4, 5].map(n => header.indexOf(`EVOC${n}`)).filter(i => i >= 0);
+    const alterIdxs = [6, 7, 8, 9, 10].map(n => header.indexOf(`EVOC${n}`)).filter(i => i >= 0);
+
+    const egoRes = egoIdxs.map(i => calc(i));
+    const alterRes = alterIdxs.map(i => calc(i));
+
+    // Gerar Cards
+    renderCards('egoCards', egoRes, 'EGO ');
+    renderCards('alterCards', alterRes, 'ALTER ');
+
+    // Gerar os gráficos
+    const egoColors = ['#f44336', '#8bc34a', '#2196f3', '#ffeb3b', '#4caf50'];
+    const alterColors = ['#e91e63', '#9c27b0', '#3f51b5', '#009688', '#ff9800'];
+    drawChart('egoCardsChart', egoRes, egoColors);
+    drawChart('alterCardsChart', alterRes, alterColors);
+
+    // Adicionar os gráficos ego e alter
+    addEgoChartContainer();
+    addAlterChartContainer();
+    drawEgoChart();
+    drawAlterChart();
+
+    // Gerar outros campos
+    const otherC = document.getElementById('othersCards');
+    generateOtherCards(header, rows, otherC);
+
+    // Função para criar todas as seções do dashboard
+    function createSections(main, sections) {
+      sections.forEach(sec => {
+        const s = document.createElement('section');
+        s.classList.add('group');
+        s.classList.add(sec.id);
+        s.innerHTML = `
+          <h2>${sec.title}</h2>
+          <div id="${sec.id}" class="cards-container"></div>
+        `;
+        if (sec.id !== 'othersCards') {
+          const chartWrapper = document.createElement('div');
+          chartWrapper.classList.add('chart-container');
+          chartWrapper.innerHTML = `<canvas id="${sec.id}Chart"></canvas>`;
+          s.appendChild(chartWrapper);
+        }
+        main.appendChild(s);
+      });
+    }
+
+    // Função para carregar os dados da planilha
+    function loadData(planilha) {
+      let data;
+      try {
+        data = JSON.parse(localStorage.getItem(`planilha_${planilha}`)) || [];
+      } catch {
+        data = [];
+      }
+      if (data.length < 2) {
+        return alert('Nenhum dado válido encontrado na planilha.');
+      }
+      return data;
+    }
+
+    // Função para calcular os dados
     function calc(colIdx) {
       const vals = rows.map(r => r[colIdx]).filter(v => v && String(v).trim().toUpperCase() !== 'VAZIO');
       const nums = vals.map(v => parseFloat(String(v).replace(',', '.'))).filter(n => !isNaN(n));
@@ -84,26 +126,25 @@
       }
     }
 
-    const egoIdxs = [1, 2, 3, 4, 5].map(n => header.indexOf(`EVOC${n}`)).filter(i => i >= 0);
-    const alterIdxs = [6, 7, 8, 9, 10].map(n => header.indexOf(`EVOC${n}`)).filter(i => i >= 0);
-
-    const egoRes = egoIdxs.map(i => calc(i));
-    const alterRes = alterIdxs.map(i => calc(i));
-
+    // Função para renderizar os cards
     function renderCards(containerId, results, prefix) {
       const cont = document.getElementById(containerId);
       results.forEach((r, i) => {
-        const card = document.createElement('div');
-        card.classList.add('card');
-        const label = `${prefix}${i + 1}`;
-        const val = r.isNum ? r.avg : `${r.top} (${r.topCount})`;
-        card.innerHTML = `<h3>${label}</h3><p>${val}</p>`;
+        const card = createCard(prefix + (i + 1), r);
         cont.appendChild(card);
       });
     }
-    renderCards('egoCards', egoRes, 'EGO ');
-    renderCards('alterCards', alterRes, 'ALTER ');
 
+    // Função para criar um card
+    function createCard(title, result) {
+      const card = document.createElement('div');
+      card.classList.add('card');
+      const val = result.isNum ? result.avg : `${result.top} (${result.topCount})`;
+      card.innerHTML = `<h3>${title}</h3><p>${val}</p>`;
+      return card;
+    }
+
+    // Função para desenhar o gráfico
     function drawChart(canvasId, results, colors) {
       const labels = results.map((r, i) => r.isNum ? `Col${i + 1}` : r.top);
       const freqData = results.map(r => r.isNum ? 0 : r.topCount);
@@ -138,50 +179,38 @@
       });
     }
 
-    const egoColors = ['#f44336', '#8bc34a', '#2196f3', '#ffeb3b', '#4caf50'];
-    const alterColors = ['#e91e63', '#9c27b0', '#3f51b5', '#009688', '#ff9800'];
-
-    drawChart('egoCardsChart', egoRes, egoColors);
-    drawChart('alterCardsChart', alterRes, alterColors);
-
-    function calcTopTermsEgo(rows) {
-      const egoTerms = [];
-      for (let i = 1; i <= 5; i++) {
-        const colIdx = header.indexOf(`EVOC${i}`);
-        if (colIdx >= 0) {
-          egoTerms.push(...rows.map(row => row[colIdx]).filter(val => val && val !== 'VAZIO'));
-        }
-      }
-      const freq = {};
-      egoTerms.forEach(term => { freq[term] = (freq[term] || 0) + 1; });
-      return Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([term, count]) => ({ term, count }));
+    // Função para adicionar os containers de gráfico para EGO e ALTER
+    function addEgoChartContainer() {
+      const chartWrapper = document.createElement('div');
+      chartWrapper.classList.add('chart-container');
+      chartWrapper.innerHTML = `<canvas id="egoChart"></canvas>`;
+      document.querySelector('.egoCards').appendChild(chartWrapper);
     }
 
-    function calcTopTermsAlter(rows) {
-      const alterTerms = [];
-      for (let i = 6; i <= 10; i++) {
-        const colIdx = header.indexOf(`EVOC${i}`);
-        if (colIdx >= 0) {
-          alterTerms.push(...rows.map(row => row[colIdx]).filter(val => val && val !== 'VAZIO'));
-        }
-      }
-      const freq = {};
-      alterTerms.forEach(term => { freq[term] = (freq[term] || 0) + 1; });
-      return Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([term, count]) => ({ term, count }));
+    function addAlterChartContainer() {
+      const chartWrapper = document.createElement('div');
+      chartWrapper.classList.add('chart-container');
+      chartWrapper.innerHTML = `<canvas id="alterChart"></canvas>`;
+      document.querySelector('.alterCards').appendChild(chartWrapper);
     }
 
+    // Função para gerar os outros campos
+    function generateOtherCards(header, rows, container) {
+      header.forEach((col, i) => {
+        if (!col.startsWith('EVOC')) {
+          const r = calc(i);
+          const card = createCard(col, r);
+          container.appendChild(card);
+        }
+      });
+    }
+
+    // Funções de desenho do gráfico de EGO e ALTER
     function drawEgoChart() {
       const topEgoTerms = calcTopTermsEgo(rows);
-    
-      const allEgoTerms = [];
-      for (let i = 1; i <= 5; i++) {
-        const colIdx = header.indexOf(`EVOC${i}`);
-        if (colIdx >= 0) {
-          allEgoTerms.push(...rows.map(row => row[colIdx]).filter(val => val && val !== 'VAZIO'));
-        }
-      }
+      const allEgoTerms = getAllTerms(1, 5);
       const totalEgo = allEgoTerms.length;
-    
+
       new Chart(document.getElementById('egoChart').getContext('2d'), {
         type: 'bar',
         data: {
@@ -205,19 +234,12 @@
         }
       });
     }
-    
+
     function drawAlterChart() {
       const topAlterTerms = calcTopTermsAlter(rows);
-    
-      const allAlterTerms = [];
-      for (let i = 6; i <= 10; i++) {
-        const colIdx = header.indexOf(`EVOC${i}`);
-        if (colIdx >= 0) {
-          allAlterTerms.push(...rows.map(row => row[colIdx]).filter(val => val && val !== 'VAZIO'));
-        }
-      }
+      const allAlterTerms = getAllTerms(6, 10);
       const totalAlter = allAlterTerms.length;
-    
+
       new Chart(document.getElementById('alterChart').getContext('2d'), {
         type: 'bar',
         data: {
@@ -241,37 +263,37 @@
         }
       });
     }
-    
 
-    function addEgoChartContainer() {
-      const chartWrapper = document.createElement('div');
-      chartWrapper.classList.add('chart-container');
-      chartWrapper.innerHTML = `<canvas id="egoChart"></canvas>`;
-      document.querySelector('.egoCards').appendChild(chartWrapper);
-    }
-
-    function addAlterChartContainer() {
-      const chartWrapper = document.createElement('div');
-      chartWrapper.classList.add('chart-container');
-      chartWrapper.innerHTML = `<canvas id="alterChart"></canvas>`;
-      document.querySelector('.alterCards').appendChild(chartWrapper);
-    }
-
-    addEgoChartContainer();
-    addAlterChartContainer();
-    drawEgoChart();
-    drawAlterChart();
-
-    const otherC = document.getElementById('othersCards');
-    header.forEach((col, i) => {
-      if (!col.startsWith('EVOC')) {
-        const r = calc(i);
-        const card = document.createElement('div');
-        card.classList.add('card');
-        const val = r.isNum ? r.avg : `${r.top} (${r.topCount})`;
-        card.innerHTML = `<h3>${col}</h3><p>${val}</p>`;
-        otherC.appendChild(card);
+    function getAllTerms(start, end) {
+      const terms = [];
+      for (let i = start; i <= end; i++) {
+        const colIdx = header.indexOf(`EVOC${i}`);
+        if (colIdx >= 0) {
+          terms.push(...rows.map(row => row[colIdx]).filter(val => val && val !== 'VAZIO'));
+        }
       }
-    });
+      return terms;
+    }
+
+    function calcTopTermsEgo(rows) {
+      return calcTopTerms(rows, 1, 5);
+    }
+
+    function calcTopTermsAlter(rows) {
+      return calcTopTerms(rows, 6, 10);
+    }
+
+    function calcTopTerms(rows, start, end) {
+      const terms = [];
+      for (let i = start; i <= end; i++) {
+        const colIdx = header.indexOf(`EVOC${i}`);
+        if (colIdx >= 0) {
+          terms.push(...rows.map(row => row[colIdx]).filter(val => val && val !== 'VAZIO'));
+        }
+      }
+      const freq = {};
+      terms.forEach(term => { freq[term] = (freq[term] || 0) + 1; });
+      return Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([term, count]) => ({ term, count }));
+    }
   }
 })();
