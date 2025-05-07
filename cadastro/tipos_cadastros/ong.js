@@ -29,6 +29,8 @@ form.addEventListener("submit", async (e) => {
 
     const nomeOng = document.getElementById("nome-ong").value;
     const cnpj = document.getElementById("cnpj").value;
+    const pais = document.getElementById("pais").value;
+    const cidade = document.getElementById("cidade").value;
     const areaAtuacao = document.getElementById("area-atuacao").value;
     const missao = document.getElementById("missao").value;
 
@@ -65,6 +67,22 @@ form.addEventListener("submit", async (e) => {
         return;
     }
 
+    if (pais == vazio) {
+        Swal.fire({
+            icon: "error",
+            title: "Por favor informe o pais da sua ONG"
+        });
+        return;
+    }
+
+    if (cidade == vazio) {
+        Swal.fire({
+            icon: "error",
+            title: "Por favor informe a cidade da sua ONG"
+        });
+        return;
+    }
+
     if (telefone == vazio) {
         Swal.fire({
             icon: "error",
@@ -84,6 +102,8 @@ form.addEventListener("submit", async (e) => {
             email,
             nomeOng,
             cnpj,
+            pais,
+            cidade,
             areaAtuacao,
             missao,
             representanteNome,

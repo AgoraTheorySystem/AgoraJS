@@ -29,7 +29,9 @@ form.addEventListener("submit", async (e) => {
 
     const nomeInstituicao = document.getElementById("nome-instituicao").value;
     const cnpj = document.getElementById("cnpj").value;
-    const codigoInep = document.getElementById("codigo-inep").value;
+    const pais = document.getElementById("pais").value;
+    const cidade = document.getElementById("cidade").value;
+    const nomelab = document.getElementById("nome-lab").value;
     const niveisEnsino = document.getElementById("niveis-ensino").value;
 
     const representanteNome = document.getElementById("representante-nome").value;
@@ -66,6 +68,22 @@ form.addEventListener("submit", async (e) => {
         return;
     }
 
+    if (pais == vazio) {
+        Swal.fire({
+            icon: "error",
+            title: "Por favor informe o pais da sua instituição"
+        });
+        return;
+    }
+
+    if (cidade == vazio) {
+        Swal.fire({
+            icon: "error",
+            title: "Por favor informe a cidade da sua instituição"
+        });
+        return;
+    }
+
     if (telefone == vazio) {
         Swal.fire({
             icon: "error",
@@ -85,7 +103,9 @@ form.addEventListener("submit", async (e) => {
             email,
             nomeInstituicao,
             cnpj,
-            codigoInep,
+            pais,
+            cidade,
+            nomelab,
             niveisEnsino,
             representanteNome,
             representanteCpf,
