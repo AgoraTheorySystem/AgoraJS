@@ -23,7 +23,7 @@
     flex-grow: 1;
     padding: 30px;
     background-color: #002e3b;
-    background-image: url('tela\ 07.jpg'); /* Substitua pelo caminho correto */
+    background-image: url(assets_perfil/tela07.jpg);
     background-size: cover;
     background-position: center;
     display: flex;
@@ -118,7 +118,7 @@
     display: block;
   }
   
-  /* Media Queries para Responsividade */
+  /*Responsividade */
   @media (max-width: 1024px) {
     .informacoes {
       grid-template-columns: 1fr;
