@@ -1,4 +1,11 @@
 (function () {
+  // cabeçalhos e linhas ficam disponíveis em todo o escopo da IIFE
+  let header = [];
+  let rows = [];
+
+  const DATALABELS_URL =
+    'https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js';
+
   function loadScript(url) {
     return new Promise((resolve, reject) => {
       const s = document.createElement('script');
@@ -9,8 +16,6 @@
       document.head.appendChild(s);
     });
   }
-
-  const DATALABELS_URL = 'https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js';
 
   loadScript(DATALABELS_URL)
     .then(() => {
@@ -35,265 +40,331 @@
     const main = document.querySelector('main.container');
     main.innerHTML = '<h1>Dashboard de Análise de Dados</h1>';
 
-    // Modularização: função que gera todas as seções do dashboard
+    // 1) Seções iniciais e ordem
     const sections = [
-      { title: 'Egos', id: 'egoCards' },
-      { title: 'Alters', id: 'alterCards' },
+      { title: 'Egos',          id: 'egoCards'    },
+      { title: 'Alters',        id: 'alterCards'  },
       { title: 'Outros Campos', id: 'othersCards' }
     ];
-
     createSections(main, sections);
-    
-    // Carregar e validar os dados
-    let data = loadData(planilha);
+
+    // 2) Carregar e validar dados
+    const data = loadData(planilha);
     if (!data) return;
 
-    const header = data[0].map(h => String(h).trim().toUpperCase());
-    const rows = data.slice(1);
+    header = data[0].map(h => String(h).trim().toUpperCase());
+    rows = data.slice(1);
 
-    const egoIdxs = [1, 2, 3, 4, 5].map(n => header.indexOf(`EVOC${n}`)).filter(i => i >= 0);
-    const alterIdxs = [6, 7, 8, 9, 10].map(n => header.indexOf(`EVOC${n}`)).filter(i => i >= 0);
+    // 3) Mapear colunas EVOC1…5 e EVOC6…10
+    const egoIdxs   = [1,2,3,4,5].map(n => header.indexOf(`EVOC${n}`)).filter(i=>i>=0);
+    const alterIdxs = [6,7,8,9,10].map(n=> header.indexOf(`EVOC${n}`)).filter(i=>i>=0);
 
-    const egoRes = egoIdxs.map(i => calc(i));
+    // 4) Criar e renderizar cards
+    const egoRes   = egoIdxs.map(i => calc(i));
     const alterRes = alterIdxs.map(i => calc(i));
-
-    // Gerar Cards
-    renderCards('egoCards', egoRes, 'EGO ');
+    renderCards('egoCards',   egoRes,   'EGO '  );
     renderCards('alterCards', alterRes, 'ALTER ');
 
-    // Gerar os gráficos
-    const egoColors = ['#f44336', '#8bc34a', '#2196f3', '#ffeb3b', '#4caf50'];
-    const alterColors = ['#e91e63', '#9c27b0', '#3f51b5', '#009688', '#ff9800'];
-    drawChart('egoCardsChart', egoRes, egoColors);
-    drawChart('alterCardsChart', alterRes, alterColors);
+    // 5) Gráficos de barras
+    drawChart('egoCardsChart',   egoRes,   ['#f44336','#8bc34a','#2196f3','#ffeb3b','#4caf50']);
+    drawChart('alterCardsChart', alterRes, ['#e91e63','#9c27b0','#3f51b5','#009688','#ff9800']);
 
-    // Adicionar os gráficos ego e alter
+    // 6) Gráficos de resumo (top terms)
     addEgoChartContainer();
     addAlterChartContainer();
     drawEgoChart();
     drawAlterChart();
 
-    // Gerar outros campos
-    const otherC = document.getElementById('othersCards');
-    generateOtherCards(header, rows, otherC);
+    // 7) Outros campos
+    generateOtherCards(header, rows, document.getElementById('othersCards'));
 
-    // Função para criar todas as seções do dashboard
-    function createSections(main, sections) {
-      sections.forEach(sec => {
-        const s = document.createElement('section');
-        s.classList.add('group');
-        s.classList.add(sec.id);
-        s.innerHTML = `
-          <h2>${sec.title}</h2>
-          <div id="${sec.id}" class="cards-container"></div>
-        `;
-        if (sec.id !== 'othersCards') {
-          const chartWrapper = document.createElement('div');
-          chartWrapper.classList.add('chart-container');
-          chartWrapper.innerHTML = `<canvas id="${sec.id}Chart"></canvas>`;
-          s.appendChild(chartWrapper);
-        }
-        main.appendChild(s);
-      });
-    }
+    // ——— Reordenações ———
 
-    // Função para carregar os dados da planilha
-    function loadData(planilha) {
-      let data;
-      try {
-        data = JSON.parse(localStorage.getItem(`planilha_${planilha}`)) || [];
-      } catch {
-        data = [];
+    // a) Reordenar seções no <main>
+    reorderSections(['alterCards','egoCards','othersCards']);
+
+    // b) Inverter a ordem dos cards
+    reverseCards('egoCards');
+    reverseCards('alterCards');
+
+    // c) Ordenar alfabeticamente os cards em "Outros Campos"
+    reorderCardsByTitle('othersCards');
+
+    // d) Reordenar itens dentro da seção "Egos" na ordem exata que você quiser
+    reorderChildren(
+      'section.group.egoCards',
+      [
+        '#egoCards',                            // container de cards
+        '.chart-container:nth-of-type(1)',      // wrapper com canvas #egoCardsChart
+        '.chart-container:nth-of-type(2)'       // wrapper com canvas #egoChart
+      ]
+    );
+
+    // e) Mesmo para "Alters"
+    reorderChildren(
+      'section.group.alterCards',
+      [
+        '#alterCards',
+        '.chart-container:nth-of-type(1)',
+        '.chart-container:nth-of-type(2)'
+      ]
+    );
+
+  } // end runDashboard
+
+  // — Funções auxiliares —
+
+  function createSections(main, sections) {
+    sections.forEach(sec => {
+      const s = document.createElement('section');
+      s.classList.add('group', sec.id);
+      s.innerHTML = `
+        <h2>${sec.title}</h2>
+        <div id="${sec.id}" class="cards-container"></div>
+      `;
+      if (sec.id !== 'othersCards') {
+        const cw = document.createElement('div');
+        cw.classList.add('chart-container');
+        cw.innerHTML = `<canvas id="${sec.id}Chart"></canvas>`;
+        s.appendChild(cw);
       }
-      if (data.length < 2) {
-        return alert('Nenhum dado válido encontrado na planilha.');
-      }
-      return data;
+      main.appendChild(s);
+    });
+  }
+
+  function loadData(planilha) {
+    let data;
+    try {
+      data = JSON.parse(localStorage.getItem(`planilha_${planilha}`)) || [];
+    } catch {
+      data = [];
     }
-
-    // Função para calcular os dados
-    function calc(colIdx) {
-      const vals = rows.map(r => r[colIdx]).filter(v => v && String(v).trim().toUpperCase() !== 'VAZIO');
-      const nums = vals.map(v => parseFloat(String(v).replace(',', '.'))).filter(n => !isNaN(n));
-      if (nums.length >= vals.length / 2) {
-        const sum = nums.reduce((a, b) => a + b, 0);
-        return { isNum: true, avg: (sum / nums.length).toFixed(2), total: vals.length };
-      } else {
-        const freq = {};
-        vals.forEach(v => { freq[v] = (freq[v] || 0) + 1; });
-        const [top, topCount] = Object.entries(freq).sort((a, b) => b[1] - a[1])[0] || ['N/D', 0];
-        return { isNum: false, top, topCount, total: vals.length };
-      }
+    if (data.length < 2) {
+      alert('Nenhum dado válido encontrado na planilha.');
+      return null;
     }
+    return data;
+  }
 
-    // Função para renderizar os cards
-    function renderCards(containerId, results, prefix) {
-      const cont = document.getElementById(containerId);
-      results.forEach((r, i) => {
-        const card = createCard(prefix + (i + 1), r);
-        cont.appendChild(card);
-      });
+  function calc(colIdx) {
+    const vals = rows
+      .map(r => r[colIdx])
+      .filter(v => v && String(v).trim().toUpperCase() !== 'VAZIO');
+    const nums = vals
+      .map(v => parseFloat(String(v).replace(',', '.')))
+      .filter(n => !isNaN(n));
+
+    if (nums.length >= vals.length / 2) {
+      const sum = nums.reduce((a, b) => a + b, 0);
+      return { isNum: true, avg: (sum / nums.length).toFixed(2), total: vals.length };
+    } else {
+      const freq = {};
+      vals.forEach(v => { freq[v] = (freq[v] || 0) + 1; });
+      const [top, topCount] = Object.entries(freq)
+        .sort((a, b) => b[1] - a[1])[0] || ['N/D', 0];
+      return { isNum: false, top, topCount, total: vals.length };
     }
+  }
 
-    // Função para criar um card
-    function createCard(title, result) {
-      const card = document.createElement('div');
-      card.classList.add('card');
-      const val = result.isNum ? result.avg : `${result.top} (${result.topCount})`;
-      card.innerHTML = `<h3>${title}</h3><p>${val}</p>`;
-      return card;
-    }
+  function renderCards(containerId, results, prefix) {
+    const cont = document.getElementById(containerId);
+    results.forEach((r, i) => cont.appendChild(createCard(prefix + (i+1), r)));
+  }
 
-    // Função para desenhar o gráfico
-    function drawChart(canvasId, results, colors) {
-      const labels = results.map((r, i) => r.isNum ? `Col${i + 1}` : r.top);
-      const freqData = results.map(r => r.isNum ? 0 : r.topCount);
-      const totData = results.map(r => r.total);
+  function createCard(title, result) {
+    const card = document.createElement('div');
+    card.classList.add('card');
+    const val = result.isNum
+      ? result.avg
+      : `${result.top} (${result.topCount})`;
+    card.innerHTML = `<h3>${title}</h3><p>${val}</p>`;
+    return card;
+  }
 
-      new Chart(document.getElementById(canvasId).getContext('2d'), {
+  function drawChart(canvasId, results, colors) {
+    new Chart(
+      document.getElementById(canvasId).getContext('2d'),
+      {
         type: 'bar',
         data: {
-          labels,
+          labels: results.map((r,i) => r.isNum ? `Col${i+1}` : r.top),
           datasets: [
-            { label: 'Frequência', data: freqData, backgroundColor: colors },
-            { label: 'Total', data: totData, backgroundColor: 'rgba(200,200,200,0.7)' }
+            {
+              label: 'Frequência',
+              data: results.map(r => r.isNum ? 0 : r.topCount),
+              backgroundColor: colors
+            },
+            {
+              label: 'Total',
+              data: results.map(r => r.total),
+              backgroundColor: 'rgba(200,200,200,0.7)'
+            }
           ]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          scales: { x: { stacked: false }, y: { beginAtZero: true } },
+          scales: { x:{stacked:false}, y:{beginAtZero:true} },
           plugins: {
-            legend: { position: 'top', labels: { boxWidth: 12, padding: 8 } },
-            tooltip: { enabled: false },
-            datalabels: {
-              color: '#000',
-              formatter: val => val,
-              anchor: 'end',
-              align: 'start',
-              font: { weight: 'bold', size: 12 }
+            legend: { position:'top', labels:{boxWidth:12,padding:8} },
+            tooltip:{enabled:false},
+            datalabels:{
+              color:'#000',
+              formatter: v => v,
+              anchor:'end',
+              align:'start',
+              font:{ weight:'bold', size:12 }
             }
           }
         },
         plugins: [ChartDataLabels]
-      });
+      }
+    );
+  }
+
+  function addEgoChartContainer() {
+    const cw = document.createElement('div');
+    cw.classList.add('chart-container');
+    cw.innerHTML = `<canvas id="egoChart"></canvas>`;
+    document.querySelector('section.egoCards').appendChild(cw);
+  }
+
+  function addAlterChartContainer() {
+    const cw = document.createElement('div');
+    cw.classList.add('chart-container');
+    cw.innerHTML = `<canvas id="alterChart"></canvas>`;
+    document.querySelector('section.alterCards').appendChild(cw);
+  }
+
+  function generateOtherCards(headerParam, rowsParam, container) {
+    headerParam.forEach((col, i) => {
+      if (!col.startsWith('EVOC')) {
+        container.appendChild(createCard(col, calc(i)));
+      }
+    });
+  }
+
+  function getAllTerms(start, end) {
+    const list = [];
+    for (let i = start; i <= end; i++) {
+      const idx = header.indexOf(`EVOC${i}`);
+      if (idx >= 0) {
+        rows.forEach(r => {
+          const v = r[idx];
+          if (v && String(v).trim().toUpperCase() !== 'VAZIO') {
+            list.push(v);
+          }
+        });
+      }
     }
+    return list;
+  }
 
-    // Função para adicionar os containers de gráfico para EGO e ALTER
-    function addEgoChartContainer() {
-      const chartWrapper = document.createElement('div');
-      chartWrapper.classList.add('chart-container');
-      chartWrapper.innerHTML = `<canvas id="egoChart"></canvas>`;
-      document.querySelector('.egoCards').appendChild(chartWrapper);
-    }
+  function calcTopTerms(start, end) {
+    const freq = {};
+    getAllTerms(start, end).forEach(v => {
+      freq[v] = (freq[v] || 0) + 1;
+    });
+    return Object.entries(freq)
+      .sort((a,b) => b[1] - a[1])
+      .slice(0,4)
+      .map(([term,count]) => ({ term, count }));
+  }
 
-    function addAlterChartContainer() {
-      const chartWrapper = document.createElement('div');
-      chartWrapper.classList.add('chart-container');
-      chartWrapper.innerHTML = `<canvas id="alterChart"></canvas>`;
-      document.querySelector('.alterCards').appendChild(chartWrapper);
-    }
-
-    // Função para gerar os outros campos
-    function generateOtherCards(header, rows, container) {
-      header.forEach((col, i) => {
-        if (!col.startsWith('EVOC')) {
-          const r = calc(i);
-          const card = createCard(col, r);
-          container.appendChild(card);
-        }
-      });
-    }
-
-    // Funções de desenho do gráfico de EGO e ALTER
-    function drawEgoChart() {
-      const topEgoTerms = calcTopTermsEgo(rows);
-      const allEgoTerms = getAllTerms(1, 5);
-      const totalEgo = allEgoTerms.length;
-
-      new Chart(document.getElementById('egoChart').getContext('2d'), {
+  function drawEgoChart() {
+    const top  = calcTopTerms(1, 5);
+    const all  = getAllTerms(1, 5).length;
+    new Chart(
+      document.getElementById('egoChart').getContext('2d'),
+      {
         type: 'bar',
         data: {
-          labels: [...topEgoTerms.map(term => term.term), 'EGO Total'],
+          labels: [...top.map(t => t.term), 'EGO Total'],
           datasets: [
             {
               label: 'Frequência',
-              data: [...topEgoTerms.map(term => term.count), null],
+              data: [...top.map(t => t.count), null],
               backgroundColor: '#4caf50'
             },
             {
               label: 'Total',
-              data: [...topEgoTerms.map(() => null), totalEgo],
+              data: [...top.map(() => null), all],
               backgroundColor: '#c0c0c0'
             }
           ]
         },
         options: {
           responsive: true,
-          scales: { x: { stacked: false }, y: { beginAtZero: true } }
+          scales: { x:{stacked:false}, y:{beginAtZero:true} }
         }
-      });
-    }
+      }
+    );
+  }
 
-    function drawAlterChart() {
-      const topAlterTerms = calcTopTermsAlter(rows);
-      const allAlterTerms = getAllTerms(6, 10);
-      const totalAlter = allAlterTerms.length;
-
-      new Chart(document.getElementById('alterChart').getContext('2d'), {
+  function drawAlterChart() {
+    const top  = calcTopTerms(6, 10);
+    const all  = getAllTerms(6, 10).length;
+    new Chart(
+      document.getElementById('alterChart').getContext('2d'),
+      {
         type: 'bar',
         data: {
-          labels: [...topAlterTerms.map(term => term.term), 'ALTER Total'],
+          labels: [...top.map(t => t.term), 'ALTER Total'],
           datasets: [
             {
               label: 'Frequência',
-              data: [...topAlterTerms.map(term => term.count), null],
+              data: [...top.map(t => t.count), null],
               backgroundColor: '#009688'
             },
             {
               label: 'Total',
-              data: [...topAlterTerms.map(() => null), totalAlter],
+              data: [...top.map(() => null), all],
               backgroundColor: '#c0c0c0'
             }
           ]
         },
         options: {
           responsive: true,
-          scales: { x: { stacked: false }, y: { beginAtZero: true } }
-        }
-      });
-    }
-
-    function getAllTerms(start, end) {
-      const terms = [];
-      for (let i = start; i <= end; i++) {
-        const colIdx = header.indexOf(`EVOC${i}`);
-        if (colIdx >= 0) {
-          terms.push(...rows.map(row => row[colIdx]).filter(val => val && val !== 'VAZIO'));
+          scales: { x:{stacked:false}, y:{beginAtZero:true} }
         }
       }
-      return terms;
-    }
-
-    function calcTopTermsEgo(rows) {
-      return calcTopTerms(rows, 1, 5);
-    }
-
-    function calcTopTermsAlter(rows) {
-      return calcTopTerms(rows, 6, 10);
-    }
-
-    function calcTopTerms(rows, start, end) {
-      const terms = [];
-      for (let i = start; i <= end; i++) {
-        const colIdx = header.indexOf(`EVOC${i}`);
-        if (colIdx >= 0) {
-          terms.push(...rows.map(row => row[colIdx]).filter(val => val && val !== 'VAZIO'));
-        }
-      }
-      const freq = {};
-      terms.forEach(term => { freq[term] = (freq[term] || 0) + 1; });
-      return Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([term, count]) => ({ term, count }));
-    }
+    );
   }
+
+  // — Funções de reordenação genéricas —
+
+  function reorderSections(order) {
+    const main = document.querySelector('main.container');
+    order.forEach(id => {
+      const sec = main.querySelector(`section.${id}`);
+      if (sec) main.appendChild(sec);
+    });
+  }
+
+  function reverseCards(containerId) {
+    const cont = document.getElementById(containerId);
+    Array.from(cont.children)
+         .reverse()
+         .forEach(el => cont.appendChild(el));
+  }
+
+  function reorderCardsByTitle(containerId) {
+    const cont  = document.getElementById(containerId);
+    const cards = Array.from(cont.children);
+    cards.sort((a, b) =>
+      a.querySelector('h3').textContent.localeCompare(
+        b.querySelector('h3').textContent
+      )
+    );
+    cards.forEach(el => cont.appendChild(el));
+  }
+
+  function reorderChildren(parentSelector, childSelectors) {
+    const parent = document.querySelector(parentSelector);
+    childSelectors.forEach(sel => {
+      const el = parent.querySelector(sel);
+      if (el) parent.appendChild(el);
+    });
+  }
+
 })();

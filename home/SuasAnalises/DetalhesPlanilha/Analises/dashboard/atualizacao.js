@@ -136,6 +136,7 @@ function saveTimestampToLocalStorage(fileName, value) {
         const key = `planilha_ultima_alteracao_${fileName}`;
         localStorage.setItem(key, value);
         console.log(`Número salvo no localStorage para "${fileName}":`, value);
+        setTimeout(location.reload(),1000);
     } catch (error) {
         console.error("Erro ao salvar o número no localStorage:", error);
     }
@@ -167,3 +168,4 @@ async function fetchAndSaveAuxiliaryTable(user, fileName) {
         console.error("Erro ao buscar tabela auxiliar:", error);
     }
 }
+
