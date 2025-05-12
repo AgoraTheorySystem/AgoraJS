@@ -1,179 +1,188 @@
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: sans-serif;
-  }
-  
-  body {
-    background-color: #003540;
-    color: white;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .container {
-    display: flex;
-    width: 100%;
-  }
-  
-  .tela_principal {
-    flex-grow: 1;
-    padding: 30px;
-    background-color: #002e3b;
-    background-image: url(assets_perfil/tela07.jpg);
-    background-size: cover;
-    background-position: center;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-  }
-  
-  .perfil_area {
-    background-color: #002e3b;
-    border-radius: 12px;
-    border: 1px solid #00acc1;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
-    padding: 60px;
-    max-width: 1500px;
-    width: 100%;
-    margin: 0 auto;
-  }
-  
-  .perfil_topo {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 50px;
-  }
-  
-  .circulo_bg {
-    background-color: #006B5F;
-    border-radius: 50%;
-    width: 120px;
-    height: 120px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .circulo_bg img {
-    width: 80px;
-  }
-  
-  .perfil_topo span {
-    color: white;
-    font-size: 1.3em;
-  }
-  
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: sans-serif;
+}
+
+body {
+  background-color: #003540;
+  color: white;
+  min-height: 100vh;
+  overflow-y: auto;
+  font-family: sans-serif;
+}
+
+.container {
+  display: flex;
+  width: 100%;
+}
+
+.tela_principal {
+  flex-grow: 1;
+  padding: 30px;
+  background-color: #002e3b;
+  background-image: url(assets_perfil/tela07.jpg);
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+}
+
+.perfil_area {
+  background-color: #002e3b;
+  border-radius: 12px;
+  border: 1px solid #00acc1;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+  padding: 40px 20px;
+  max-width: 1200px;
+  width: 100%;
+  margin: 20px;
+}
+
+.perfil_topo {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 50px;
+}
+
+.circulo_bg {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at center,
+    white 44%,           /* centro branco maior */
+    #006B5F 45%,         /* anel verde escuro começa logo após */
+    #006B5F 69%, 
+    #00acc1 70%,         /* leve separação melhora a transição */
+    #00acc1 100%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+
+
+.circulo_bg img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+}
+
+
+
+
+.perfil_topo span {
+  color: white;
+  font-size: 1.3em;
+}
+
+.informacoes {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 30px;
+}
+
+.informacoes input {
+  width: 100%;
+  padding: 20px;
+  border-radius: 10px;
+  border: none;
+  background-color: white;
+}
+
+.campo {
+  margin-bottom: 15px;
+}
+
+.campo label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.campo input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.nome_campos {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.editar_botao {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.editar_botao img {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+/* Responsividade */
+@media (max-width: 1024px) {
   .informacoes {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 30px;
+    grid-template-columns: 1fr;
   }
-  
-  .informacoes input {
-    width: 100%;
-    padding: 20px;
-    border-radius: 10px;
-    border: none;
-    background-color: white;
+
+  .perfil_area {
+    padding: 30px 20px;
   }
-  
-  .campo {
+
+  .perfil_topo span {
+    font-size: 1.1em;
+  }
+}
+
+@media (max-width: 768px) {
+  .circulo_bg {
+    width: 100px;
+    height: 100px;
+  }
+
+  .circulo_bg img {
+    width: 60px;
+  }
+
+  .perfil_topo span {
+    font-size: 1em;
+  }
+}
+
+@media (max-width: 480px) {
+  .perfil_topo {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .circulo_bg {
     margin-bottom: 15px;
   }
-  
-  .campo label {
-    display: block;
-    font-weight: bold;
-    margin-bottom: 5px;
-  }
-  
-  .campo input {
+
+  .informacoes {
+    grid-template-columns: 1fr;
+    gap: 15px;
     width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
   }
-  
-  .nome_campos {
-    display: flex;
-    align-items: center;
+
+  .perfil_area {
+    padding: 20px 10px;
   }
-  
-  .editar_botao {
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    margin-left: 10px;
-  }
-  
-  .editar_botao img {
-    width: 20px;
-    height: 20px;
-    display: block;
-  }
-  
-  /*Responsividade */
-  @media (max-width: 1024px) {
-    .informacoes {
-      grid-template-columns: 1fr;
-    }
-  
-    .perfil_area {
-      padding: 30px;
-    }
-  
-    .perfil_topo span {
-      font-size: 1.1em;
-    }
-  }
-  
-  @media (max-width: 768px) {
-    .circulo_bg {
-      width: 100px;
-      height: 100px;
-    }
-  
-    .circulo_bg img {
-      width: 60px;
-    }
-  
-    .perfil_topo span {
-      font-size: 1em;
-    }
-  
-    .informacoes {
-      padding: 20px;
-    }
-  
-    .informacoes input {
-      padding: 15px;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    .perfil_topo {
-      flex-direction: column;
-      text-align: center;
-    }
-  
-    .circulo_bg {
-      margin-bottom: 15px;
-    }
-  
-    .informacoes {
-      grid-template-columns: 1fr;
-      gap: 15px;
-    }
-  
-    .informacoes {
-      width: 90%;
-      padding: 20px;
-    }
-  }
-  
+}
