@@ -81,7 +81,7 @@
     // ——— Reordenações ———
 
     // a) Reordenar seções no <main>
-    reorderSections(['alterCards','egoCards','othersCards']);
+    reorderSections(['egoCards','alterCards','othersCards']);
 
     // b) Inverter a ordem dos cards
     reverseCards('egoCards');
