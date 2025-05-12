@@ -109,6 +109,7 @@ function generateSidebarMenu() {
                 <div class="user-info">
                   <h2>Bem-Vindo</h2>
                   <h2 class="userEmail"></h2>
+                  <a href="/home/Perfil/perfil.html">Seu Perfil</a>
                 </div>
             </div>
             <li id="espaco"></li>           
@@ -140,7 +141,8 @@ function generateSidebarMenu() {
         const user = JSON.parse(userData);
         const adminEmails = [
             'williamfunk.11@gmail.com',
-            'williamgame.11@gmail.com'
+            'williamgame.11@gmail.com',
+            'joao.falves07@gmail.com'
             // Adicione outros e-mails conforme necessário
         ];
 

@@ -16,6 +16,7 @@ body {
 .container {
   display: flex;
   width: 100%;
+  margin-top: -60px;
 }
 
 .tela_principal {
@@ -40,6 +41,7 @@ body {
   max-width: 1200px;
   width: 100%;
   margin: 20px;
+  margin-top: 60px;
 }
 
 .perfil_topo {
@@ -53,14 +55,15 @@ body {
   width: 130px;
   height: 130px;
   border-radius: 50%;
-  background: radial-gradient(
-    circle at center,
-    white 44%,           /* centro branco maior */
-    #006B5F 45%,         /* anel verde escuro começa logo após */
-    #006B5F 69%, 
-    #00acc1 70%,         /* leve separação melhora a transição */
-    #00acc1 100%
-  );
+  background: radial-gradient(circle at center,
+      white 44%,
+      /* centro branco maior */
+      #006B5F 45%,
+      /* anel verde escuro começa logo após */
+      #006B5F 69%,
+      #00acc1 70%,
+      /* leve separação melhora a transição */
+      #00acc1 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -185,4 +188,8 @@ body {
   .perfil_area {
     padding: 20px 10px;
   }
+}
+
+.burger span {
+  background-color: white !important;
 }
