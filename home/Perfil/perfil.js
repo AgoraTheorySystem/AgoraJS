@@ -1,6 +1,6 @@
 import firebaseConfig from '/firebase.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-app.js";
-import {getDatabase, ref, get,child, set} from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
+import { getDatabase, ref, get, child, set } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
 
 // Inicialização do Firebase
 const app = initializeApp(firebaseConfig);
@@ -28,7 +28,6 @@ function getUser() {
 const user = getUser();
 console.log(user ? user.uid : 'Usuário não encontrado');
 
-// Atualiza o email do topo do perfil
 if (user) {
   const spanEmailTopo = document.getElementById('emailTopo');
   if (spanEmailTopo && user.email) {
@@ -41,13 +40,9 @@ if (user) {
   get(child(dbRef, path)).then(snapshot => {
     if (snapshot.exists()) {
       const data = snapshot.val();
-
-      // Atualiza ícone do usuário com base no login feito
       if (data.tipo) {
-        console.log("Tipo de usuário:", data.tipo); 
         atualizarIconeUsuario(data.tipo);
       }
-
       preencherCamposDinamicamente(data);
     } else {
       console.log("Nenhum dado encontrado.");
@@ -57,12 +52,16 @@ if (user) {
   });
 }
 
-// Cria os campos adaptaveis
+// Cria os campos adaptáveis e filtra campos indesejados
 function preencherCamposDinamicamente(dados) {
   const container = document.getElementById('informacoes');
   container.innerHTML = '';
 
+  const camposIgnorados = ['UltimasAlteracoes', 'lematizacoes', 'planilhas'];
+
   Object.entries(dados).forEach(([chave, valor]) => {
+    if (camposIgnorados.includes(chave)) return;
+
     const campo = document.createElement('div');
     campo.className = 'campos';
 
@@ -72,7 +71,6 @@ function preencherCamposDinamicamente(dados) {
 
     const divInput = document.createElement('div');
     divInput.className = 'nome_campos';
-    divInput.style.position = 'relative';
 
     const input = document.createElement('input');
     input.type = 'text';
@@ -81,37 +79,57 @@ function preencherCamposDinamicamente(dados) {
     input.readOnly = true;
     input.style.paddingRight = '40px';
 
-    const botao = document.createElement('button');
-    botao.className = 'editar_botao';
-    botao.innerHTML = `<img src="/home/Perfil/assets_perfil/icone_editar.png" alt="Editar">`;
-    botao.style.position = 'absolute';
-    botao.style.right = '10px';
-    botao.style.top = '50%';
-    botao.style.transform = 'translateY(-50%)';
+    divInput.appendChild(input);
+    campo.appendChild(label);
+    campo.appendChild(divInput);
 
-    let editando = false;
+    if (chave !== 'email' && chave !== 'tipo') {
+      const botao = document.createElement('button');
+      botao.className = 'editar_botao';
+      botao.innerHTML = `<img src="/home/Perfil/assets_perfil/icone_editar.png" alt="Editar">`;
 
-    botao.addEventListener('click', () => {
-      editando = !editando;
-      input.readOnly = !editando;
-      if (editando) {
-        input.focus();
-        botao.innerHTML = `<img src="/home/Perfil/assets_perfil/user.png" alt="Salvar">`;
-      } else {
+      botao.style.position = 'absolute';
+      botao.style.right = '10px';
+      botao.style.top = '50%';
+      botao.style.transform = 'translateY(-50%)';
+
+      let editando = false;
+
+      function salvarEdicao() {
+        editando = false;
+        input.readOnly = true;
+        input.classList.remove('editando');
         botao.innerHTML = `<img src="/home/Perfil/assets_perfil/icone_editar.png" alt="Editar">`;
         salvarCampoNoFirebase(user.uid, chave, input.value);
       }
-    });
 
-    divInput.appendChild(input);
-    divInput.appendChild(botao);
-    campo.appendChild(label);
-    campo.appendChild(divInput);
+      botao.addEventListener('click', () => {
+        editando = !editando;
+        input.readOnly = !editando;
+        if (editando) {
+          input.classList.add('editando');
+          input.focus();
+          botao.innerHTML = `<img src="/home/Perfil/assets_perfil/user.png" alt="Salvar">`;
+        } else {
+          salvarEdicao();
+        }
+      });
+
+      input.addEventListener('keydown', (e) => {
+        if (editando && e.key === 'Enter') {
+          e.preventDefault();
+          salvarEdicao();
+        }
+      });
+
+      divInput.appendChild(botao);
+    }
+
     container.appendChild(campo);
   });
 }
 
-// Devolve alteração pro firebase
+// Salva alteração no Firebase
 function salvarCampoNoFirebase(uid, campo, valor) {
   const campoRef = ref(db, `/users/${uid}/${campo}`);
   set(campoRef, valor)
@@ -119,7 +137,7 @@ function salvarCampoNoFirebase(uid, campo, valor) {
     .catch(err => console.error(`Erro ao salvar campo "${campo}":`, err));
 }
 
-// Formata nome 
+// Formata o título de cada campo
 function formatarTituloCampo(campo) {
   return campo
     .replace(/([A-Z])/g, ' $1')

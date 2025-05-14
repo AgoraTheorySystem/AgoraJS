@@ -2,15 +2,15 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: sans-serif;
+  font-family: 'Ubuntu',;
 }
+
 
 body {
   background-color: #003540;
   color: white;
   min-height: 100vh;
   overflow-y: auto;
-  font-family: sans-serif;
 }
 
 .container {
@@ -57,29 +57,20 @@ body {
   border-radius: 50%;
   background: radial-gradient(circle at center,
       white 44%,
-      /* centro branco maior */
       #006B5F 45%,
-      /* anel verde escuro começa logo após */
       #006B5F 69%,
       #00acc1 70%,
-      /* leve separação melhora a transição */
       #00acc1 100%);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-
-
-
 .circulo_bg img {
   width: 50px;
   height: 50px;
   object-fit: contain;
 }
-
-
-
 
 .perfil_topo span {
   color: white;
@@ -92,14 +83,6 @@ body {
   gap: 30px;
 }
 
-.informacoes input {
-  width: 100%;
-  padding: 20px;
-  border-radius: 10px;
-  border: none;
-  background-color: white;
-}
-
 .campo {
   margin-bottom: 15px;
 }
@@ -110,11 +93,22 @@ body {
   margin-bottom: 5px;
 }
 
-.campo input {
+/* Estilo base de todos os inputs */
+.campo input,
+input {
   width: 100%;
-  padding: 10px;
+  padding: 15px;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 10px;
+  box-sizing: border-box;
+  background-color: #949191;
+  color: #333;
+}
+
+/* Quando está em edição */
+input.editando {
+  background-color: #ffffff !important;
+  color: #000;
 }
 
 .nome_campos {
