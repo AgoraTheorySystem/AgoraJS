@@ -288,3 +288,48 @@ tbody tr:nth-child(even) {
   padding: 0 2px;
   border-radius: 3px;
 }
+
+/* ——— Painel de itens selecionados ——— */
+#selected-evocacoes {
+  margin: 20px auto 0 100px;
+  max-width: calc(100% - 100px);
+  background-color: #e3f2fd;
+  padding: 10px;
+  border-radius: 8px;
+}
+#selected-evocacoes h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+#selected-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 8px;
+}
+.selected-item {
+  background-color: #cce5ff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+}
+.remove-item-btn {
+  background: none;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+}
+#clear-selected {
+  background-color: #f44336;
+  border: none;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}

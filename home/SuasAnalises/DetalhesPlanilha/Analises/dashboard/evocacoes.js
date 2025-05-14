@@ -13,30 +13,60 @@ let allWords = [];
 let currentLematizacoes = {};
 let currentSearch = "";
 
+// ——— seleção persistente ———
+// agora global, para o menu lateral poder ler!
+window.selectedEvocacoes = [];
+
+// referências ao DOM do painel de selecionados:
+const selectedListEl = document.getElementById('selected-list');
+const selectedCountEl = document.getElementById('selected-count');
+const clearSelectedBtn = document.getElementById('clear-selected');
+
+// limpa tudo:
+clearSelectedBtn.addEventListener('click', () => {
+  window.selectedEvocacoes = [];
+  updateSelectedContainer();
+  renderTabela(); // re-renderiza pra desmarcar checkboxes
+});
+
+// atualiza o painel de selecionados:
+function updateSelectedContainer() {
+  selectedListEl.innerHTML = '';
+  selectedCountEl.textContent = window.selectedEvocacoes.length;
+  window.selectedEvocacoes.forEach(palavra => {
+    const li = document.createElement('li');
+    li.className = 'selected-item';
+    li.textContent = palavra;
+    const btn = document.createElement('button');
+    btn.className = 'remove-item-btn';
+    btn.innerText = '×';
+    btn.title = 'Remover';
+    btn.addEventListener('click', () => {
+      window.selectedEvocacoes = window.selectedEvocacoes.filter(p => p !== palavra);
+      updateSelectedContainer();
+      renderTabela();
+    });
+    li.appendChild(btn);
+    selectedListEl.appendChild(li);
+  });
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   const urlParams = new URLSearchParams(window.location.search);
   const planilhaNome = urlParams.get("planilha");
-
   if (!planilhaNome) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Erro!',
-      text: "Parâmetro 'planilha' ausente na URL."
-    });
+    Swal.fire({ icon: 'error', title: 'Erro!', text: "Parâmetro 'planilha' ausente na URL." });
     return;
   }
 
   try {
     const data = JSON.parse(localStorage.getItem(`planilha_${planilhaNome}`));
     if (!data || data.length === 0) {
-      console.error("Nenhum dado encontrado no LocalStorage.");
+      Swal.fire({ icon: 'error', title: 'Erro!', text: "Nenhum dado encontrado para esta planilha." });
       return;
     }
-
-    const lematizacoes = await carregarLematizacoes(planilhaNome);
-    currentLematizacoes = lematizacoes;
+    currentLematizacoes = await carregarLematizacoes(planilhaNome);
     processarTabela(data);
-
   } catch (error) {
     console.error("Erro ao carregar a planilha:", error);
   }
@@ -61,20 +91,16 @@ function processarTabela(data) {
   const rows = data.slice(1);
 
   const palavraContagem = {};
-
   for (const row of rows) {
     for (let j = 0; j < header.length; j++) {
       const coluna = header[j].toUpperCase();
       if (/^EVOC[1-9]$|^EVOC10$/.test(coluna)) {
         const palavra = (row[j] || "").trim().toUpperCase();
         if (!palavra || palavra === "VAZIO") continue;
-
         if (!palavraContagem[palavra]) {
           palavraContagem[palavra] = { total: 0, ego: 0, alter: 0 };
         }
-
         palavraContagem[palavra].total++;
-
         if (/^EVOC[1-5]$/.test(coluna)) {
           palavraContagem[palavra].ego++;
         } else {
@@ -97,11 +123,9 @@ function renderTabela() {
     : allWords;
 
   const container = document.getElementById("tabela-evocacoes");
-  if (!container) return;
   container.innerHTML = "";
 
   const regexHighlight = new RegExp(`(${termo})`, "gi");
-
   const start = (currentPage - 1) * ITEMS_PER_PAGE;
   const end = start + ITEMS_PER_PAGE;
   const pageWords = lista.slice(start, end);
@@ -120,11 +144,10 @@ function renderTabela() {
     </thead>
     <tbody>
       ${pageWords.map(([palavra, contagem]) => {
-        const lema = currentLematizacoes[palavra] ? currentLematizacoes[palavra].join(", ") : "";
         const palavraDestacada = termo
-          ? palavra.replace(regexHighlight, `<span class="destaque">$1</span>`)
+          ? palavra.replace(regexHighlight, `<mark>$1</mark>`)
           : palavra;
-
+        const lema = currentLematizacoes[palavra] || "";
         return `
           <tr>
             <td><input type="checkbox"></td>
@@ -138,9 +161,29 @@ function renderTabela() {
       }).join("")}
     </tbody>
   `;
-
   container.appendChild(table);
 
+  // Sincroniza checkboxes com window.selectedEvocacoes
+  table.querySelectorAll('tbody tr').forEach((tr, idx) => {
+    const checkbox = tr.querySelector('input[type="checkbox"]');
+    const palavra = pageWords[idx][0];
+
+    checkbox.checked = window.selectedEvocacoes.includes(palavra);
+
+    checkbox.addEventListener('change', () => {
+      if (checkbox.checked) {
+        if (!window.selectedEvocacoes.includes(palavra)) {
+          window.selectedEvocacoes.push(palavra);
+        }
+      } else {
+        window.selectedEvocacoes = window.selectedEvocacoes.filter(p => p !== palavra);
+      }
+      updateSelectedContainer();
+    });
+  });
+
+  // Atualiza o painel sempre que recarrega a tabela
+  updateSelectedContainer();
   renderizarPaginacao(lista.length);
 }
 
@@ -154,8 +197,8 @@ function renderizarPaginacao(totalItems) {
   }
 
   paginationContainer.innerHTML = "";
-
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+
   for (let i = 1; i <= totalPages; i++) {
     const btn = document.createElement("button");
     btn.innerText = i;

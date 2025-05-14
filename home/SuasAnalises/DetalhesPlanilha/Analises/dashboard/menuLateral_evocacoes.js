@@ -19,34 +19,26 @@ function getUserFromSession() {
 }
 
 async function updateTimestamp(planilhaNome) {
-    const user = getUserFromSession();
-    if (!user) return;
-    const timestamp = Date.now();
-    const caminho = `users/${user.uid}/UltimasAlteracoes/${planilhaNome}`;
-  
-    try {
-      // Remove o dado anterior
-      await set(ref(database, `${caminho}`), null);  // Apaga os dados anteriores
-  
-      // Grava o novo timestamp
-      await set(ref(database, `${caminho}/${timestamp}`), timestamp);
-      console.log("Novo timestamp registrado com sucesso.");
-    } catch (error) {
-      console.error("Erro ao atualizar timestamp:", error);
-    }
+  const user = getUserFromSession();
+  if (!user) return;
+  const timestamp = Date.now();
+  const caminho = `users/${user.uid}/UltimasAlteracoes/${planilhaNome}`;
+
+  try {
+    await set(ref(database, `${caminho}`), null);
+    await set(ref(database, `${caminho}/${timestamp}`), timestamp);
+    console.log("Novo timestamp registrado com sucesso.");
+  } catch (error) {
+    console.error("Erro ao atualizar timestamp:", error);
   }
-  
+}
 
 async function removerPalavrasSelecionadas() {
-  const checkboxes = document.querySelectorAll("tbody input[type='checkbox']:checked");
-  if (checkboxes.length === 0) {
+  const palavrasParaRemover = window.selectedEvocacoes || [];
+  if (palavrasParaRemover.length === 0) {
     alert("Selecione pelo menos uma palavra para remover.");
     return;
   }
-
-  const palavrasParaRemover = Array.from(checkboxes).map(checkbox =>
-    checkbox.closest("tr").children[1].innerText.trim().toUpperCase()
-  );
 
   const urlParams = new URLSearchParams(window.location.search);
   const planilhaNome = urlParams.get("planilha");
@@ -103,15 +95,11 @@ async function removerPalavrasSelecionadas() {
 }
 
 async function fundirPalavrasSelecionadas() {
-  const checkboxes = document.querySelectorAll("tbody input[type='checkbox']:checked");
-  if (checkboxes.length < 2) {
+  const palavrasSelecionadas = window.selectedEvocacoes || [];
+  if (palavrasSelecionadas.length < 2) {
     alert("Selecione pelo menos duas palavras para fundir.");
     return;
   }
-
-  const palavrasSelecionadas = Array.from(checkboxes).map(checkbox =>
-    checkbox.closest("tr").children[1].innerText.trim().toUpperCase()
-  );
 
   const novoNome = prompt("Digite o nome da nova palavra fundida:").trim().toUpperCase();
   if (!novoNome) {
@@ -132,61 +120,84 @@ async function fundirPalavrasSelecionadas() {
     return;
   }
 
+  // Carrega dados originais antes da fusão
   const planilhaRef = ref(database, `/users/${user.uid}/planilhas/${planilhaNome}`);
-  const lemaRef = ref(database, `/users/${user.uid}/lematizacoes/${planilhaNome}`);
-
+  let originalChunks = {};
   try {
     const snapshot = await get(planilhaRef);
-    const lemaSnapshot = await get(lemaRef);
+    originalChunks = snapshot.exists() ? snapshot.val() : {};
+  } catch (error) {
+    console.error("Erro ao ler dados originais:", error);
+    return;
+  }
 
-    const chunks = snapshot.exists() ? snapshot.val() : {};
-    const lemaAtual = lemaSnapshot.exists() ? lemaSnapshot.val() : {};
+  // Carrega conteúdo local para contagem exata apenas nas colunas EVOC
+  const rawData = JSON.parse(localStorage.getItem(`planilha_${planilhaNome}`)) || [];
+  const header = rawData[0] || [];
+  const evocCols = header.reduce((acc, col, idx) => {
+    if (/^EVOC[1-9]$|^EVOC10$/.test(col.toUpperCase())) acc.push(idx);
+    return acc;
+  }, []);
 
-    const novosChunks = {};
-
-    Object.keys(chunks).forEach(chunkKey => {
-      const chunkData = chunks[chunkKey].map(row => {
-        return row.map(cell => {
-          const valor = (typeof cell === "string" ? cell.trim().toUpperCase() : "");
-          return palavrasSelecionadas.includes(valor) ? novoNome : cell;
-        });
-      });
-      novosChunks[chunkKey] = chunkData;
+  // Calcula contagem de cada palavra selecionada
+  const counts = {};
+  palavrasSelecionadas.forEach(p => counts[p] = 0);
+  rawData.slice(1).forEach(row => {
+    evocCols.forEach(idx => {
+      const val = (row[idx] || '').trim().toUpperCase();
+      if (palavrasSelecionadas.includes(val)) counts[val]++;
     });
+  });
 
-    await set(planilhaRef, novosChunks);
-
-    const storedData = JSON.parse(localStorage.getItem(`planilha_${planilhaNome}`));
-    const updatedData = storedData.map(row =>
+  // Aplica fusão nos chunks originais
+  const novosChunks = {};
+  Object.keys(originalChunks).forEach(chunkKey => {
+    novosChunks[chunkKey] = originalChunks[chunkKey].map(row =>
       row.map(cell => {
         const valor = (typeof cell === "string" ? cell.trim().toUpperCase() : "");
         return palavrasSelecionadas.includes(valor) ? novoNome : cell;
       })
     );
-    localStorage.setItem(`planilha_${planilhaNome}`, JSON.stringify(updatedData));
-
-    // Atualiza lematizações
-    const tbody = document.querySelector("tbody");
-    const novasLematizacoes = palavrasSelecionadas.map(palavra => {
-      const row = Array.from(tbody.rows).find(r => r.children[1].innerText.trim().toUpperCase() === palavra);
-      if (row) {
-        const total = parseInt(row.children[2].innerText.trim(), 10) || 0;
-        return `${palavra} (${total})`;
-      }
-      return "";
-    }).filter(text => text !== "").join(", ");
-
-    lemaAtual[novoNome] = novasLematizacoes.split(", ");
-    await set(lemaRef, lemaAtual);
-
-    await updateTimestamp(planilhaNome);
-
-    location.reload();
-
+  });
+  try {
+    await set(planilhaRef, novosChunks);
   } catch (error) {
-    console.error("Erro ao fundir palavras:", error);
+    console.error("Erro ao gravar dados fundidos:", error);
     alert("Erro ao fundir palavras. Verifique o console.");
+    return;
   }
+
+  // Atualiza localStorage com dados fundidos
+  const storedData = JSON.parse(localStorage.getItem(`planilha_${planilhaNome}`));
+  const updatedData = storedData.map(row =>
+    row.map(cell => {
+      const valor = (typeof cell === "string" ? cell.trim().toUpperCase() : "");
+      return palavrasSelecionadas.includes(valor) ? novoNome : cell;
+    })
+  );
+  localStorage.setItem(`planilha_${planilhaNome}`, JSON.stringify(updatedData));
+
+  // Atualiza lematizações no Firebase
+  const lemaRef = ref(database, `/users/${user.uid}/lematizacoes/${planilhaNome}`);
+  let lemaAtual = {};
+  try {
+    const lemaSnap = await get(lemaRef);
+    lemaAtual = lemaSnap.exists() ? lemaSnap.val() : {};
+  } catch (error) {
+    console.error("Erro ao ler lematizações existentes:", error);
+  }
+
+  const novasLematizacoesArr = palavrasSelecionadas.map(palavra => `${palavra} (${counts[palavra]})`);
+  lemaAtual[novoNome] = novasLematizacoesArr;
+
+  try {
+    await set(lemaRef, lemaAtual);
+  } catch (error) {
+    console.error("Erro ao gravar lematizações:", error);
+  }
+
+  await updateTimestamp(planilhaNome);
+  location.reload();
 }
 
 function criarMenuLateral() {
