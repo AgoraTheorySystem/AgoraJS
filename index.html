@@ -3,29 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="/assets/icon.png">
-    <link href="index.css" rel="stylesheet">
-    <script src="index.js" type="module" defer></script>
     <title>Ágora</title>
+    <link rel="stylesheet" href="index.css">
+    <script src="index.js" type="module" defer></script>
 </head>
 <body>
-    <div class="Left">
-        Bem-vindo ao sistema&nbsp;
-        <span class="highlight">Ágora Theory</span>
-    </div>
-    <div class="Right">
-        <img src="/assets/Logo_Agora_Preta.png" alt="Ágora Logo" class="logo">
-        <form class="login-form">
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email" placeholder="Digite seu email">
-            
-            <label for="password">Senha:</label>
-            <input type="password" id="password" name="password" placeholder="Digite sua senha">
-            
-            <a href="esqueceu_senha/esqueceu.html" class="forgot-password">Esqueceu sua senha?</a>
-            <button type="submit" class="login-button">Login</button>
-        </form>
-        <p class="signup-text">Não tem uma conta? <a href="cadastro/cadastro.html" class="signup-link">Crie uma conta!</a></p>
+    <div class="login-container">
+        <div class="login-card">
+            <img src="/assets/Logo_Agora.png" alt="Logo Ágora" class="logo-img">
+
+            <form class="login-form">
+                <label for="email" class="input-label">Usuário</label>
+                <div class="input-group">
+                    <img src="home\Perfil\assets_perfil\icone_login_pessoa_fisica.png" alt="Usuário" class="input-icon-img">
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <label for="password" class="input-label">Senha</label>
+                <div class="input-group">
+                    <img src="/assets/icone_cadeado.png" alt="Senha" class="input-icon-img">
+                    <input type="password" id="password" name="password" required>
+                </div>
+
+
+                <a href="esqueceu_senha/esqueceu.html" class="forgot-password">Esqueceu sua senha?</a>
+
+                <button type="submit" class="login-button">Login</button>
+            </form>
+
+            <p class="signup-text">Não tem uma conta? <a href="cadastro/cadastro.html" class="signup-link">Crie sua conta!</a></p>
+        </div>
     </div>
 </body>
 </html>
