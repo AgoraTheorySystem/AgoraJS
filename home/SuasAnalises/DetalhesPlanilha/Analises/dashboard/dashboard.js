@@ -78,7 +78,7 @@
     sections.forEach(sec => {
       const s = document.createElement('section');
       s.classList.add('group', sec.id);
-      s.innerHTML = `<h2>${sec.title}</h2><div id="${sec.id}" class="cards-container"></div>`;
+      s.innerHTML = `<h2 id="Texto2">${sec.title}</h2><div id="${sec.id}" class="cards-container"></div>`;
       if (sec.charts) sec.charts.forEach(id => createChartContainer(s, id));
       main.appendChild(s);
     });
