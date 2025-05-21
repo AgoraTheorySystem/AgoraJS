@@ -1,19 +1,17 @@
+// formaragora.js
 document.addEventListener("DOMContentLoaded", () => {
-  // Recupera o parâmetro "planilha" da URL
   const urlParams = new URLSearchParams(window.location.search);
   const planilhaNome = urlParams.get("planilha");
-
   if (!planilhaNome) {
     alert("Parâmetro 'planilha' ausente na URL.");
     return;
   }
 
-  // Função que cria a estrutura de uma planilha dentro de um container
+  // Cria estrutura da planilha (tabela + paginação + loading)
   function createPlanilhaElement() {
     const planilhaEl = document.createElement("div");
     planilhaEl.classList.add("planilha");
 
-    // Cria a tabela com thead e tbody
     const table = document.createElement("table");
     table.classList.add("data-table");
     const thead = document.createElement("thead");
@@ -22,287 +20,230 @@ document.addEventListener("DOMContentLoaded", () => {
     table.appendChild(tbody);
     planilhaEl.appendChild(table);
 
-    // Cria a área de paginação
     const paginationDiv = document.createElement("div");
     paginationDiv.classList.add("pagination");
-
     const prevBtn = document.createElement("button");
     prevBtn.classList.add("prev-btn");
     prevBtn.textContent = "Anterior";
-    paginationDiv.appendChild(prevBtn);
-
     const pageInfo = document.createElement("span");
     pageInfo.classList.add("page-info");
-    paginationDiv.appendChild(pageInfo);
-
     const nextBtn = document.createElement("button");
     nextBtn.classList.add("next-btn");
     nextBtn.textContent = "Próximo";
-    paginationDiv.appendChild(nextBtn);
-
     const pageNumbersDiv = document.createElement("div");
     pageNumbersDiv.classList.add("page-numbers");
-    paginationDiv.appendChild(pageNumbersDiv);
 
+    paginationDiv.append(prevBtn, pageInfo, nextBtn, pageNumbersDiv);
     planilhaEl.appendChild(paginationDiv);
 
-    // Cria a área de loading
     const loadingDiv = document.createElement("div");
     loadingDiv.classList.add("loading");
     loadingDiv.setAttribute("aria-live", "polite");
     loadingDiv.setAttribute("aria-busy", "true");
     loadingDiv.style.display = "none";
-    loadingDiv.innerHTML = `<figure class="loader">
-      <div class="dot white"></div>
-      <div class="dot"></div>
-      <div class="dot"></div>
-      <div class="dot"></div>
-      <div class="dot"></div>
-    </figure>`;
+    loadingDiv.innerHTML = `
+      <figure class="loader">
+        <div class="dot white"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </figure>`;
     planilhaEl.appendChild(loadingDiv);
 
-    return {
-      planilhaEl,
-      table,
-      thead,
-      tbody,
-      paginationDiv,
-      prevBtn,
-      nextBtn,
-      pageInfo,
-      pageNumbersDiv,
-      loadingDiv
-    };
+    return { planilhaEl, thead, tbody, prevBtn, pageInfo, nextBtn, pageNumbersDiv, loadingDiv };
   }
 
-  // Função que inicializa uma planilha em um container criado
-  function initPlanilha(containerElements, planilhaNome) {
-    let data = [];
-    let filteredData = [];
+  // Inicializa planilha: carrega dados, configura paginação e renderiza
+  function initPlanilha(container, planilhaNome) {
     let headerData = [];
     let tableData = [];
-    let currentQuery = "";
     let currentPage = 1;
     const rowsPerPage = 15;
 
-    // Carrega os dados do LocalStorage
-    function loadFromLocalStorage(fileName) {
-      const key = `planilha_auxiliar_${fileName}`;
-      const storedData = localStorage.getItem(key);
+    function loadData() {
+      const key = `planilha_${planilhaNome}`;
       try {
-        return storedData ? JSON.parse(storedData) : [];
-      } catch (error) {
-        console.error("Erro ao ler os dados do LocalStorage:", error);
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : [];
+      } catch {
         return [];
       }
     }
 
-    // Função para escapar caracteres especiais para regex
-    const escapeRegExp = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    // Calcula frequências no intervalo selecionado
+    function computeFrequencies() {
+      // lê aspecto (Ego ou Alter) do menu :contentReference[oaicite:1]{index=1}
+      const aspecto = document.querySelector('input[name="aspecto"]:checked').value;
+      const pattern = aspecto === "Ego"
+        ? /^EVOC[1-5]$/i
+        : /^EVOC(?:6|7|8|9|10)$/i;
 
-    // Função para destacar o termo pesquisado
-    function highlightText(text, query) {
-      if (!query) return text;
-      const escapedQuery = escapeRegExp(query);
-      const regex = new RegExp(`(${escapedQuery})`, "gi");
-      return text.replace(regex, '<span style="color: blue; font-weight: bold;">$1</span>');
-    }
+      // encontra índices das colunas EVOCx desejadas
+      const indices = headerData
+        .map((col, i) => ({ col: col.toUpperCase(), i }))
+        .filter(({ col }) => pattern.test(col))
+        .map(({ i }) => i);
 
-    // Renderiza o cabeçalho da tabela (apenas primeira e última coluna)
-    function renderTableHeader() {
-      containerElements.thead.innerHTML = "";
-      if (headerData && headerData.length > 0) {
-        const headerRow = document.createElement("tr");
-        const thFirst = document.createElement("th");
-        thFirst.textContent = headerData[0];
-        headerRow.appendChild(thFirst);
-        if (headerData.length > 1) {
-          const thLast = document.createElement("th");
-          thLast.textContent = headerData[headerData.length - 1];
-          headerRow.appendChild(thLast);
-        }
-        containerElements.thead.appendChild(headerRow);
-      }
-    }
-
-    // Renderiza o corpo da tabela com paginação e destaque na pesquisa
-    function renderTable(page) {
-      containerElements.tbody.innerHTML = "";
-      const start = (page - 1) * rowsPerPage;
-      const end = start + rowsPerPage;
-      const paginatedData = filteredData.slice(start, end);
-
-      if (paginatedData.length === 0) {
-        const row = document.createElement("tr");
-        const cell = document.createElement("td");
-        cell.colSpan = 2;
-        cell.textContent = "Nenhum registro encontrado.";
-        cell.style.textAlign = "center";
-        row.appendChild(cell);
-        containerElements.tbody.appendChild(row);
-      } else {
-        paginatedData.forEach((rowData) => {
-          const row = document.createElement("tr");
-          const cellFirst = document.createElement("td");
-          cellFirst.innerHTML = highlightText(String(rowData[0]), currentQuery);
-          row.appendChild(cellFirst);
-          if (rowData.length > 1) {
-            const cellLast = document.createElement("td");
-            cellLast.innerHTML = highlightText(String(rowData[rowData.length - 1]), currentQuery);
-            row.appendChild(cellLast);
-          }
-          containerElements.tbody.appendChild(row);
+      // monta contagem
+      const freqMap = {};
+      tableData.forEach(row => {
+        indices.forEach(j => {
+          const palavra = String(row[j] || "").trim();
+          if (!palavra) return;
+          freqMap[palavra] = (freqMap[palavra] || 0) + 1;
         });
-      }
-      updatePagination();
-    }
-
-    // Atualiza a paginação
-    function updatePagination() {
-      const totalPages = Math.max(1, Math.ceil(filteredData.length / rowsPerPage));
-      containerElements.pageInfo.textContent = `Página ${currentPage} de ${totalPages}`;
-      containerElements.prevBtn.disabled = currentPage <= 1;
-      containerElements.nextBtn.disabled = currentPage >= totalPages;
-
-      containerElements.pageNumbersDiv.innerHTML = "";
-      const pagesToDisplay = getPageNumbers(totalPages, currentPage);
-      pagesToDisplay.forEach(page => {
-        const btn = document.createElement("button");
-        btn.textContent = page;
-        btn.className = "page-btn";
-        if (page === currentPage) {
-          btn.classList.add("active");
-        }
-        btn.addEventListener("click", () => {
-          currentPage = page;
-          renderTable(currentPage);
-        });
-        containerElements.pageNumbersDiv.appendChild(btn);
       });
+      // ordena do maior para o menor
+      return Object.entries(freqMap)
+        .sort((a, b) => b[1] - a[1]);
     }
 
-    function getPageNumbers(totalPages, currentPage) {
-      const start = Math.max(1, currentPage - 2);
-      const end = Math.min(totalPages, currentPage + 2);
-      const pages = [];
-      for (let i = start; i <= end; i++) {
-        pages.push(i);
+    // Renderiza cabeçalho fixo: Palavra / Frequência
+    function renderTableHeader() {
+      container.thead.innerHTML = "";
+      const tr = document.createElement("tr");
+      ["Palavra", "Frequência"].forEach(text => {
+        const th = document.createElement("th");
+        th.textContent = text;
+        tr.appendChild(th);
+      });
+      container.thead.appendChild(tr);
+    }
+
+    // Renderiza corpo da tabela com paginação
+    function renderTable(page) {
+      const freqArray = computeFrequencies();
+      const totalItems = freqArray.length;
+      const totalPages = Math.max(1, Math.ceil(totalItems / rowsPerPage));
+      if (page > totalPages) page = totalPages;
+      container.tbody.innerHTML = "";
+
+      const start = (page - 1) * rowsPerPage;
+      const slice = freqArray.slice(start, start + rowsPerPage);
+
+      if (slice.length === 0) {
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 2;
+        td.textContent = "Nenhum registro encontrado.";
+        td.style.textAlign = "center";
+        tr.appendChild(td);
+        container.tbody.appendChild(tr);
+      } else {
+        slice.forEach(([palavra, count]) => {
+          const tr = document.createElement("tr");
+          const td1 = document.createElement("td");
+          td1.textContent = palavra;
+          const td2 = document.createElement("td");
+          td2.textContent = count;
+          tr.append(td1, td2);
+          container.tbody.appendChild(tr);
+        });
       }
-      return pages;
+      updatePagination(totalItems, page);
     }
 
-    function showLoading(show) {
-      containerElements.loadingDiv.style.display = show ? "block" : "none";
+    // Atualiza botões e números de página
+    function updatePagination(totalItems, page) {
+      const totalPages = Math.max(1, Math.ceil(totalItems / rowsPerPage));
+      container.pageInfo.textContent = `Página ${page} de ${totalPages}`;
+      container.prevBtn.disabled = page <= 1;
+      container.nextBtn.disabled = page >= totalPages;
+
+      container.pageNumbersDiv.innerHTML = "";
+      const start = Math.max(1, page - 2);
+      const end = Math.min(totalPages, page + 2);
+      for (let p = start; p <= end; p++) {
+        const btn = document.createElement("button");
+        btn.textContent = p;
+        btn.className = "page-btn";
+        if (p === page) btn.classList.add("active");
+        btn.addEventListener("click", () => {
+          currentPage = p;
+          renderTable(p);
+        });
+        container.pageNumbersDiv.appendChild(btn);
+      }
     }
 
-    function goToPreviousPage() {
+    // Eventos de paginação
+    container.prevBtn.addEventListener("click", () => {
       if (currentPage > 1) {
         currentPage--;
         renderTable(currentPage);
       }
-    }
-
-    function goToNextPage() {
-      const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+    });
+    container.nextBtn.addEventListener("click", () => {
+      const totalItems = computeFrequencies().length;
+      const totalPages = Math.ceil(totalItems / rowsPerPage);
       if (currentPage < totalPages) {
         currentPage++;
         renderTable(currentPage);
       }
-    }
+    });
 
-    // Eventos de paginação e filtro
-    containerElements.prevBtn.addEventListener("click", goToPreviousPage);
-    containerElements.nextBtn.addEventListener("click", goToNextPage);
-
+    // Carrega dados e inicia rendering
     function init() {
-      showLoading(true);
+      container.loadingDiv.style.display = "block";
       setTimeout(() => {
-        data = loadFromLocalStorage(planilhaNome);
-        if (data.length === 0) {
-          showLoading(false);
+        const data = loadData();
+        if (data.length < 2) {
+          container.loadingDiv.style.display = "none";
           return;
         }
-        // A primeira linha é o cabeçalho
         headerData = data[0];
         tableData = data.slice(1);
-        filteredData = tableData;
         renderTableHeader();
         renderTable(currentPage);
-        showLoading(false);
-      }, 1000);
+        container.loadingDiv.style.display = "none";
+      }, 500);
     }
+
+    // Re-renderiza sempre que o aspecto mudar
+    document.querySelectorAll('input[name="aspecto"]').forEach(input => {
+      input.addEventListener("change", () => {
+        currentPage = 1;
+        renderTable(1);
+      });
+    });
 
     init();
   }
 
-  // --- CONTROLE DA ÁGORA: Seleção de níveis e exibição de planilhas ---
-
-  // Elementos do DOM para os controles da Ágora
-  const niveisContainer = document.getElementById('niveisContainer');
-  const extraOpcao = document.getElementById('extraOpcao');
-  // Container onde as planilhas serão exibidas
-  const planilhasContainer = document.getElementById('planilhasContainer');
-
-  // Limpa os containers, se necessário
+  // Controles de níveis (igual ao original)
+  const niveisContainer = document.getElementById("niveisContainer");
+  const planilhasContainer = document.getElementById("planilhasContainer");
   niveisContainer.innerHTML = "";
   planilhasContainer.innerHTML = "";
-
-  // Cria os botões de níveis (1 a 5)
   for (let i = 1; i <= 5; i++) {
-    const btn = document.createElement('button');
+    const btn = document.createElement("button");
     btn.textContent = i;
-    btn.onclick = () => {
-      selecionarNivel(i, btn);
-      renderPlanilhas(i);
-    };
-    niveisContainer.appendChild(btn);
-  }
-
-  // Ao selecionar um nível, destaca o botão correspondente
-  function selecionarNivel(nivel, button) {
-    document.querySelectorAll('#niveisContainer button').forEach(btn => {
-      btn.classList.remove('selected');
-    });
-    button.classList.add('selected');
-    console.log('Nível selecionado:', nivel);
-  }
-
-  // Cria e inicializa as planilhas de acordo com o nível selecionado
-  function renderPlanilhas(level) {
-    planilhasContainer.innerHTML = ""; // limpa planilhas anteriores
-    for (let i = 0; i < level; i++) {
-      const planilhaElem = createPlanilhaElement();
-      planilhasContainer.appendChild(planilhaElem.planilhaEl);
-      initPlanilha(planilhaElem, planilhaNome);
-    }
-  }
-
-  // Exibe, por padrão, 1 planilha (caso nenhum nível seja alterado)
-  renderPlanilhas(1);
-
-  // --- CONTROLE DOS DEMAIS ELEMENTOS DA ÁGORA ---
-
-  // Controle da exibição da opção extra conforme a análise escolhida
-  document.querySelectorAll('input[name="analise"]').forEach(input => {
-    input.addEventListener('change', () => {
-      if (input.value === 'Conectividade' && input.checked) {
-        extraOpcao.style.display = 'flex';
-      } else if (input.value === 'Socioeconômica' && input.checked) {
-        extraOpcao.style.display = 'none';
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("#niveisContainer button")
+        .forEach(b => b.classList.remove("selected"));
+      btn.classList.add("selected");
+      planilhasContainer.innerHTML = "";
+      for (let k = 0; k < i; k++) {
+        const elem = createPlanilhaElement();
+        planilhasContainer.appendChild(elem.planilhaEl);
+        initPlanilha(elem, planilhaNome);
       }
     });
-  });
+    niveisContainer.appendChild(btn);
+  }
+  // exibe 1 planilha por padrão
+  niveisContainer.querySelector("button").click();
 
-  // Função para executar a análise (usada pelo botão "FORMAÇÃO DAS ÁGORAS 💡")
-  window.rodarAnalise = function() {
-    const nivelSelecionado = document.querySelector('#niveisContainer button.selected')?.textContent || 'Nenhum';
+  // Botão FORMAR ÁGORAS (mantém comportamento original)
+  window.rodarAnalise = () => {
+    const nivel = document.querySelector("#niveisContainer .selected")?.textContent;
     const analise = document.querySelector('input[name="analise"]:checked').value;
     const aspecto = document.querySelector('input[name="aspecto"]:checked').value;
-    const valorConectividade = document.getElementById('valorConectividade').value;
-
-    let msg = `Análise: ${analise}\nAspecto: ${aspecto}\nNível da Ágora: ${nivelSelecionado}`;
-    if (analise === 'Conectividade') {
-      msg += `\nValor de Conectividade: ${valorConectividade || 'não informado'}`;
+    const valor = document.getElementById("valorConectividade").value;
+    let msg = `Análise: ${analise}\nAspecto: ${aspecto}\nNível: ${nivel}`;
+    if (analise === "Conectividade") {
+      msg += `\nQtd. palavras: ${valor || "não informado"}`;
     }
     alert(msg);
   };
