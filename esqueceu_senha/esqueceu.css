@@ -4,6 +4,26 @@
 /* Novo layout centralizado */
 body {
     display: flex;
+<<<<<<< HEAD
+=======
+    flex-direction: row;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    width: 100vw;
+    font-family: "Montserrat", serif;
+    background-color: white;
+}
+
+/* Lado esquerdo - Banner */
+.Left {
+    background-image: url(../assets/Banner_Entrada.png);
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 50%;
+    display: flex;
+>>>>>>> 1d50d5cda56747a5cc42c0679774863b0a6a6263
     justify-content: center;
     align-items: center;
     height: 100vh;
@@ -44,7 +64,11 @@ body {
 
 
 .Right {
+<<<<<<< HEAD
     width: 100%;
+=======
+    width: 50%;
+>>>>>>> 1d50d5cda56747a5cc42c0679774863b0a6a6263
     display: flex;
     flex-direction: column;
     align-items: center;
