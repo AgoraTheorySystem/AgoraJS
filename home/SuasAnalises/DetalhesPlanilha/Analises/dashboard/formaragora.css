@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
+
 /* Definição de variáveis para facilitar a manutenção e consistência visual */
 :root {
   --primary-color: #336699;
@@ -8,6 +10,10 @@
   --sub-text-color: #555;
   --white: #ffffff;
   --transition-speed: 0.3s;
+}
+
+body{
+  font-family: "Montserrat", serif;
 }
 
 /* Menu e controles iniciais */
@@ -247,4 +253,36 @@ input[type="number"] {
 .pagination .page-numbers button.active,
 .pagination .page-numbers button:hover {
   background-color: var(--accent-color);
+}
+
+/* Destaque suave em azul para linha selecionada */
+.planilha table.data-table tr.selected-word {
+  background-color: #a8e4ff;                  /* fundo azul muito claro */
+  color: #004a99;                             /* texto em azul escuro para contraste */
+  font-weight: 600;                           /* leve ênfase no texto */
+  box-shadow: inset 4px 0 0 0 #2c96ff;        /* faixa interna à esquerda em azul médio */
+  transition: background-color 0.2s ease,
+              color 0.2s ease,
+              box-shadow 0.2s ease;
+}
+
+/* Arredonda apenas os cantos externos da linha selecionada */
+.planilha table.data-table tr.selected-word td:first-child {
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+}
+.planilha table.data-table tr.selected-word td:last-child {
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+/* Ajuste de padding para conforto visual */
+.planilha table.data-table tr.selected-word td {
+  padding: 0.6rem 0.8rem;
+}
+
+/* Hover suave para linhas não selecionadas */
+.planilha table.data-table tr:not(.selected-word):hover {
+  background-color: #f0f8ff;                  /* leve iluminação azul no hover */
+  transition: background-color 0.2s ease;
 }
