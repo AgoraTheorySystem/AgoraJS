@@ -165,8 +165,10 @@ body, html {
     }
 
     .login-button {
-        width: 90px;
+        width: 100%;
+        height: auto;
+        padding: 14px 0;
         font-size: 16px;
-        padding: 12px 0;
+        border-radius: 10px; /* deixa retangular com cantos suaves */
     }
 }

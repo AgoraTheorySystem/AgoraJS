@@ -9,15 +9,15 @@ body {
     height: 100vh;
     width: 100vw;
     font-family: "Montserrat", serif;
-    background-color: white;
-}
-
-.Left {
-    flex: 1;
-    background-image: url(../assets/Banner_Entrada.png);
+    background-image: url(../assets/fundo_cadastro.jpg);
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
+}
+
+
+.Left {
+    flex: 1;
     width: 50%;
     height: 100%;
     display: flex;
@@ -75,7 +75,7 @@ hr {
     /* Espaçamento entre ícone e texto */
     width: 100%;
     height: 60px;
-    background-color: #1f1f1f;
+    background-color: #2b6f69;
     color: white;
     font-size: 16px;
     font-weight: bold;
@@ -92,7 +92,7 @@ hr {
 }
 
 .button:hover {
-    background-color: #333333;
+    background-color: #1e4e4a;
     /* Escurece o botão ao passar o mouse */
     opacity: 0.9;
 }

@@ -62,7 +62,7 @@ textarea {
 }
 
 .cadastro-button {
-    background: #002E3F;
+    background: #2b6f69;
     color: #fff;
     border: none;
     padding: 12px 20px;
@@ -75,7 +75,7 @@ textarea {
 }
 
 .cadastro-button:hover {
-    background: #010a8a;
+    background: #1d4b47;
 }
 
 hr {

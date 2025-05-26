@@ -71,6 +71,7 @@ function preencherCamposDinamicamente(dados) {
 
     const divInput = document.createElement('div');
     divInput.className = 'nome_campos';
+    divInput.style.position = 'relative';
 
     const input = document.createElement('input');
     input.type = 'text';
@@ -79,11 +80,19 @@ function preencherCamposDinamicamente(dados) {
     input.readOnly = true;
     input.style.paddingRight = '40px';
 
+    const erroMensagem = document.createElement('div');
+    erroMensagem.style.color = '#ff4d4d';
+    erroMensagem.style.fontSize = '0.8em';
+    erroMensagem.style.marginTop = '5px';
+    erroMensagem.style.display = 'none';
+
     divInput.appendChild(input);
     campo.appendChild(label);
     campo.appendChild(divInput);
+    campo.appendChild(erroMensagem);
 
-    if (chave !== 'email' && chave !== 'tipo') {
+    // Campos não editáveis: email e tipo
+    if (!['email', 'tipo'].includes(chave.toLowerCase())) {
       const botao = document.createElement('button');
       botao.className = 'editar_botao';
       botao.innerHTML = `<img src="/home/Perfil/assets_perfil/icone_editar.png" alt="Editar">`;
@@ -96,20 +105,34 @@ function preencherCamposDinamicamente(dados) {
       let editando = false;
 
       function salvarEdicao() {
+        const valorFinal = input.value.trim();
+
+        if (valorFinal === '') {
+          erroMensagem.textContent = `O campo "${formatarTituloCampo(chave)}" é obrigatório.`;
+          erroMensagem.style.display = 'block';
+          input.readOnly = false;
+          input.classList.add('editando');
+          input.focus();
+          return;
+        }
+
+        erroMensagem.style.display = 'none';
         editando = false;
         input.readOnly = true;
         input.classList.remove('editando');
         botao.innerHTML = `<img src="/home/Perfil/assets_perfil/icone_editar.png" alt="Editar">`;
-        salvarCampoNoFirebase(user.uid, chave, input.value);
+        salvarCampoNoFirebase(user.uid, chave, valorFinal);
       }
 
       botao.addEventListener('click', () => {
         editando = !editando;
         input.readOnly = !editando;
+
         if (editando) {
+          erroMensagem.style.display = 'none';
           input.classList.add('editando');
           input.focus();
-          botao.innerHTML = `<img src="/home/Perfil/assets_perfil/user.png" alt="Salvar">`;
+          botao.innerHTML = `<img src="/home/Perfil/assets_perfil/salvar_alt.png" alt="Salvar">`;
         } else {
           salvarEdicao();
         }
