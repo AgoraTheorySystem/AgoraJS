@@ -61,13 +61,6 @@ main {
   white-space: nowrap;
 }
 
-.container .menu a:hover,
-.container .menu a.menu_analises {
-  color: var(--color-white);
-  background: var(--color-primary);
-  box-shadow: var(--shadow-soft);
-}
-
 /* CONTROLES DE NÍVEIS, ANÁLISE E ASPECTO */
 #menu_agoras {
   display: flex;
