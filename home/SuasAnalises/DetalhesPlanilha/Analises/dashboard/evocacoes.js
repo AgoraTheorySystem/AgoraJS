@@ -193,22 +193,83 @@ function renderizarPaginacao(totalItems) {
     paginationContainer = document.createElement("div");
     paginationContainer.id = "pagination";
     paginationContainer.classList.add("pagination");
-    document.body.appendChild(paginationContainer);
+    // Inserir logo após a tabela para melhor posição visual
+    const tabela = document.getElementById("tabela-evocacoes");
+    tabela.insertAdjacentElement('afterend', paginationContainer);
   }
 
   paginationContainer.innerHTML = "";
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+  const maxPagesToShow = 3; // máximo de botões de página para mostrar
 
-  for (let i = 1; i <= totalPages; i++) {
+  // Função para criar botão com texto, ativo, desabilitado e listener
+  function criarBotao(texto, pagina, ativo = false, desabilitado = false) {
     const btn = document.createElement("button");
-    btn.innerText = i;
-    btn.className = "page-btn" + (i === currentPage ? " active" : "");
-    btn.addEventListener("click", () => {
-      currentPage = i;
-      renderTabela();
-    });
-    paginationContainer.appendChild(btn);
+    btn.innerText = texto;
+    btn.className = "page-btn" + (ativo ? " active" : "");
+    btn.disabled = desabilitado;
+    if (!desabilitado) {
+      btn.addEventListener("click", () => {
+        currentPage = pagina;
+        renderTabela();
+        // Scroll suave para o topo da tabela após trocar página
+        document.getElementById("tabela-evocacoes").scrollIntoView({ behavior: "smooth" });
+      });
+    }
+    return btn;
   }
+
+  // Botões especiais: primeira, anterior, próximo, última
+  paginationContainer.appendChild(criarBotao("«", 1, false, currentPage === 1));
+  paginationContainer.appendChild(criarBotao("‹", currentPage - 1, false, currentPage === 1));
+
+  // Lógica para decidir quais números mostrar:
+  let startPage, endPage;
+  if (totalPages <= maxPagesToShow) {
+    startPage = 1;
+    endPage = totalPages;
+  } else {
+    // Mantém o atual mais 3 antes e 3 depois, dentro dos limites
+    startPage = currentPage - 1;
+    endPage = currentPage + 1;
+
+    if (startPage < 1) {
+      endPage += (1 - startPage);
+      startPage = 1;
+    }
+    if (endPage > totalPages) {
+      startPage -= (endPage - totalPages);
+      endPage = totalPages;
+    }
+    if (startPage < 1) startPage = 1;
+  }
+
+  // Se startPage > 1, mostra 1 e '...'
+  if (startPage > 1) {
+    paginationContainer.appendChild(criarBotao("1", 1));
+    const dots = document.createElement("span");
+    dots.textContent = "...";
+    dots.style.padding = "0 8px";
+    paginationContainer.appendChild(dots);
+  }
+
+  // Números das páginas
+  for (let i = startPage; i <= endPage; i++) {
+    paginationContainer.appendChild(criarBotao(i, i, i === currentPage));
+  }
+
+  // Se endPage < totalPages, mostra '...' e última página
+  if (endPage < totalPages) {
+    const dots = document.createElement("span");
+    dots.textContent = "...";
+    dots.style.padding = "0 8px";
+    paginationContainer.appendChild(dots);
+    paginationContainer.appendChild(criarBotao(totalPages, totalPages));
+  }
+
+  // Botões próximo e último
+  paginationContainer.appendChild(criarBotao("›", currentPage + 1, false, currentPage === totalPages || totalPages === 0));
+  paginationContainer.appendChild(criarBotao("»", totalPages, false, currentPage === totalPages || totalPages === 0));
 }
 
 document.getElementById("busca-palavra")?.addEventListener("input", (e) => {
