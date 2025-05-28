@@ -1,4 +1,3 @@
-// formaragora.js
 document.addEventListener("DOMContentLoaded", () => {
   const urlParams = new URLSearchParams(window.location.search);
   const planilhaNome = urlParams.get("planilha");
@@ -10,9 +9,42 @@ document.addEventListener("DOMContentLoaded", () => {
   const selectedWords = Array(5).fill(null);
   const planilhas = [];
 
+  // Controle de exibir/esconder extraOpcao conforme radio 'analise'
+  const extraOpcao = document.getElementById("extraOpcao");
+  const radiosAnalise = document.querySelectorAll('input[name="analise"]');
+
+  function atualizarVisibilidadeExtraOpcao() {
+    const selecionado = document.querySelector('input[name="analise"]:checked').value;
+    if (selecionado === "Conectividade") {
+      extraOpcao.style.display = "flex"; // conforme seu CSS usa flex
+    } else {
+      extraOpcao.style.display = "none";
+    }
+  }
+
+  // Inicializa visibilidade na carga da página
+  atualizarVisibilidadeExtraOpcao();
+
+  // Escuta mudança nos radios
+  radiosAnalise.forEach(radio => {
+    radio.addEventListener("change", () => {
+      atualizarVisibilidadeExtraOpcao();
+      // Atualiza também as tabelas porque a análise mudou
+      planilhas.forEach(p => p.container.renderTable(1));
+    });
+  });
+
   function createPlanilhaElement() {
     const planilhaEl = document.createElement("div");
     planilhaEl.classList.add("planilha");
+
+    const searchInput = document.createElement("input");
+    searchInput.type = "search";
+    searchInput.placeholder = "Pesquisar palavra...";
+    searchInput.style.marginBottom = "10px";
+    searchInput.style.padding = "6px";
+    searchInput.style.width = "100%";
+    planilhaEl.appendChild(searchInput);
 
     const table = document.createElement("table");
     table.classList.add("data-table");
@@ -23,16 +55,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const pagination = document.createElement("div");
     pagination.classList.add("pagination");
+
     const prevBtn = document.createElement("button");
     prevBtn.classList.add("prev-btn");
     prevBtn.textContent = "Anterior";
+
     const pageInfo = document.createElement("span");
     pageInfo.classList.add("page-info");
+
     const nextBtn = document.createElement("button");
     nextBtn.classList.add("next-btn");
     nextBtn.textContent = "Próximo";
+
     const pageNumbers = document.createElement("div");
     pageNumbers.classList.add("page-numbers");
+
     pagination.append(prevBtn, pageInfo, nextBtn, pageNumbers);
     planilhaEl.appendChild(pagination);
 
@@ -51,13 +88,16 @@ document.addEventListener("DOMContentLoaded", () => {
       </figure>`;
     planilhaEl.appendChild(loading);
 
-    return { planilhaEl, thead, tbody, prevBtn, pageInfo, nextBtn, pageNumbers, loading };
+    return { planilhaEl, searchInput, thead, tbody, prevBtn, pageInfo, nextBtn, pageNumbers, loading };
   }
 
   function initPlanilha(container, planilhaNome, level) {
     let headerData = [];
     let tableData = [];
     const rowsPerPage = 15;
+
+    let currentPage = 1;
+    let currentSearch = "";
 
     function loadData() {
       const key = `planilha_${planilhaNome}`;
@@ -70,6 +110,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function computeFrequencies() {
+      const analiseSelecionada = document.querySelector('input[name="analise"]:checked').value;
+      if (analiseSelecionada === "Conectividade") {
+        // Se quiser aplicar algum filtro especial para Conectividade, insira aqui
+      }
       const aspecto = document.querySelector('input[name="aspecto"]:checked').value;
       const pattern = aspecto === "Ego"
         ? /^EVOC[1-5]$/i
@@ -80,7 +124,6 @@ document.addEventListener("DOMContentLoaded", () => {
         .filter(o => pattern.test(o.col))
         .map(o => o.i);
 
-      // 1) filtra linhas que contêm todas as palavras dos níveis anteriores
       let rows = tableData;
       if (level > 1) {
         for (let l = 1; l < level; l++) {
@@ -95,9 +138,6 @@ document.addEventListener("DOMContentLoaded", () => {
         );
       }
 
-      // prepara lista de palavras a excluir da contagem:
-      // - "VAZIO" (case-insensitive)
-      // - qualquer palavra já selecionada em níveis anteriores
       const exclude = selectedWords
         .slice(0, level - 1)
         .filter(Boolean)
@@ -111,6 +151,7 @@ document.addEventListener("DOMContentLoaded", () => {
           const upper = raw.toUpperCase();
           if (upper === "VAZIO") return;
           if (exclude.includes(upper)) return;
+          if (currentSearch && !raw.toLowerCase().includes(currentSearch.toLowerCase())) return;
           freq[raw] = (freq[raw] || 0) + 1;
         });
       });
@@ -130,14 +171,19 @@ document.addEventListener("DOMContentLoaded", () => {
       container.thead.appendChild(tr);
     }
 
-    function renderTable(page = 1) {
+    function renderTable(page = currentPage) {
+      currentPage = page;
+
       const freqArray = computeFrequencies();
       const total = freqArray.length;
       const totalPages = Math.max(1, Math.ceil(total / rowsPerPage));
-      if (page > totalPages) page = totalPages;
+
+      if (currentPage > totalPages) currentPage = totalPages;
+      if (currentPage < 1) currentPage = 1;
+
       container.tbody.innerHTML = "";
 
-      const start = (page - 1) * rowsPerPage;
+      const start = (currentPage - 1) * rowsPerPage;
       const slice = freqArray.slice(start, start + rowsPerPage);
 
       if (slice.length === 0) {
@@ -173,25 +219,39 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
 
-      // paginação
-      container.pageInfo.textContent = `Página ${page} de ${totalPages}`;
-      container.prevBtn.disabled = page <= 1;
-      container.nextBtn.disabled = page >= totalPages;
+      container.pageInfo.textContent = `Página ${currentPage} de ${totalPages}`;
+      container.prevBtn.disabled = currentPage <= 1;
+      container.nextBtn.disabled = currentPage >= totalPages;
+
       container.pageNumbers.innerHTML = "";
-      const startPg = Math.max(1, page - 2);
-      const endPg = Math.min(totalPages, page + 2);
+      const startPg = Math.max(1, currentPage - 2);
+      const endPg = Math.min(totalPages, currentPage + 2);
       for (let p = startPg; p <= endPg; p++) {
         const btn = document.createElement("button");
         btn.textContent = p;
         btn.className = "page-btn";
-        if (p === page) btn.classList.add("active");
+        if (p === currentPage) btn.classList.add("active");
         btn.addEventListener("click", () => renderTable(p));
         container.pageNumbers.appendChild(btn);
       }
     }
 
-    container.prevBtn.addEventListener("click", () => renderTable());
-    container.nextBtn.addEventListener("click", () => renderTable());
+    container.prevBtn.addEventListener("click", () => {
+      if (currentPage > 1) renderTable(currentPage - 1);
+    });
+
+    container.nextBtn.addEventListener("click", () => {
+      const freqArray = computeFrequencies();
+      const total = freqArray.length;
+      const totalPages = Math.max(1, Math.ceil(total / rowsPerPage));
+      if (currentPage < totalPages) renderTable(currentPage + 1);
+    });
+
+    container.searchInput.addEventListener("input", (e) => {
+      currentSearch = e.target.value.trim();
+      renderTable(1);
+    });
+
     container.renderTable = renderTable;
 
     container.loading.style.display = "block";
@@ -241,8 +301,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     niveisContainer.appendChild(btn);
   }
+
+  // Seleciona o primeiro nível por padrão
   niveisContainer.querySelector("button").click();
 
+  // Botão FORMAR ÁGORAS
   window.rodarAnalise = () => {
     const nivel = document.querySelector("#niveisContainer .selected")?.textContent;
     const analise = document.querySelector('input[name="analise"]:checked').value;
