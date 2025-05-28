@@ -1,9 +1,11 @@
 import firebaseConfig from '../firebase.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
 // Inicializa Firebase
 const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
 // Autenticação do usuário
 function autenticacao() {
@@ -12,6 +14,7 @@ function autenticacao() {
         const user = JSON.parse(userData);
         console.log('Usuário Logado:', user);
         fetchUserEmail(user.email);
+        carregarTipoUsuarioEAtualizarIcone(user.uid);
     } else {
         console.log('Nenhum usuário logado.');
         window.location.href = '/index.html';
@@ -24,6 +27,43 @@ function fetchUserEmail(email) {
     if (userEmailElement) {
         userEmailElement.textContent = email;
     }
+}
+
+// Carregar tipo do usuário do Firebase e atualizar ícone
+function carregarTipoUsuarioEAtualizarIcone(uid) {
+    const dbRef = ref(db);
+    get(child(dbRef, `users/${uid}`))
+        .then(snapshot => {
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                if (data.tipo) {
+                    atualizarIconeUsuarioMenuLateral(data.tipo);
+                }
+            } else {
+                console.log("Dados do usuário não encontrados no banco.");
+            }
+        })
+        .catch(error => {
+            console.error("Erro ao buscar dados do usuário:", error);
+        });
+}
+
+// Atualiza o ícone do usuário conforme tipo de login no menu lateral
+function atualizarIconeUsuarioMenuLateral(tipo) {
+    const icone = document.getElementById('menu-user-icon');
+    if (!icone) return;
+
+    const tipoNormalizado = tipo.trim().toLowerCase();
+
+    const mapaIcones = {
+      "pessoafisica": "/home/Perfil/assets_perfil/icone_login_pessoa_fisica.png",
+      "empresa": "/home/Perfil/assets_perfil/icone_empresas.png",
+      "universidade/escola": "/home/Perfil/assets_perfil/icone_instituicao_de_ensino.png",
+      "ong": "/home/Perfil/assets_perfil/icone_ong.png",
+      "outros": "/home/Perfil/assets_perfil/icone_login_pessoa_fisica.png"
+    };
+
+    icone.src = mapaIcones[tipoNormalizado] || "/home/Perfil/assets_perfil/user.png";
 }
 
 // Alternar menu lateral
@@ -61,32 +101,42 @@ function generateSidebarMenu() {
 
     <div id="menu-sidebar">
         <ul>
-            <li id="menu-link-inicio"><a href="/Home/home.html">MENU INICIAL</a></li>
-            <hr id="menu-divider">
             <div id="menu-box">
                 <div id="menu-user-picture">
-                    <svg viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zM274.7 304H173.3C77.6 304 0 381.6 0 477.3 0 496.5 15.5 512 34.7 512h378.6c19.2 0 34.7-15.5 34.7-34.7C448 381.6 370.4 304 274.7 304z"/>
-                    </svg>
+                    <img id="menu-user-icon" src="/home/Perfil/assets_perfil/user.png" alt="Ícone do Usuário" />
                 </div>
                 <div id="menu-user-info">
-                    <h2>Bem-Vindo</h2>
-                    <h2 id="menu-user-email"></h2>
-                    <a href="/home/Perfil/perfil.html">Seu Perfil</a>
+                    <h2>Bem-vindo</h2>
+                    <p id="menu-user-email"></p>
+                    <a href="/home/Perfil/perfil.html">Editar perfil</a>
                 </div>
             </div>
-            <li id="menu-btn1">Criar Análise</li>
-            <li id="menu-btn2">Suas Análises</li>
-            <li id="menu-btn3" style="display: none;">ADM</li>
-            <button id="menu-logout">
-                <div id="menu-logout-icon">
-                    <svg viewBox="0 0 512 512">
-                        <path d="M377.9 105.9L500.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L377.9 406.1c-6.4 6.4-15 9.9-24 9.9-18.7 0-33.9-15.2-33.9-33.9v-62.1H192c-17.7 0-32-14.3-32-32v-64c0-17.7 14.3-32 32-32h128V129.9c0-18.7 15.2-33.9 33.9-33.9 9 0 17.6 3.6 24 9.9zM160 96H96c-17.7 0-32 14.3-32 32v256c0 17.7 14.3 32 32 32h64c17.7 0 32 14.3 32 32s-14.3 32-32 32H96c-53 0-96-43-96-96V128C0 75 43 32 96 32h64c17.7 0 32 14.3 32 32s-14.3 32-32 32z"/>
-                    </svg>
+
+            <li class="menu-item" id="menu-btn1">
+                <div class="menu-icon-circle">
+                    <img src="/assets/icone_criar_analise.png" alt="Criar Análise" />
                 </div>
-                <div id="menu-logout-text">Logout</div>
-            </button>
-            <img src="/assets/Logo_Agora.png" alt="Ágora Logo" id="menu-logo">
+                <span class="menu-text">Criar análise</span>
+            </li>
+
+            <li class="menu-item" id="menu-btn2">
+                <div class="menu-icon-circle">
+                    <img src="/assets/icone_suas_analises.png" alt="Suas Análises" />
+                </div>
+                <span class="menu-text">Suas análises</span>
+            </li>
+
+            <li class="menu-item" id="menu-btn2">
+                <div class="menu-icon-circle">
+                    <img src="/assets/icone_admin.png" alt="Admin" />
+                </div>
+                <span class="menu-text">Admin</span>
+            </li>
+
+            <div id="menu-logout-icon-container" title="Sair" role="button" tabindex="0" aria-label="Logout" style="cursor:pointer;">
+                <img src="/assets/icone_criar_analise.png" alt="Sair" id="menu-logout-icon-image" />
+            </div>
+
         </ul>
     </div>
     `;
@@ -94,9 +144,9 @@ function generateSidebarMenu() {
     body.insertAdjacentHTML('beforeend', html);
 
     document.getElementById('menu-burger').addEventListener('change', toggleSidebar);
-    document.getElementById('menu-logout').addEventListener('click', logout);
+    document.getElementById('menu-logout-icon-container').addEventListener('click', logout);
 
-    // Verifica admin
+    // Verifica admin para mostrar botão Admin
     const userData = sessionStorage.getItem('user');
     if (userData) {
         const user = JSON.parse(userData);
@@ -107,7 +157,7 @@ function generateSidebarMenu() {
         ];
         if (adminEmails.includes(user.email)) {
             const btn3 = document.getElementById('menu-btn3');
-            if (btn3) btn3.style.display = 'block';
+            if (btn3) btn3.style.display = 'flex';
         }
     }
 
@@ -125,6 +175,7 @@ function addNavigationListeners() {
     Object.entries(nav).forEach(([id, url]) => {
         const el = document.getElementById(id);
         if (el) {
+            el.style.cursor = 'pointer';
             el.addEventListener('click', () => {
                 window.location.href = url;
             });
