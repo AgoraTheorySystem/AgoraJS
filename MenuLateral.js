@@ -134,7 +134,8 @@ function generateSidebarMenu() {
             </li>
 
             <div id="menu-logout-icon-container" title="Sair" role="button" tabindex="0" aria-label="Logout" style="cursor:pointer;">
-                <img src="/assets/icone_criar_analise.png" alt="Sair" id="menu-logout-icon-image" />
+                <img src="/assets/icon_sair.png" alt="Sair" id="menu-logout-icon-image" />
+                <span id="menu-logout-text">Sair</span>
             </div>
 
         </ul>

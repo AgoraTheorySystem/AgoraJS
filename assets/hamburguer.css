@@ -140,11 +140,17 @@
 }
 
 #menu-user-info a {
-  color: #fdd200;
+  color: #fff; /* branco padrão */
   text-decoration: underline;
   font-weight: 600;
   cursor: pointer;
+  transition: color 0.3s ease; /* transição suave */
 }
+
+#menu-user-info a:hover {
+  color: #fdd200; /* amarelo ao passar o mouse */
+}
+
 
 /* Itens do Menu */
 .menu-item {
@@ -164,6 +170,12 @@
   background: transparent;
   border: none;
   box-shadow: none;
+}
+
+.menu-item:hover {
+  color: #fdd200;
+  transform: scale(1.05); 
+  transition: color 0.3s ease, transform 0.3s ease;
 }
 
 .menu-icon-circle {
@@ -200,14 +212,23 @@
   position: absolute;
   bottom: 20px;
   right: 20px;
-  width: 40px;
-  height: 40px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 #menu-logout-icon-container img {
-  width: 100%;
-  height: 100%;
+  width: 40px;
+  height: 40px;
   object-fit: contain;
 }
+
+#menu-logout-text {
+  color: white;
+  font-weight: 600;
+  font-size: 22px;
+  user-select: none;
+}
+
 
