@@ -176,61 +176,56 @@ function renderCards(allCardsData, createCardFunction) {
 }
 
 function createFilterButtons(accountTypes) {
-    const filterBar = document.querySelector(".filter-bar");
-    if (!filterBar) return;
+    const filterContainer = document.getElementById("filter-container");
+    filterContainer.innerHTML = ""; // Limpa os filtros antigos
 
-    filterBar.innerHTML = ""; // Limpa botões antigos
-
-    // Botão "Todos"
+    // Botão "Todos" (sem cor específica)
     const allButton = document.createElement("button");
-    allButton.textContent = "TODOS";
-    allButton.classList.add("filter-tab", "active");
-    allButton.setAttribute("data-filter", "TODOS");
-    allButton.addEventListener("click", () => applyFilter("TODOS"));
-    filterBar.appendChild(allButton);
+    allButton.textContent = "Todos";
+    allButton.classList.add("filter-button", "active");
+    allButton.setAttribute("data-filter", "all");
+    allButton.style.backgroundColor = "#444"; // Cor padrão para "Todos"
+    allButton.addEventListener("click", () => applyFilter("all"));
+    filterContainer.appendChild(allButton);
 
-    // Botões por tipo
+    // Criar botões para cada tipo de conta com cor correspondente ao CSS
     accountTypes.forEach((type) => {
         const button = document.createElement("button");
-        button.textContent = type.toUpperCase();
-        button.classList.add("filter-tab");
+        button.textContent = type;
+        button.classList.add("filter-button");
         button.setAttribute("data-filter", type);
+
+        // Aplica a mesma classe dos cards
+        const cardClass = `card-${type.toLowerCase().replace(/[\s/]/g, "-")}`;
+        button.classList.add(cardClass);
+
         button.addEventListener("click", () => applyFilter(type));
-        filterBar.appendChild(button);
+        filterContainer.appendChild(button);
     });
 }
 
-
 function applyFilter(filterType) {
-  // Remove o card expandido se estiver visível
-  const expanded = document.querySelector(".expanded-card");
-  if (expanded) {
-    expanded.remove();
-    document.getElementById("containerCards").style.display = "flex";
-    document.getElementById("pagination-controls").style.display = "flex";
-  }
+    // Atualiza os botões ativos
+    document.querySelectorAll(".filter-button").forEach(button => {
+        button.classList.remove("active");
+        if (button.getAttribute("data-filter") === filterType) {
+            button.classList.add("active");
+        }
+    });
 
-  
-  document.querySelectorAll(".filter-tab").forEach(button => {
-    button.classList.remove("active");
-    if (button.getAttribute("data-filter") === filterType) {
-      button.classList.add("active");
-    }
-  });
+    // Filtra os dados
+    const filteredCards = filterType === "all"
+        ? allCardsData
+        : allCardsData.filter(({ cardData }) => cardData.tipo === filterType);
 
-  const filteredCards = filterType === "TODOS"
-    ? allCardsData
-    : allCardsData.filter(({ cardData }) =>
-        (cardData.tipo || "").toUpperCase() === filterType.toUpperCase()
-      );
+    // Atualiza a paginação para exibir apenas os cards filtrados
+    updatePaginationControls(filteredCards.length, () => {
+        renderCards(filteredCards, createUserCard);
+    });
 
-  updatePaginationControls(filteredCards.length, () => {
+    // Renderiza a primeira página com os cards filtrados
     renderCards(filteredCards, createUserCard);
-  });
-
-  renderCards(filteredCards, createUserCard);
 }
-
 
 function showExpandedCard(data, cardClass) {
     // Esconde o container principal
