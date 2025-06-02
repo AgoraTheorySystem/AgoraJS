@@ -126,13 +126,6 @@ function generateSidebarMenu() {
                 <span class="menu-text">Suas análises</span>
             </li>
 
-            <li class="menu-item" id="menu-btn3">
-                <div class="menu-icon-circle">
-                    <img src="/assets/icone_admin.png" alt="Admin" />
-                </div>
-                <span class="menu-text">Admin</span>
-            </li>
-
             <div id="menu-logout-icon-container" title="Sair" role="button" tabindex="0" aria-label="Logout" style="cursor:pointer;">
                 <img src="/assets/icon_sair.png" alt="Sair" id="menu-logout-icon-image" />
                 <span id="menu-logout-text">Sair</span>
@@ -157,9 +150,21 @@ function generateSidebarMenu() {
             'joao.falves07@gmail.com'
         ];
         if (adminEmails.includes(user.email)) {
-            const btn3 = document.getElementById('menu-btn3');
-            if (btn3) btn3.style.display = 'flex';
-        }
+            const ul = document.querySelector('#menu-sidebar ul');
+            const adminBtn = document.createElement('li');
+            adminBtn.classList.add('menu-item');
+            adminBtn.id = 'menu-btn3';
+            adminBtn.innerHTML = `
+                <div class="menu-icon-circle">
+                    <img src="/assets/icone_admin.png" alt="Admin" />
+                </div>
+                <span class="menu-text">Admin</span>
+    `;
+    ul.insertBefore(adminBtn, document.getElementById('menu-logout-icon-container'));
+
+    addNavigationListeners(); 
+}
+
     }
 
     addNavigationListeners();

@@ -7,26 +7,47 @@ body {
     color: #ffffff;
     font-family: 'Montserrat', sans-serif;
 }
-/* Menu do topo*/
-.container .menu {
-    background-color: #13322B;
-    color: white;
-    border-radius: 0;
-    box-shadow: none;
-    padding: 10px 0;
-    justify-content: center;
-    gap: 50px;
+
+.topbar {
+    background-color: #002e3f;
+    max-width: 1200px;   
+    margin: 20px auto;   
+    padding: 12px 24px;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
 }
 
-.container .menu a {
-    color: white;
+
+.navbar {
+    max-width: 700px;
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+
+
+/* Botões de navegação */
+.nav-button {
+    background-color: transparent;
+    color: #ffffff;
+    font-family: 'Montserrat', sans-serif;
     font-size: 16px;
-    text-transform: none;
+    font-weight: bold;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    transition: background-color 0.3s, color 0.3s;
 }
 
-.container .menu a:hover {
-    color: #fdd200;
+.nav-button:hover {
+    background-color: #fdd200;
+    color: #002e3f;
 }
+
 
 /* Filtros do container */
 .filter-container {

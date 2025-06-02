@@ -1,5 +1,6 @@
 .card {
-    background-color: #002e3f !important;
+    background-color: #002e3f;
+    color: #ffffff;
     max-width: 480px;
     width: 100%;
     padding: 20px;
@@ -7,9 +8,9 @@
     box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.5);
     text-align: center;
     word-wrap: break-word;
-    color: #ffffff;
     transition: background-color 0.3s ease, color 0.3s ease;
 }
+
 
 .card:hover {
     background-color: #fdd200 !important;
@@ -27,9 +28,14 @@
 }
 
 .card p {
-    font-size: 24px;
-    color: inherit;
+    font-size: 20px;
+    margin: 2px 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    max-width: 100%;
 }
+
 
 .card a {
     text-decoration: none;
@@ -37,6 +43,14 @@
     font-size: 28px;
     color: #fff;
 }
+
+.timestamps p {
+    font-size: 11px;
+    color: #ffffff; /* aqui estava cinza antes */
+    margin-top: 4px;
+    word-break: break-word;
+}
+
 
 /* Contêiner de botões no card */
 .btn-container {
@@ -119,17 +133,6 @@
         transform: translate(0%, 0%);
         opacity: 1;
     }
-}
-
-/*classes específicas de tipo de card com a mesma cor */
-.card-empresa,
-.card-outros,
-.card-universidade-escola,
-.card-ong,
-.card-pessoafisica,
-.card-default {
-    background-color: #002e3f !important;
-    color: #ffffff;
 }
 
 /* Responsividade */

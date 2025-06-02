@@ -202,25 +202,35 @@ function createFilterButtons(accountTypes) {
 
 
 function applyFilter(filterType) {
-    document.querySelectorAll(".filter-tab").forEach(button => {
-        button.classList.remove("active");
-        if (button.getAttribute("data-filter") === filterType) {
-            button.classList.add("active");
-        }
-    });
+  // Remove o card expandido se estiver visível
+  const expanded = document.querySelector(".expanded-card");
+  if (expanded) {
+    expanded.remove();
+    document.getElementById("containerCards").style.display = "flex";
+    document.getElementById("pagination-controls").style.display = "flex";
+  }
 
-    const filteredCards = filterType === "TODOS"
-        ? allCardsData
-        : allCardsData.filter(({ cardData }) =>
-            (cardData.tipo || "").toUpperCase() === filterType.toUpperCase()
-        );
+  
+  document.querySelectorAll(".filter-tab").forEach(button => {
+    button.classList.remove("active");
+    if (button.getAttribute("data-filter") === filterType) {
+      button.classList.add("active");
+    }
+  });
 
-    updatePaginationControls(filteredCards.length, () => {
-        renderCards(filteredCards, createUserCard);
-    });
+  const filteredCards = filterType === "TODOS"
+    ? allCardsData
+    : allCardsData.filter(({ cardData }) =>
+        (cardData.tipo || "").toUpperCase() === filterType.toUpperCase()
+      );
 
+  updatePaginationControls(filteredCards.length, () => {
     renderCards(filteredCards, createUserCard);
+  });
+
+  renderCards(filteredCards, createUserCard);
 }
+
 
 function showExpandedCard(data, cardClass) {
     // Esconde o container principal
