@@ -7,7 +7,10 @@
 
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f4f4f9;
+  background-image: url('/assets/fundo_home.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   color: #333;
   display: flex;
   flex-direction: column;
@@ -17,13 +20,16 @@ body {
   padding: 20px;
 }
 
+
 /* Estilização do título */
 h1 {
   font-size: 2rem;
-  color: #4a90e2;
+  color: white;
   margin-bottom: 20px;
   text-align: center;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
+
 
 /* Formatação do input de arquivo */
 #fileInput {
@@ -47,7 +53,7 @@ h1 {
 /* Botão de envio */
 #uploadButton {
   padding: 12px 24px;
-  background-color: #4a90e2;
+  background-color: #2b6f69;
   color: white;
   font-size: 1.1rem;
   border: none;
@@ -59,7 +65,7 @@ h1 {
 }
 
 #uploadButton:hover {
-  background-color: #357ab7;
+  background-color: #1c4945;
   transform: translateY(-2px);
 }
 
