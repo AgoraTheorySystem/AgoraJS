@@ -126,7 +126,7 @@ function generateSidebarMenu() {
                 <span class="menu-text">Suas análises</span>
             </li>
 
-            <li class="menu-item" id="menu-btn2">
+            <li class="menu-item" id="menu-btn3">
                 <div class="menu-icon-circle">
                     <img src="/assets/icone_admin.png" alt="Admin" />
                 </div>

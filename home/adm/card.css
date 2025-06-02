@@ -1,5 +1,5 @@
 .card {
-    background-color: #4F8105;
+    background-color: #002e3f !important;
     max-width: 480px;
     width: 100%;
     padding: 20px;
@@ -7,19 +7,31 @@
     box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.5);
     text-align: center;
     word-wrap: break-word;
+    color: #ffffff;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-.card h1{
+.card:hover {
+    background-color: #fdd200 !important;
+    color: #002e3f;
+}
+
+.card:hover h1,
+.card:hover p {
+    color: #002e3f;
+}
+
+.card h1 {
     font-size: 36px;
-    color: #fff;
+    color: inherit;
 }
 
-.card p{
+.card p {
     font-size: 24px;
-    color: #fff;
+    color: inherit;
 }
 
-.card a{
+.card a {
     text-decoration: none;
     background-color: #E8661A;
     font-size: 28px;
@@ -30,15 +42,15 @@
 .btn-container {
     display: flex;
     justify-content: center;
-    gap: 25px; /* Espaçamento entre os botões */
-    margin-top: 15px; /* Espaçamento superior */
+    gap: 25px;
+    margin-top: 15px;
 }
 
-.containerCards .card .btn-saiba-mais{
+.containerCards .card .btn-saiba-mais {
     border: none;
     background-color: #E8661A;
     border-radius: 20px;
-    padding:15px 19px;
+    padding: 15px 19px;
     color: #fff;
     font-size: 24px;
     font-weight: bold;
@@ -48,11 +60,11 @@
     transition: 0.2s;
 }
 
-.containerCards .card .btn-saiba-mais:hover{
+.containerCards .card .btn-saiba-mais:hover {
     background-color: #a94a17;
 }
 
-/* animação da lixeira ---- From Uiverse.io by vinodjangid07*/ 
+/* Estilo e animação do botão de lixeira */
 .bin-button {
     display: flex;
     flex-direction: column;
@@ -67,93 +79,79 @@
     transition-duration: 0.3s;
     position: relative;
     overflow: hidden;
-  }
-  .bin-bottom {
+}
+.bin-bottom {
     width: 15px;
     z-index: 2;
-  }
-  .bin-top {
+}
+.bin-top {
     width: 17px;
     transform-origin: right;
     transition-duration: 0.3s;
     z-index: 2;
-  }
-  .bin-button:hover .bin-top {
+}
+.bin-button:hover .bin-top {
     transform: rotate(45deg);
-  }
-  .bin-button:hover {
+}
+.bin-button:hover {
     background-color: rgb(255, 0, 0);
-  }
-  .bin-button:active {
+}
+.bin-button:active {
     transform: scale(0.9);
-  }
-  .garbage {
+}
+.garbage {
     position: absolute;
     width: 14px;
     height: auto;
     z-index: 1;
     opacity: 0;
     transition: all 0.3s;
-  }
-  .bin-button:hover .garbage {
+}
+.bin-button:hover .garbage {
     animation: throw 0.4s linear;
-  }
-  @keyframes throw {
+}
+@keyframes throw {
     from {
-      transform: translate(-400%, -700%);
-      opacity: 0;
+        transform: translate(-400%, -700%);
+        opacity: 0;
     }
     to {
-      transform: translate(0%, 0%);
-      opacity: 1;
+        transform: translate(0%, 0%);
+        opacity: 1;
     }
-  }
-
-  /* animação da lixeira ---- From Uiverse.io by vinodjangid07*/ 
-
-.card-empresa {
-    background-color: #0386A7;
 }
 
-.card-outros{
-    background-color: #B80355;
+/*classes específicas de tipo de card com a mesma cor */
+.card-empresa,
+.card-outros,
+.card-universidade-escola,
+.card-ong,
+.card-pessoafisica,
+.card-default {
+    background-color: #002e3f !important;
+    color: #ffffff;
 }
 
-.card-universidade-escola {
-    background-color: #002E3F;
-}
-
-.card-ong{
-    background-color: #c0a314;
-}
-
-.card-pessoafisica{
-    background-color: #4F8105;
-}
-
-.card-default{
-    background-color: #313131;
-}
-
-@media (max-width: 900px){
-    .filter-container{
+/* Responsividade */
+@media (max-width: 900px) {
+    .filter-container {
         flex-direction: column;
         gap: 0;
     }
 
-    .filter-button{
+    .filter-button {
         padding: 40px;
     }
 
-    .card{
+    .card {
         box-shadow: none;
     }
 
-    .container{
+    .container {
         width: 100%;
     }
 
-    .container .menu{
+    .container .menu {
         padding: 30px 0;
         flex-direction: column;
         justify-content: space-between;
@@ -162,25 +160,24 @@
         box-shadow: none;
     }
 }
-    
-@media (max-width: 1919px){
-    .containerCards{
+
+@media (max-width: 1919px) {
+    .containerCards {
         justify-content: center;
     }
-
 }
 
-@media (max-width: 480px){
-    .card{
+@media (max-width: 480px) {
+    .card {
         max-width: 330px;
         width: 100%;
     }
 
-    .card h1{
+    .card h1 {
         font-size: 30px;
     }
 
-    .card p{
+    .card p {
         font-size: 18px;
     }
 }

@@ -176,54 +176,49 @@ function renderCards(allCardsData, createCardFunction) {
 }
 
 function createFilterButtons(accountTypes) {
-    const filterContainer = document.getElementById("filter-container");
-    filterContainer.innerHTML = ""; // Limpa os filtros antigos
+    const filterBar = document.querySelector(".filter-bar");
+    if (!filterBar) return;
 
-    // Botão "Todos" (sem cor específica)
+    filterBar.innerHTML = ""; // Limpa botões antigos
+
+    // Botão "Todos"
     const allButton = document.createElement("button");
-    allButton.textContent = "Todos";
-    allButton.classList.add("filter-button", "active");
-    allButton.setAttribute("data-filter", "all");
-    allButton.style.backgroundColor = "#444"; // Cor padrão para "Todos"
-    allButton.addEventListener("click", () => applyFilter("all"));
-    filterContainer.appendChild(allButton);
+    allButton.textContent = "TODOS";
+    allButton.classList.add("filter-tab", "active");
+    allButton.setAttribute("data-filter", "TODOS");
+    allButton.addEventListener("click", () => applyFilter("TODOS"));
+    filterBar.appendChild(allButton);
 
-    // Criar botões para cada tipo de conta com cor correspondente ao CSS
+    // Botões por tipo
     accountTypes.forEach((type) => {
         const button = document.createElement("button");
-        button.textContent = type;
-        button.classList.add("filter-button");
+        button.textContent = type.toUpperCase();
+        button.classList.add("filter-tab");
         button.setAttribute("data-filter", type);
-
-        // Aplica a mesma classe dos cards
-        const cardClass = `card-${type.toLowerCase().replace(/[\s/]/g, "-")}`;
-        button.classList.add(cardClass);
-
         button.addEventListener("click", () => applyFilter(type));
-        filterContainer.appendChild(button);
+        filterBar.appendChild(button);
     });
 }
 
+
 function applyFilter(filterType) {
-    // Atualiza os botões ativos
-    document.querySelectorAll(".filter-button").forEach(button => {
+    document.querySelectorAll(".filter-tab").forEach(button => {
         button.classList.remove("active");
         if (button.getAttribute("data-filter") === filterType) {
             button.classList.add("active");
         }
     });
 
-    // Filtra os dados
-    const filteredCards = filterType === "all"
+    const filteredCards = filterType === "TODOS"
         ? allCardsData
-        : allCardsData.filter(({ cardData }) => cardData.tipo === filterType);
+        : allCardsData.filter(({ cardData }) =>
+            (cardData.tipo || "").toUpperCase() === filterType.toUpperCase()
+        );
 
-    // Atualiza a paginação para exibir apenas os cards filtrados
     updatePaginationControls(filteredCards.length, () => {
         renderCards(filteredCards, createUserCard);
     });
 
-    // Renderiza a primeira página com os cards filtrados
     renderCards(filteredCards, createUserCard);
 }
 

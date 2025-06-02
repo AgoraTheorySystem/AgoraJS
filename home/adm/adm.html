@@ -24,14 +24,23 @@
         </div>
     </div>
 
-    <div id="filter-container" class="filter-container">
-        <button class="filter-button" data-filter="all">Todos</button>
-    </div>
+    <!-- CONTAINER CENTRAL TIPO DASHBOARD -->
+    <div class="dashboard-wrapper">
+        <div class="filter-bar">
+            <button class="filter-tab active" data-filter="EMPRESA">EMPRESA</button>
+            <button class="filter-tab" data-filter="INSTITUIÇÃO DE ENSINO">INSTITUIÇÃO DE ENSINO</button>
+            <button class="filter-tab" data-filter="ONG">ONG</button>
+            <button class="filter-tab" data-filter="PESSOA FÍSICA">PESSOA FÍSICA</button>
+            <button class="filter-tab" data-filter="OUTROS">OUTROS</button>
+        </div>
 
-    <div class="container containerCards" id="containerCards">
-        
-    </div>
-    <div id="pagination-controls" class="pagination-controls"></div>
+        <div class="container containerCards" id="containerCards">
+            <!-- Cards serão inseridos dinamicamente aqui -->
+        </div>
 
+        <div id="pagination-controls" class="pagination-controls">
+            <!-- Controles de paginação também são inseridos via JS -->
+        </div>
+    </div>
 </body>
 </html>
