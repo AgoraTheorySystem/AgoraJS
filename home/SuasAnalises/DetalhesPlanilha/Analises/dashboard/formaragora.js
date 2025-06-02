@@ -1,3 +1,4 @@
+// formaragora.js
 document.addEventListener("DOMContentLoaded", () => {
   const urlParams = new URLSearchParams(window.location.search);
   const planilhaNome = urlParams.get("planilha");
@@ -6,38 +7,41 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
+  // Armazena a palavra selecionada em cada um dos 5 níveis
   const selectedWords = Array(5).fill(null);
+  // Guarda referência aos containers de cada planilha (nível)
   const planilhas = [];
 
-  // Controle de exibir/esconder extraOpcao conforme radio 'analise'
+  // Controle de exibir/esconder o campo extraOpcao quando "Conectividade" estiver selecionado
   const extraOpcao = document.getElementById("extraOpcao");
   const radiosAnalise = document.querySelectorAll('input[name="analise"]');
 
   function atualizarVisibilidadeExtraOpcao() {
     const selecionado = document.querySelector('input[name="analise"]:checked').value;
     if (selecionado === "Conectividade") {
-      extraOpcao.style.display = "flex"; // conforme seu CSS usa flex
+      extraOpcao.style.display = "flex";
     } else {
       extraOpcao.style.display = "none";
     }
   }
 
-  // Inicializa visibilidade na carga da página
+  // Inicializa a visibilidade correta assim que a página carrega
   atualizarVisibilidadeExtraOpcao();
 
-  // Escuta mudança nos radios
+  // Reagir a mudanças de "análise" e atualizar visibilidade + refazer tabelas
   radiosAnalise.forEach(radio => {
     radio.addEventListener("change", () => {
       atualizarVisibilidadeExtraOpcao();
-      // Atualiza também as tabelas porque a análise mudou
       planilhas.forEach(p => p.container.renderTable(1));
     });
   });
 
+  // Cria o DOM de uma planilha (tabela + campo de busca + paginação + loading)
   function createPlanilhaElement() {
     const planilhaEl = document.createElement("div");
     planilhaEl.classList.add("planilha");
 
+    // Campo de busca
     const searchInput = document.createElement("input");
     searchInput.type = "search";
     searchInput.placeholder = "Pesquisar palavra...";
@@ -46,6 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
     searchInput.style.width = "100%";
     planilhaEl.appendChild(searchInput);
 
+    // Tabela de dados
     const table = document.createElement("table");
     table.classList.add("data-table");
     const thead = document.createElement("thead");
@@ -53,6 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
     table.append(thead, tbody);
     planilhaEl.appendChild(table);
 
+    // Controles de paginação
     const pagination = document.createElement("div");
     pagination.classList.add("pagination");
 
@@ -73,6 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
     pagination.append(prevBtn, pageInfo, nextBtn, pageNumbers);
     planilhaEl.appendChild(pagination);
 
+    // Indicador de loading
     const loading = document.createElement("div");
     loading.classList.add("loading");
     loading.setAttribute("aria-live", "polite");
@@ -91,14 +98,15 @@ document.addEventListener("DOMContentLoaded", () => {
     return { planilhaEl, searchInput, thead, tbody, prevBtn, pageInfo, nextBtn, pageNumbers, loading };
   }
 
+  // Inicializa cada planilha (nível), carregando dados e configurando filtros/paginação
   function initPlanilha(container, planilhaNome, level) {
     let headerData = [];
     let tableData = [];
     const rowsPerPage = 15;
-
     let currentPage = 1;
     let currentSearch = "";
 
+    // Busca os dados brutos no localStorage
     function loadData() {
       const key = `planilha_${planilhaNome}`;
       try {
@@ -109,21 +117,25 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
+    // Calcula frequência das palavras no intervalo (Ego: EVOC1–5 ou Alter: EVOC6–10),
+    // aplicando filtros de nível anterior, exclusão de "VAZIO" e termos já selecionados,
+    // além de filtro de busca se houver algo digitado
     function computeFrequencies() {
       const analiseSelecionada = document.querySelector('input[name="analise"]:checked').value;
-      if (analiseSelecionada === "Conectividade") {
-        // Se quiser aplicar algum filtro especial para Conectividade, insira aqui
-      }
+      // (Caso queira tratar Conectividade de forma específica, faz aqui)
+
       const aspecto = document.querySelector('input[name="aspecto"]:checked').value;
       const pattern = aspecto === "Ego"
         ? /^EVOC[1-5]$/i
         : /^EVOC(?:6|7|8|9|10)$/i;
 
+      // Mapeia índices das colunas que batem com o padrão (EVOCx)
       const indices = headerData
         .map((col, i) => ({ col: col.toUpperCase(), i }))
         .filter(o => pattern.test(o.col))
         .map(o => o.i);
 
+      // Filtra linhas que contenham todas as palavras selecionadas nos níveis anteriores
       let rows = tableData;
       if (level > 1) {
         for (let l = 1; l < level; l++) {
@@ -138,11 +150,13 @@ document.addEventListener("DOMContentLoaded", () => {
         );
       }
 
+      // Lista de termos a excluir: "VAZIO" e palavras já selecionadas em níveis anteriores
       const exclude = selectedWords
         .slice(0, level - 1)
         .filter(Boolean)
         .map(w => w.toUpperCase());
 
+      // Conta frequências
       const freq = {};
       rows.forEach(row => {
         indices.forEach(j => {
@@ -156,10 +170,12 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       });
 
+      // Transforma em array e ordena do maior para o menor
       return Object.entries(freq)
         .sort((a, b) => b[1] - a[1]);
     }
 
+    // Renderiza o cabeçalho fixo (duas colunas: Palavra / Frequência)
     function renderTableHeader() {
       container.thead.innerHTML = "";
       const tr = document.createElement("tr");
@@ -171,9 +187,9 @@ document.addEventListener("DOMContentLoaded", () => {
       container.thead.appendChild(tr);
     }
 
+    // Renderiza o corpo da tabela, criando linhas clicáveis que selecionam palavra
     function renderTable(page = currentPage) {
       currentPage = page;
-
       const freqArray = computeFrequencies();
       const total = freqArray.length;
       const totalPages = Math.max(1, Math.ceil(total / rowsPerPage));
@@ -203,6 +219,8 @@ document.addEventListener("DOMContentLoaded", () => {
           td2.textContent = count;
           tr.append(td1, td2);
 
+          // Ao clicar, marca-se como palavra selecionada no nível, 
+          // limpa-se seleções abaixo e refaz tabelas dos níveis superiores
           tr.addEventListener("click", () => {
             selectedWords[level - 1] = word;
             for (let l = level; l < 5; l++) selectedWords[l] = null;
@@ -219,6 +237,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
 
+      // Atualiza controles de paginação
       container.pageInfo.textContent = `Página ${currentPage} de ${totalPages}`;
       container.prevBtn.disabled = currentPage <= 1;
       container.nextBtn.disabled = currentPage >= totalPages;
@@ -236,10 +255,10 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
+    // Botões de anterior/proximo da paginação
     container.prevBtn.addEventListener("click", () => {
       if (currentPage > 1) renderTable(currentPage - 1);
     });
-
     container.nextBtn.addEventListener("click", () => {
       const freqArray = computeFrequencies();
       const total = freqArray.length;
@@ -247,13 +266,16 @@ document.addEventListener("DOMContentLoaded", () => {
       if (currentPage < totalPages) renderTable(currentPage + 1);
     });
 
+    // Filtro de busca: atualiza currentSearch e refaz tabela a partir da página 1
     container.searchInput.addEventListener("input", (e) => {
       currentSearch = e.target.value.trim();
       renderTable(1);
     });
 
+    // Expor renderTable para que outros níveis possam invocar
     container.renderTable = renderTable;
 
+    // Processo inicial de carregamento de dados e renderização
     container.loading.style.display = "block";
     setTimeout(() => {
       const data = loadData();
@@ -268,12 +290,13 @@ document.addEventListener("DOMContentLoaded", () => {
       container.loading.style.display = "none";
     }, 300);
 
+    // Ao mudar de "aspecto" (Ego/Alter), refaz a tabela deste nível
     document
       .querySelectorAll('input[name="aspecto"]')
       .forEach(inp => inp.addEventListener("change", () => renderTable(1)));
   }
 
-  // CONTROLES DE NÍVEIS
+  // CONTROLES DE NÍVEIS: cria botões 1 a 5 e renderiza a quantidade escolhida de planilhas
   const niveisContainer = document.getElementById("niveisContainer");
   const planilhasContainer = document.getElementById("planilhasContainer");
   niveisContainer.innerHTML = "";
@@ -284,6 +307,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const btn = document.createElement("button");
     btn.textContent = i;
     btn.addEventListener("click", () => {
+      // Marca botão selecionado e reseta containers
       document
         .querySelectorAll("#niveisContainer button")
         .forEach(b => b.classList.remove("selected"));
@@ -292,6 +316,7 @@ document.addEventListener("DOMContentLoaded", () => {
       planilhas.length = 0;
       selectedWords.fill(null);
 
+      // Cria 'i' planilhas (níveis) na tela
       for (let lvl = 1; lvl <= i; lvl++) {
         const elem = createPlanilhaElement();
         planilhasContainer.appendChild(elem.planilhaEl);
@@ -302,19 +327,32 @@ document.addEventListener("DOMContentLoaded", () => {
     niveisContainer.appendChild(btn);
   }
 
-  // Seleciona o primeiro nível por padrão
+  // Seleciona o nível 1 por padrão ao iniciar
   niveisContainer.querySelector("button").click();
 
-  // Botão FORMAR ÁGORAS
+  // ------------------------------------------------------------
+  // Função executada pelo botão "FORMAR ÁGORAS 💡"
+  // Agora monta um objeto com todos os parâmetros e envia para bolhas.js
   window.rodarAnalise = () => {
     const nivel = document.querySelector("#niveisContainer .selected")?.textContent;
     const analise = document.querySelector('input[name="analise"]:checked').value;
     const aspecto = document.querySelector('input[name="aspecto"]:checked').value;
     const valor = document.getElementById("valorConectividade").value;
-    let msg = `Análise: ${analise}\nAspecto: ${aspecto}\nNível: ${nivel}`;
-    if (analise === "Conectividade") {
-      msg += `\nQtd. palavras: ${valor || "não informado"}`;
+
+    // Monta objeto com todos os dados necessários
+    const parametros = {
+      nivelSelecionado: nivel,
+      analise: analise,
+      aspecto: aspecto,
+      valorConectividade: valor || null,
+      palavrasPorNivel: selectedWords.slice(0).filter(w => w)
+    };
+
+    // Chama a função em bolhas.js (deve estar definida como window.gerarBolhas)
+    if (typeof window.gerarBolhas === "function") {
+      window.gerarBolhas(parametros);
+    } else {
+      console.warn("Função gerarBolhas não encontrada em bolhas.js");
     }
-    alert(msg);
   };
 });
