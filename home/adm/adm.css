@@ -92,28 +92,16 @@ body {
     color: #ffffff;
     border-radius: 20px;
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-    transition: background-color 0.3s ease, color 0.3s ease;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
 }
 
-.card:hover {
-    background-color: #fdd200; /* Cor ao passar o mouse */
-    color: #002e3f;
-}
-
-.card:hover h1,
-.card:hover p {
-    color: #002e3f;
-}
-
 .timestamps p {
-    font-size: 11px !important;
-    color: #333;
-    margin-top: 6px;
+    color: #000 !important;
 }
+
 
 /* Botões dos cards */
 .btn-container {
@@ -228,3 +216,9 @@ body {
     background-color: #fdd200;
     color: #0A2622;
 }
+
+[class^="card-"] {
+    background-color: #fdd200 !important;
+    color: #000 !important;
+}
+

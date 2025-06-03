@@ -21,14 +21,12 @@ const apiBaseUrl = 'https://nodejsteste.vercel.app';
 
 function createUserCard(data, userId) {
     const card = document.createElement("div");
-    // Define uma classe para o card baseada no displayName ou em "default"
     const cardClass = `card-${(data.tipo || data.displayName || "default")
         .toLowerCase()
         .replace(/[\s/]/g, "-")}`;
     card.classList.add("card", cardClass);
     card.setAttribute("data-id", userId);
 
-    // Cria um placeholder para os timestamps
     card.innerHTML = `
       <h1>${data.tipo || data.displayName || "Sem Nome"}</h1>
       <p>Email: ${data.email}</p>
@@ -36,40 +34,61 @@ function createUserCard(data, userId) {
         <p>Carregando informações...</p>
       </div>
       <div class="btn-container">
-        <button class="btn-saiba-mais">Saiba Mais</button>
-        <!-- Botão para exclusão com ícone (SVG simplificado) -->
-        <button class="bin-button">Excluir</button>
+        
+        <button class="btn-saiba-mais icon-btn">
+            <img src="/assets/plus.png" alt="Mais" />
+        </button>
+
+        <button class="trash-btn icon-btn">
+            <img src="/assets/trash.png" alt="Excluir" />
+        </button>
       </div>
     `;
 
     const container = document.getElementById("containerCards");
     container.appendChild(card);
 
-    // Busca os timestamps via API e atualiza o card
+    // Carregar timestamps
     fetch(apiBaseUrl + '/users/' + userId + '/timestamps')
         .then(response => response.text())
         .then(htmlSnippet => {
             const timestampsDiv = card.querySelector(".timestamps");
-            timestampsDiv.innerHTML = htmlSnippet;
+            const matches = [...htmlSnippet.matchAll(/(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z)/g)];
+            const [createdAtRaw, lastAccessRaw] = matches.map(m => m[0]);
+
+            const toBrazilTime = (utcStr) =>
+                new Date(utcStr).toLocaleString("pt-BR", {
+                    timeZone: "America/Sao_Paulo",
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric"
+                });
+
+            if (createdAtRaw && lastAccessRaw) {
+                timestampsDiv.innerHTML = `
+                    <p>criado em: ${toBrazilTime(createdAtRaw)}</p>
+                    <p>último acesso: ${toBrazilTime(lastAccessRaw)}</p>
+                `;
+            } else {
+                timestampsDiv.innerHTML = `<p>Informações indisponíveis.</p>`;
+            }
         })
-        .catch(err => {
-            console.error("Erro ao carregar timestamps:", err);
-            const timestampsDiv = card.querySelector(".timestamps");
-            timestampsDiv.innerHTML = `<p>Não foi possível carregar os timestamps.</p>`;
+        .catch(() => {
+            card.querySelector(".timestamps").innerHTML = `<p>Erro ao carregar os dados.</p>`;
         });
 
-    // Evento para "Saiba Mais"
-    const buttonSaibaMais = card.querySelector(".btn-saiba-mais");
-    buttonSaibaMais.addEventListener("click", () => {
+    // Eventos
+    card.querySelector(".btn-saiba-mais").addEventListener("click", () => {
         showExpandedCard(data, cardClass);
     });
 
-    // Evento para excluir o usuário
-    const buttonExcluir = card.querySelector(".bin-button");
-    buttonExcluir.addEventListener("click", () => {
+    card.querySelector(".trash-btn").addEventListener("click", () => {
         deleteUser(userId, card);
     });
 }
+
+
+
 
 
 async function deleteUser(userId, cardElement) {

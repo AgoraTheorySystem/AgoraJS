@@ -1,6 +1,6 @@
 .card {
-    background-color: #002e3f;
-    color: #ffffff;
+    background-color: #eec600dc !important;
+    color: #000 !important;
     max-width: 480px;
     width: 100%;
     padding: 20px;
@@ -8,18 +8,19 @@
     box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.5);
     text-align: center;
     word-wrap: break-word;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-
 .card:hover {
-    background-color: #fdd200 !important;
-    color: #002e3f;
+  transform: scale(1.02);
+  box-shadow: 6px 6px 16px rgba(0, 0, 0, 0.3);
+  z-index: 1;
 }
 
 .card:hover h1,
 .card:hover p {
-    color: #002e3f;
+    color: #000 !important;
+
 }
 
 .card h1 {
@@ -60,23 +61,27 @@
     margin-top: 15px;
 }
 
-.containerCards .card .btn-saiba-mais {
-    border: none;
-    background-color: #E8661A;
-    border-radius: 20px;
-    padding: 15px 19px;
-    color: #fff;
-    font-size: 24px;
-    font-weight: bold;
-    box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.5);
-    font-family: "Montserrat", sans-serif;
-    cursor: pointer;
-    transition: 0.2s;
+.btn-saiba-mais {
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
 }
 
-.containerCards .card .btn-saiba-mais:hover {
-    background-color: #a94a17;
+.btn-saiba-mais img {
+  width: 28px;
+  height: 28px;
+  display: block;
 }
+
+.btn-saiba-mais:hover img {
+  transform: scale(1.1);
+  filter: brightness(1.2);
+  transition: transform 0.2s, filter 0.2s;
+}
+
 
 /* Estilo e animação do botão de lixeira */
 .bin-button {
@@ -124,6 +129,35 @@
 .bin-button:hover .garbage {
     animation: throw 0.4s linear;
 }
+
+.btn-container button img {
+    display: block;
+    margin: auto;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  box-shadow: none;
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.icon-btn img {
+  width: 28px;
+  height: 28px;
+  display: block;
+  transition: transform 0.2s, filter 0.2s;
+}
+
+.icon-btn:hover img {
+  transform: scale(1.1);
+  filter: brightness(1.2);
+}
+
+
 @keyframes throw {
     from {
         transform: translate(-400%, -700%);
