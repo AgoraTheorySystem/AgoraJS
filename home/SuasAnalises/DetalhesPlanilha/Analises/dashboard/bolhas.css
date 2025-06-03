@@ -63,3 +63,31 @@
   line-height: 1.4;
   color: black;
 }
+
+.bolhas-lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.bola {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 9999px;
+  background-color: #3498db;
+  color: white;
+  font-weight: bold;
+  text-align: center;
+  padding: 0.5rem;
+  word-break: break-word;
+}
+
+#grafoConectividade {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-top: 1rem;
+  box-shadow: 0 0 6px rgba(0,0,0,0.05);
+}

@@ -1,5 +1,4 @@
 .expanded-card {
-    background-color: #2b6f69;
     max-width: 90%; /* Usa até 90% da largura disponível */
     width: calc(100% - 40px); /* Garante ajuste dinâmico com padding */
     margin-top: 20px;

@@ -87,10 +87,10 @@
   align-items: center;
   gap: 18px;
   margin-bottom: 50px;
-  width: 100%;             
-  flex-wrap: wrap;         
+  padding-left: 0;
+  margin-left: 0;
+  width: fit-content;
 }
-
 
 #menu-user-picture {
   width: 100px;
@@ -119,14 +119,9 @@
   text-align: left;
   margin-left: 0;
   padding-left: 0;
+  white-space: nowrap;
   padding-top: 20px;
-
-  width: 100%;              
-  max-width: 200px;         
-  overflow-wrap: break-word;
-  word-break: break-word;
 }
-
 
 #menu-user-info h2 {
   font-size: 28px;
