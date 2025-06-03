@@ -8,199 +8,91 @@
     box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.5);
     text-align: center;
     word-wrap: break-word;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease; /* efeito hover */
 }
 
 .card:hover {
-  transform: scale(1.02);
-  box-shadow: 6px 6px 16px rgba(0, 0, 0, 0.3);
-  z-index: 1;
+    transform: scale(1.02);
+    box-shadow: 6px 6px 16px rgba(0, 0, 0, 0.3);
 }
 
 .card:hover h1,
 .card:hover p {
     color: #000 !important;
-
 }
 
 .card h1 {
     font-size: 36px;
-    color: #fff;
+    color: inherit;
 }
 
-.card p{
-    font-size: 24px;
-    color: #fff;
+.card p {
+    font-size: 20px;
+    margin: 2px 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    max-width: 100%;
 }
 
-.card a{
-    text-decoration: none;
-    background-color: #E8661A;
-    font-size: 28px;
-    color: #fff;
+.timestamps p {
+    font-size: 11px;
+    color: #ffffff;
+    margin-top: 4px;
+    word-break: break-word;
 }
 
 /* Contêiner de botões no card */
 .btn-container {
     display: flex;
     justify-content: center;
-    gap: 25px; /* Espaçamento entre os botões */
-    margin-top: 15px; /* Espaçamento superior */
+    gap: 25px;
+    margin-top: 15px;
 }
 
-.btn-saiba-mais {
-  background: none !important;
-  border: none !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  box-shadow: none !important;
-  border-radius: 0 !important;
-}
-
-.btn-saiba-mais img {
-  width: 28px;
-  height: 28px;
-  display: block;
-}
-
-.btn-saiba-mais:hover img {
-  transform: scale(1.1);
-  filter: brightness(1.2);
-  transition: transform 0.2s, filter 0.2s;
-}
-
-
-/* Estilo e animação do botão de lixeira */
-.bin-button {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 55px;
-    height: 55px;
-    border-radius: 50%;
-    background-color: rgb(255, 95, 95);
-    cursor: pointer;
-    border: 2px solid rgb(255, 201, 201);
-    transition-duration: 0.3s;
-    position: relative;
-    overflow: hidden;
-  }
-  .bin-bottom {
-    width: 15px;
-    z-index: 2;
-  }
-  .bin-top {
-    width: 17px;
-    transform-origin: right;
-    transition-duration: 0.3s;
-    z-index: 2;
-  }
-  .bin-button:hover .bin-top {
-    transform: rotate(45deg);
-  }
-  .bin-button:hover {
-    background-color: rgb(255, 0, 0);
-  }
-  .bin-button:active {
-    transform: scale(0.9);
-  }
-  .garbage {
-    position: absolute;
-    width: 14px;
-    height: auto;
-    z-index: 1;
-    opacity: 0;
-    transition: all 0.3s;
-  }
-  .bin-button:hover .garbage {
-    animation: throw 0.4s linear;
-}
-
-.btn-container button img {
-    display: block;
-    margin: auto;
-}
-
+/* Botões com imagem (plus e lixeira) */
 .icon-btn {
-  background: none;
-  border: none;
-  padding: 0;
-  margin: 0;
-  box-shadow: none;
-  border-radius: 0;
-  cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+    border-radius: 0;
+    cursor: pointer;
 }
 
 .icon-btn img {
-  width: 28px;
-  height: 28px;
-  display: block;
-  transition: transform 0.2s, filter 0.2s;
+    width: 28px;
+    height: 28px;
+    display: block;
+    transition: transform 0.2s, filter 0.2s;
 }
 
 .icon-btn:hover img {
-  transform: scale(1.1);
-  filter: brightness(1.2);
+    transform: scale(1.1);
+    filter: brightness(1.2);
 }
 
-
-@keyframes throw {
-    from {
-      transform: translate(-400%, -700%);
-      opacity: 0;
-    }
-    to {
-      transform: translate(0%, 0%);
-      opacity: 1;
-    }
-  }
-
-  /* animação da lixeira ---- From Uiverse.io by vinodjangid07*/ 
-
-.card-empresa {
-    background-color: #0386A7;
-}
-
-.card-outros{
-    background-color: #B80355;
-}
-
-.card-universidade-escola {
-    background-color: #002E3F;
-}
-
-.card-ong{
-    background-color: #c0a314;
-}
-
-.card-pessoafisica{
-    background-color: #4F8105;
-}
-
-.card-default{
-    background-color: #313131;
-}
-
-@media (max-width: 900px){
-    .filter-container{
+/* Responsividade */
+@media (max-width: 900px) {
+    .filter-container {
         flex-direction: column;
         gap: 0;
     }
 
-    .filter-button{
+    .filter-button {
         padding: 40px;
     }
 
-    .card{
+    .card {
         box-shadow: none;
     }
 
-    .container{
+    .container {
         width: 100%;
     }
 
-    .container .menu{
+    .container .menu {
         padding: 30px 0;
         flex-direction: column;
         justify-content: space-between;
@@ -209,25 +101,24 @@
         box-shadow: none;
     }
 }
-    
-@media (max-width: 1919px){
-    .containerCards{
+
+@media (max-width: 1919px) {
+    .containerCards {
         justify-content: center;
     }
-
 }
 
-@media (max-width: 480px){
-    .card{
+@media (max-width: 480px) {
+    .card {
         max-width: 330px;
         width: 100%;
     }
 
-    .card h1{
+    .card h1 {
         font-size: 30px;
     }
 
-    .card p{
+    .card p {
         font-size: 18px;
     }
 }

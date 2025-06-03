@@ -16,22 +16,23 @@
     <title>Adm</title>
 </head>
 <body>
-    <div class="container">
-        <div class="menu">
-            <a href="../home.html">Página Inicial</a>
-            <a href="">Gestão de usuários</a>
-            <a href="admgraficos.html">Gráficos</a>
-        </div>
-    </div>
-
-    <div id="filter-container" class="filter-container">
-        <button class="filter-button" data-filter="all">Todos</button>
+  <!-- BARRA SUPERIOR -->
+  <header class="topbar">
+    <nav class="navbar">
+      <a href="../home.html" class="nav-button">Página Inicial</a>
+      <a href="adm.html" class="nav-button active">Gestão de Usuários</a>
+      <a href="admgraficos.html" class="nav-button">Gráficos</a>
+    </nav>
+  </header>
+  <div class="dashboard-wrapper">
+    <div class="filter-bar">
     </div>
 
     <div class="container containerCards" id="containerCards">
-        
     </div>
-    <div id="pagination-controls" class="pagination-controls"></div>
 
+    <div id="pagination-controls" class="pagination-controls"></div>
+  </div>
 </body>
+
 </html>

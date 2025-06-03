@@ -1,21 +1,13 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js";
 import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-database.js";
-import firebaseConfig from "../../firebase.js"; // Importa a configuração do Firebase
+import firebaseConfig from "../../firebase.js";
 import { getAuth, deleteUser as deleteAuthUser } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-auth.js";
 
-
-// Inicializa o Firebase
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
-let currentPage = 1; // Página inicial
-const cardsPerPage = 9; // Máximo de cards por página
-let allCardsData = Array.from({ length: 100 }, (_, i) => ({
-    userId: `user-${i + 1}`,
-    cardData: {
-        tipo: `Tipo ${i + 1}`,
-        email: `usuario${i + 1}@exemplo.com`,
-    },
-}));
+let currentPage = 1;
+const cardsPerPage = 9;
+let allCardsData = [];
 
 const apiBaseUrl = 'https://nodejsteste.vercel.app';
 
@@ -34,22 +26,28 @@ function createUserCard(data, userId) {
         <p>Carregando informações...</p>
       </div>
       <div class="btn-container">
-        
         <button class="btn-saiba-mais icon-btn">
             <img src="/assets/plus.png" alt="Mais" />
         </button>
-
         <button class="trash-btn icon-btn">
             <img src="/assets/trash.png" alt="Excluir" />
         </button>
       </div>
     `;
 
-    const container = document.getElementById("containerCards");
-    container.appendChild(card);
+    document.getElementById("containerCards").appendChild(card);
 
-    // Carregar timestamps
-    fetch(apiBaseUrl + '/users/' + userId + '/timestamps')
+    // Event listeners dos botões
+    card.querySelector(".btn-saiba-mais").addEventListener("click", () => {
+        showExpandedCard(data, cardClass);
+    });
+
+    card.querySelector(".trash-btn").addEventListener("click", () => {
+        deleteUser(userId, card);
+    });
+
+    // Carrega timestamps
+    fetch(`${apiBaseUrl}/users/${userId}/timestamps`)
         .then(response => response.text())
         .then(htmlSnippet => {
             const timestampsDiv = card.querySelector(".timestamps");
@@ -76,40 +74,16 @@ function createUserCard(data, userId) {
         .catch(() => {
             card.querySelector(".timestamps").innerHTML = `<p>Erro ao carregar os dados.</p>`;
         });
-
-    // Eventos
-    card.querySelector(".btn-saiba-mais").addEventListener("click", () => {
-        showExpandedCard(data, cardClass);
-    });
-
-    card.querySelector(".trash-btn").addEventListener("click", () => {
-        deleteUser(userId, card);
-    });
 }
 
-
-
-
-
 async function deleteUser(userId, cardElement) {
-    console.log(`Tentando excluir usuário com ID: ${userId}`);
-
-    // Referência para o usuário no Realtime Database
-    const userRef = ref(database, `users/${userId}`);
-
     if (confirm("Tem certeza que deseja excluir este usuário?")) {
         try {
-            // 1. Excluir do Realtime Database
-            await remove(userRef);
-            console.log(`Usuário excluído do Realtime Database com ID ${userId}.`);
-
-            // 2. Excluir via API (DELETE /users/:userId)
-            // A API já cuida de remover o usuário do Firebase Authentication
-            const response = await fetch(apiBaseUrl + '/users/' + userId, { method: 'DELETE' });
+            await remove(ref(database, `users/${userId}`));
+            const response = await fetch(`${apiBaseUrl}/users/${userId}`, { method: 'DELETE' });
             const data = await response.json();
             if (response.ok) {
                 alert("Usuário excluído com sucesso!");
-                // Atualiza a interface removendo o card
                 cardElement.remove();
             } else {
                 alert("Erro: " + data.error);
@@ -121,16 +95,12 @@ async function deleteUser(userId, cardElement) {
     }
 }
 
-
-
 function updatePaginationControls(totalCards, onPageChange) {
     const paginationControls = document.getElementById("pagination-controls");
-    paginationControls.innerHTML = ""; // Limpa os controles existentes
-
+    paginationControls.innerHTML = "";
     const totalPages = Math.ceil(totalCards / cardsPerPage);
-    const maxVisibleButtons = 5; // Máximo de botões visíveis ao mesmo tempo
+    const maxVisibleButtons = 5;
     const halfRange = Math.floor(maxVisibleButtons / 2);
-
     let startPage = Math.max(1, currentPage - halfRange);
     let endPage = Math.min(totalPages, startPage + maxVisibleButtons - 1);
 
@@ -138,7 +108,6 @@ function updatePaginationControls(totalCards, onPageChange) {
         startPage = Math.max(1, endPage - maxVisibleButtons + 1);
     }
 
-    // Botão "Anterior"
     if (currentPage > 1) {
         const prevButton = document.createElement("button");
         prevButton.textContent = "Anterior";
@@ -151,7 +120,6 @@ function updatePaginationControls(totalCards, onPageChange) {
         paginationControls.appendChild(prevButton);
     }
 
-    // Botões de página
     for (let i = startPage; i <= endPage; i++) {
         const button = document.createElement("button");
         button.textContent = i;
@@ -161,13 +129,12 @@ function updatePaginationControls(totalCards, onPageChange) {
         }
         button.addEventListener("click", () => {
             currentPage = i;
-            onPageChange(); // Atualiza os cards da página atual
-            updatePaginationControls(totalCards, onPageChange); // Atualiza os controles
+            onPageChange();
+            updatePaginationControls(totalCards, onPageChange);
         });
         paginationControls.appendChild(button);
     }
 
-    // Botão "Próximo"
     if (currentPage < totalPages) {
         const nextButton = document.createElement("button");
         nextButton.textContent = "Próximo";
@@ -181,116 +148,97 @@ function updatePaginationControls(totalCards, onPageChange) {
     }
 }
 
-function renderCards(allCardsData, createCardFunction) {
+function renderCards(dataArray, createCardFn) {
     const container = document.getElementById("containerCards");
-    container.innerHTML = ""; // Limpa os cards exibidos
-
+    container.innerHTML = "";
     const startIndex = (currentPage - 1) * cardsPerPage;
     const endIndex = startIndex + cardsPerPage;
-
-    // Exibe apenas os cards da página atual
-    allCardsData.slice(startIndex, endIndex).forEach(({ userId, cardData }) => {
-        createCardFunction(cardData, userId);
+    dataArray.slice(startIndex, endIndex).forEach(({ userId, cardData }) => {
+        createCardFn(cardData, userId);
     });
 }
 
 function createFilterButtons(accountTypes) {
-    const filterContainer = document.getElementById("filter-container");
-    filterContainer.innerHTML = ""; // Limpa os filtros antigos
+    const filterBar = document.querySelector(".filter-bar");
+    if (!filterBar) return;
+    filterBar.innerHTML = "";
 
-    // Botão "Todos" (sem cor específica)
     const allButton = document.createElement("button");
-    allButton.textContent = "Todos";
-    allButton.classList.add("filter-button", "active");
-    allButton.setAttribute("data-filter", "all");
-    allButton.style.backgroundColor = "#444"; // Cor padrão para "Todos"
-    allButton.addEventListener("click", () => applyFilter("all"));
-    filterContainer.appendChild(allButton);
+    allButton.textContent = "TODOS";
+    allButton.classList.add("filter-tab", "active");
+    allButton.setAttribute("data-filter", "TODOS");
+    allButton.addEventListener("click", () => applyFilter("TODOS"));
+    filterBar.appendChild(allButton);
 
-    // Criar botões para cada tipo de conta com cor correspondente ao CSS
     accountTypes.forEach((type) => {
         const button = document.createElement("button");
-        button.textContent = type;
-        button.classList.add("filter-button");
+        button.textContent = type.toUpperCase();
+        button.classList.add("filter-tab");
         button.setAttribute("data-filter", type);
-
-        // Aplica a mesma classe dos cards
-        const cardClass = `card-${type.toLowerCase().replace(/[\s/]/g, "-")}`;
-        button.classList.add(cardClass);
-
         button.addEventListener("click", () => applyFilter(type));
-        filterContainer.appendChild(button);
+        filterBar.appendChild(button);
     });
 }
 
 function applyFilter(filterType) {
-    // Atualiza os botões ativos
-    document.querySelectorAll(".filter-button").forEach(button => {
+    const expanded = document.querySelector(".expanded-card");
+    if (expanded) {
+        expanded.remove();
+        document.getElementById("containerCards").style.display = "flex";
+        document.getElementById("pagination-controls").style.display = "flex";
+    }
+
+    document.querySelectorAll(".filter-tab").forEach(button => {
         button.classList.remove("active");
         if (button.getAttribute("data-filter") === filterType) {
             button.classList.add("active");
         }
     });
 
-    // Filtra os dados
-    const filteredCards = filterType === "all"
+    const filtered = filterType === "TODOS"
         ? allCardsData
-        : allCardsData.filter(({ cardData }) => cardData.tipo === filterType);
+        : allCardsData.filter(({ cardData }) =>
+            (cardData.tipo || "").toUpperCase() === filterType.toUpperCase());
 
-    // Atualiza a paginação para exibir apenas os cards filtrados
-    updatePaginationControls(filteredCards.length, () => {
-        renderCards(filteredCards, createUserCard);
+    updatePaginationControls(filtered.length, () => {
+        renderCards(filtered, createUserCard);
     });
 
-    // Renderiza a primeira página com os cards filtrados
-    renderCards(filteredCards, createUserCard);
+    renderCards(filtered, createUserCard);
 }
 
 function showExpandedCard(data, cardClass) {
-    // Esconde o container principal
     const containerCards = document.getElementById("containerCards");
     containerCards.style.display = "none";
-
-    // Esconde os botões de paginação
     document.getElementById("pagination-controls").style.display = "none";
 
-    // Cria o container expandido
     const expandedContainer = document.createElement("div");
-    expandedContainer.classList.add("expanded-card", cardClass); // Adiciona a mesma classe dinâmica
+    expandedContainer.classList.add("expanded-card", cardClass);
 
-    // Conteúdo inicial do card expandido
     expandedContainer.innerHTML = `
         <h1>${data.tipo}</h1>
         <button class="btn-voltar">Voltar</button>
     `;
 
-    // Itera sobre as propriedades do objeto `data` e adiciona em `<p>`
     Object.entries(data).forEach(([key, value]) => {
         const info = document.createElement("p");
         info.textContent = `${capitalizeFirstLetter(key)}: ${value}`;
         expandedContainer.appendChild(info);
     });
 
-    // Adiciona ao body
     document.body.appendChild(expandedContainer);
 
-    // Evento para botão "Voltar"
-    const backButton = expandedContainer.querySelector(".btn-voltar");
-    backButton.addEventListener("click", () => {
-        expandedContainer.remove(); // Remove o card expandido
-        containerCards.style.display = "flex"; // Mostra o container principal
-
-        // Reexibe os botões de paginação quando volta à tela de cards menores
+    expandedContainer.querySelector(".btn-voltar").addEventListener("click", () => {
+        expandedContainer.remove();
+        containerCards.style.display = "flex";
         document.getElementById("pagination-controls").style.display = "flex";
     });
 }
 
-// Função para capitalizar a primeira letra das propriedades
 function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-// Função para buscar os dados do Realtime Database
 async function fetchData() {
     const dbRef = ref(database, "users");
 
@@ -298,32 +246,24 @@ async function fetchData() {
         if (snapshot.exists()) {
             const users = snapshot.val();
 
-            // Armazena os dados na variável global
             allCardsData = Object.entries(users).map(([userId, cardData]) => ({
                 userId,
                 cardData,
             }));
 
-            // Coletar os tipos de conta únicos
             const accountTypes = new Set();
             allCardsData.forEach(({ cardData }) => {
-                if (cardData.tipo) {
-                    accountTypes.add(cardData.tipo);
-                }
+                if (cardData.tipo) accountTypes.add(cardData.tipo);
             });
 
-            // Criar botões de filtro
             createFilterButtons([...accountTypes]);
 
-            // Atualiza os controles de paginação dinamicamente
             updatePaginationControls(allCardsData.length, () => {
                 renderCards(allCardsData, createUserCard);
             });
 
-            // Renderiza a primeira página
             renderCards(allCardsData, createUserCard);
         } else {
-            console.error("Nenhum dado encontrado no Firebase.");
             document.getElementById("containerCards").innerHTML = "<p>Nenhum usuário encontrado.</p>";
             document.getElementById("pagination-controls").style.display = "none";
         }
@@ -332,5 +272,5 @@ async function fetchData() {
     });
 }
 
-// Chama a função para buscar e exibir os cards
+// Inicia o carregamento
 fetchData();
