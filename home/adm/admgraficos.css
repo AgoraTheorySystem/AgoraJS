@@ -18,7 +18,8 @@ body {
   max-width: 1200px;
   margin: 20px auto;
   padding: 20px;
-  background-color: #e4e4e4;
+  background-color: #2b6f69;
+  color: white;
   border: 2px solid #333;
   border-radius: 15px;
   display: flex;
@@ -34,7 +35,7 @@ body {
   width: 100%;
   margin: 20px auto;
   padding: 20px;
-  background-color: #e4e4e4;
+  background-color: #2b6f69;
   border: 2px solid #333;
   border-radius: 15px;
   display: flex;
@@ -54,6 +55,57 @@ body {
   max-width: 800px;
   max-height: 500px;
 }
+
+.topbar {
+  background-color: #002e3f;
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 12px 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.nav-button {
+  background-color: transparent;
+  color: white;
+  text-decoration: none;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 10px 16px;
+  border-radius: 8px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.nav-button:hover {
+  background-color: #fdd200;
+  color: #002e3f;
+}
+
+.card-empresa {
+  background-color: #0386A7;
+}
+.card-ong {
+  background-color: #c0a314;
+}
+.card-outros {
+  background-color: #B80355;
+}
+.card-pessoafisica {
+  background-color: #4F8105;
+}
+.card-universidade-escola {
+  background-color: #6C3483;
+}
+
+
 
 /* Responsividade para telas menores */
 @media (max-width: 768px) {
@@ -95,7 +147,7 @@ body {
 
 /* CSS para o botão de gerar relatório PDF */
 #gerarRelatorio {
-  background: linear-gradient(45deg, #4caf50, #81c784);
+  background: linear-gradient(45deg, #2b6f69);
   border: none;
   color: #fff;
   padding: 12px 24px;

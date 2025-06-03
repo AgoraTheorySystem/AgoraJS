@@ -126,7 +126,7 @@ function generateSidebarMenu() {
                 <span class="menu-text">Suas análises</span>
             </li>
 
-            <li class="menu-item" id="menu-btn2">
+            <li class="menu-item" id="menu-btn3" style="display: none;">
                 <div class="menu-icon-circle">
                     <img src="/assets/icone_admin.png" alt="Admin" />
                 </div>
@@ -134,7 +134,8 @@ function generateSidebarMenu() {
             </li>
 
             <div id="menu-logout-icon-container" title="Sair" role="button" tabindex="0" aria-label="Logout" style="cursor:pointer;">
-                <img src="/assets/icone_criar_analise.png" alt="Sair" id="menu-logout-icon-image" />
+                <img src="/assets/icon_sair.png" alt="Sair" id="menu-logout-icon-image" />
+                <span id="menu-logout-text">Sair</span>
             </div>
 
         </ul>
@@ -149,16 +150,21 @@ function generateSidebarMenu() {
     // Verifica admin para mostrar botão Admin
     const userData = sessionStorage.getItem('user');
     if (userData) {
-        const user = JSON.parse(userData);
-        const adminEmails = [
-            'williamfunk.11@gmail.com',
-            'joao.falves07@gmail.com'
-        ];
-        if (adminEmails.includes(user.email)) {
-            const btn3 = document.getElementById('menu-btn3');
-            if (btn3) btn3.style.display = 'flex';
-        }
+    const user = JSON.parse(userData);
+    const adminEmails = [
+        'williamfunk.11@gmail.com',
+        'williamgame.11@gmail.com',
+        'joao.falves07@gmail.com'
+    ];
+
+    const btn3 = document.getElementById('menu-btn3');
+    if (adminEmails.includes(user.email)) {
+        if (btn3) btn3.style.display = 'flex';
+    } else {
+        if (btn3) btn3.style.display = 'none';
     }
+}
+
 
     addNavigationListeners();
 }
