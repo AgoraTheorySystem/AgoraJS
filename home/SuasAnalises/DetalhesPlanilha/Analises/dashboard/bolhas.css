@@ -1,7 +1,15 @@
+/* bolhas.css (estilo clean inspirado no TradingView) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+body {
+  font-family: 'Inter', sans-serif;
+  color: #222;
+}
+
 .popup-overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.75);
+  background-color: rgba(0, 0, 0, 0.6);
   z-index: 1000;
   display: flex;
   justify-content: center;
@@ -11,54 +19,61 @@
 }
 
 .popup-content {
-  background: #cacaca;
+  background: #fff;
+  border: 1px solid #e0e0e0;
   border-radius: 12px;
-  padding: 2rem;
+  padding: 1.5rem;
   max-width: 1200px;
   width: 100%;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   position: relative;
 }
 
 .popup-close {
-  background-color: #e74c3c;
-  color: white;
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
   border: none;
-  border-radius: 6px;
-  padding: 0.5rem 1rem;
+  font-size: 1.2rem;
   cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.popup-close:hover {
+  transform: scale(1.1);
 }
 
 .charts-wrapper {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 2rem;
-  margin-top: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
 }
 
 .grafico-container {
-  overflow-x: auto;
   background: #f9f9f9;
   padding: 1rem;
   border-radius: 8px;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
 }
 
 .grafico-canvas {
-  min-width: 600px;
-  height: 500px !important;
+  min-width: 100%;
+  height: 400px !important;
 }
 
 .grafico-legenda {
   font-size: 0.9rem;
   margin-top: 0.5rem;
   padding: 0.5rem;
-  background-color: #fff;
+  background-color: #ffffff;
   border-radius: 6px;
   max-height: 150px;
   overflow-y: auto;
   line-height: 1.4;
-  color: black;
+  color: #444;
+  border: 1px solid #eee;
 }
 
 .bolhas-lista {
@@ -96,4 +111,10 @@
   border-radius: 6px;
   padding: 0.5rem 1rem;
   cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.popup-download:hover {
+  background-color: #0033cc;
 }

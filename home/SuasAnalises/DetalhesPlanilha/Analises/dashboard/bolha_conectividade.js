@@ -116,7 +116,7 @@ export function gerarBolhasConectividade(parametros, headers, rows, containerEle
   closeBtn.addEventListener("click", () => popup.remove());
 
   const downloadBtn = document.createElement("button");
-  downloadBtn.textContent = "Baixar Gráfico";
+  downloadBtn.textContent = "⬇️ Baixar Tudo como PDF";
   downloadBtn.className = "popup-download";
   downloadBtn.style.marginLeft = "1rem";
   downloadBtn.addEventListener("click", async () => {
