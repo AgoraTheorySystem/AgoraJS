@@ -1,19 +1,27 @@
-
-// bolha_conectividade.js
+// bolha_conectividade.js (ajuste de captura para evitar corte no PDF)
 export function gerarBolhasConectividade(parametros, headers, rows, containerElement) {
-  const evocPattern = parametros.aspecto === "Ego"
+  const filtroPattern = parametros.aspecto === "Ego"
     ? /^EVOC[1-5]$/i
     : /^EVOC[6-9]$|^EVOC10$/i;
 
-  const evocIndices = headers
+  const correlatoPattern = parametros.aspecto === "Ego"
+    ? /^EVOC[6-9]$|^EVOC10$/i
+    : /^EVOC[1-5]$/i;
+
+  const filtroIndices = headers
     .map((h, i) => ({ h, i }))
-    .filter(obj => evocPattern.test(obj.h.toUpperCase()))
+    .filter(obj => filtroPattern.test(obj.h.toUpperCase()))
+    .map(obj => obj.i);
+
+  const correlatoIndices = headers
+    .map((h, i) => ({ h, i }))
+    .filter(obj => correlatoPattern.test(obj.h.toUpperCase()))
     .map(obj => obj.i);
 
   const palavrasFiltro = parametros.palavrasPorNivel.map(p => p.toUpperCase().trim());
 
   const linhasFiltradas = rows.filter(row => {
-    const evocValues = evocIndices.map(i => String(row[i] || "").toUpperCase().trim());
+    const evocValues = filtroIndices.map(i => String(row[i] || "").toUpperCase().trim());
     return palavrasFiltro.every(p => evocValues.includes(p));
   });
 
@@ -22,16 +30,21 @@ export function gerarBolhasConectividade(parametros, headers, rows, containerEle
 
   linhasFiltradas.forEach(row => {
     let linhaTemCentral = false;
-    evocIndices.forEach(i => {
+    const vistos = new Set();
+
+    filtroIndices.forEach(i => {
       const val = String(row[i] || "").toUpperCase().trim();
       if (!val || val === "VAZIO") return;
       if (palavrasFiltro.includes(val)) linhaTemCentral = true;
     });
     if (linhaTemCentral) totalFreqCentral++;
-    evocIndices.forEach(i => {
+
+    correlatoIndices.forEach(i => {
       const val = String(row[i] || "").toUpperCase().trim();
-      if (!val || val === "VAZIO" || palavrasFiltro.includes(val)) return;
+      if (!val || val === "VAZIO") return;
+      if (vistos.has(val)) return;
       freq[val] = (freq[val] || 0) + 1;
+      vistos.add(val);
     });
   });
 
@@ -46,17 +59,15 @@ export function gerarBolhasConectividade(parametros, headers, rows, containerEle
   const corCentral = parametros.aspecto === "Ego" ? "#2ecc71" : "#e74c3c";
   const corConectada = parametros.aspecto === "Ego" ? "#e74c3c" : "#2ecc71";
 
-  palavrasFiltro.forEach((p, idx) => {
-    nodes.push({
-      id: `central-${idx}`,
-      label: `${p} (${totalFreqCentral}, 100%)`,
-      value: totalFreqCentral || 10,
-      color: corCentral,
-      font: { color: "#000", size: 22, multi: true },
-      x: 0,
-      y: 0,
-      fixed: true
-    });
+  const labelCentral = `${palavrasFiltro.join(" + ")} = ${totalFreqCentral}, 100%`;
+  nodes.push({
+    id: "central",
+    label: labelCentral,
+    value: totalFreqCentral || 10,
+    color: corCentral,
+    font: { color: "#000", size: 22, multi: true },
+    x: 0,
+    y: 0
   });
 
   const maxFreq = correlatas.length > 0 ? correlatas[0][1] : 1;
@@ -68,7 +79,6 @@ export function gerarBolhasConectividade(parametros, headers, rows, containerEle
     const percentual = totalFreqCentral > 0 ? ((count / totalFreqCentral) * 100).toFixed(1) : "0.0";
     const rank = `${i + 1}º`;
 
-    // Calcular distância radial: mais frequentes mais próximos
     const radius = maxRadius - ((count / maxFreq) * (maxRadius - minRadius));
     const angle = (2 * Math.PI / correlatas.length) * i;
     const x = radius * Math.cos(angle);
@@ -81,17 +91,14 @@ export function gerarBolhasConectividade(parametros, headers, rows, containerEle
       color: corConectada,
       font: { color: "#000", size: 18, multi: true },
       x: x,
-      y: y,
-      fixed: true
+      y: y
     });
 
-    palavrasFiltro.forEach((_, idx) => {
-      edges.push({
-        from: `central-${idx}`,
-        to: nodeId,
-        width: 1.5,
-        color: "#cccccc"
-      });
+    edges.push({
+      from: "central",
+      to: nodeId,
+      width: 1.5,
+      color: "#cccccc"
     });
   });
 
@@ -108,9 +115,33 @@ export function gerarBolhasConectividade(parametros, headers, rows, containerEle
   closeBtn.className = "popup-close";
   closeBtn.addEventListener("click", () => popup.remove());
 
+  const downloadBtn = document.createElement("button");
+  downloadBtn.textContent = "Baixar Gráfico";
+  downloadBtn.className = "popup-download";
+  downloadBtn.style.marginLeft = "1rem";
+  downloadBtn.addEventListener("click", async () => {
+    const originalHeight = networkDiv.style.height;
+    networkDiv.style.height = 'auto';
+    await new Promise(resolve => setTimeout(resolve, 500));
+    const canvas = await window.html2canvas(networkDiv, { scale: 2 });
+    networkDiv.style.height = originalHeight;
+
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new window.jspdf.jsPDF({ orientation: "landscape" });
+    const width = pdf.internal.pageSize.getWidth();
+    const height = (canvas.height * width) / canvas.width;
+
+    pdf.addImage(imgData, "PNG", 0, 10, width, height);
+
+    const nomePlanilha = new URLSearchParams(window.location.search).get("planilha") || "Planilha";
+    const dataStr = new Date().toISOString().split("T")[0];
+    const nomeArquivo = `${nomePlanilha}_Agora_Conectividade_${dataStr}.pdf`;
+    pdf.save(nomeArquivo);
+  });
+
   const legenda = document.createElement("div");
   legenda.style.position = "absolute";
-  legenda.style.top = "3rem";
+  legenda.style.top = "5rem";
   legenda.style.right = "2rem";
   legenda.style.background = "#fff";
   legenda.style.border = "1px solid #ccc";
@@ -123,7 +154,11 @@ export function gerarBolhasConectividade(parametros, headers, rows, containerEle
     <div><span style="display:inline-block;width:12px;height:12px;background:${corConectada};margin-right:5px;border-radius:50%;"></span> ${parametros.aspecto === "Ego" ? "Alter" : "Ego"}</div>
   `;
 
-  popupContent.appendChild(closeBtn);
+  const buttonsContainer = document.createElement("div");
+  buttonsContainer.style.marginBottom = "1rem";
+  buttonsContainer.appendChild(closeBtn);
+  buttonsContainer.appendChild(downloadBtn);
+  popupContent.appendChild(buttonsContainer);
   popupContent.appendChild(legenda);
 
   const networkDiv = document.createElement("div");
@@ -152,9 +187,20 @@ export function gerarBolhasConectividade(parametros, headers, rows, containerEle
         max: 50
       }
     },
-    layout: { randomSeed: 42 },
-    physics: false,
-    edges: { smooth: true }
+    layout: {
+      randomSeed: 42,
+      improvedLayout: true
+    },
+    physics: {
+      enabled: true,
+      stabilization: false
+    },
+    interaction: {
+      dragNodes: true
+    },
+    edges: {
+      smooth: true
+    }
   });
 
   network.fit({ animation: true });

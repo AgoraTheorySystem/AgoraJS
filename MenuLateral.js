@@ -153,7 +153,6 @@ function generateSidebarMenu() {
     const user = JSON.parse(userData);
     const adminEmails = [
         'williamfunk.11@gmail.com',
-        'williamgame.11@gmail.com',
         'joao.falves07@gmail.com'
     ];
 
