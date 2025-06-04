@@ -1,4 +1,4 @@
-// bolha_socioeconomica.js (com loading visual ao exportar PDF)
+// bolha_socioeconomica.js (removida condição de legenda apenas para respostas longas)
 export function gerarBolhasSocioeconomica(parametros, headers, rows) {
   const evocPattern = parametros.aspecto === "Ego"
     ? /^EVOC[1-5]$/i
@@ -31,6 +31,11 @@ export function gerarBolhasSocioeconomica(parametros, headers, rows) {
   closeBtn.className = "popup-close";
   closeBtn.addEventListener("click", () => popup.remove());
 
+  const downloadBtn = document.createElement("button");
+  downloadBtn.textContent = "⬇️ Baixar Tudo como PDF";
+  downloadBtn.className = "popup-download";
+  downloadBtn.style.marginBottom = "1rem";
+
   const loadingOverlay = document.createElement("div");
   loadingOverlay.style.position = "fixed";
   loadingOverlay.style.top = "0";
@@ -48,10 +53,6 @@ export function gerarBolhasSocioeconomica(parametros, headers, rows) {
   loadingOverlay.style.display = "none";
   document.body.appendChild(loadingOverlay);
 
-  const downloadBtn = document.createElement("button");
-  downloadBtn.textContent = "⬇️ Baixar Tudo como PDF";
-  downloadBtn.className = "popup-download";
-  downloadBtn.style.marginBottom = "1rem";
   downloadBtn.addEventListener("click", async () => {
     const chartsWrapper = popupContent.querySelector(".charts-wrapper");
     loadingOverlay.style.display = "flex";
@@ -142,7 +143,6 @@ export function gerarBolhasSocioeconomica(parametros, headers, rows) {
     const valores = top25.map(([_, val]) => val);
 
     const allNumericos = respostas.every(r => !isNaN(r) && r !== "OUTROS");
-    const respostasLongas = respostas.some(txt => txt.length > 8);
     const labels = allNumericos ? respostas : respostas.map((_, i) => String(i + 1));
 
     const canvasWrapper = document.createElement("div");
@@ -192,7 +192,7 @@ export function gerarBolhasSocioeconomica(parametros, headers, rows) {
       }
     });
 
-    if (!allNumericos && respostasLongas) {
+    if (!allNumericos) {
       const legenda = document.createElement("div");
       legenda.className = "grafico-legenda";
       legenda.innerHTML = "<strong>Legenda:</strong><br>" + respostas
