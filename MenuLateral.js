@@ -112,6 +112,13 @@ function generateSidebarMenu() {
                 </div>
             </div>
 
+            <li class="menu-item" id="menu-btn0">
+                <div class="menu-icon-circle">
+                    <img src="/assets/icone_home.png" alt="Home" />
+                </div>
+                <span class="menu-text">Tela inicial</span>
+            </li>
+
             <li class="menu-item" id="menu-btn1">
                 <div class="menu-icon-circle">
                     <img src="/assets/icone_criar_analise.png" alt="Criar Análise" />
@@ -171,6 +178,7 @@ function generateSidebarMenu() {
 // Ações de navegação
 function addNavigationListeners() {
     const nav = {
+        'menu-btn0': '/home/home.html',
         'menu-btn1': '/home/CriaAnalise/cria_analise.html',
         'menu-btn2': '/home/SuasAnalises/suas_analises.html',
         'menu-btn3': '/home/adm/adm.html'

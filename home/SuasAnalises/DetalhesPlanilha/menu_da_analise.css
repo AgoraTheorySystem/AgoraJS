@@ -8,6 +8,10 @@
     font-family: "Montserrat", serif;
 }
 
+body{
+        background-color: #a9a9aa;
+}
+
 /* Estilização do título */
 .title {
     text-align: center;
