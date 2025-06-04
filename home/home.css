@@ -30,3 +30,11 @@ body {
         margin: 0;
     }
 }
+
+#menu-sidebar {
+  left: 0px !important; 
+}
+
+#menu-burger-label span {
+    background: #2b6f69 !important;
+}
