@@ -8,15 +8,41 @@
   <link rel="icon" type="image/png" href="/assets/icon.png" />
   <link href="home.css" rel="stylesheet" />
   <link href="/assets/hamburguer.css" rel="stylesheet" />
+  <link href="home-topbar.css" rel="stylesheet" />
   <script src="home.js" type="module" defer></script>
   <script src="/MenuLateral.js" type="module" defer></script>
+  <script src="home-topbar.js" type="module" defer></script>
   <title>Ágora</title>
 </head>
 
 <body>
+
+<div id="home-topbar">
+  <div class="topbar-user-info">
+    <div class="user-picture">
+      <img id="iconeUsuario" src="/assets/user_icon.png" alt="Foto do usuário" />
+    </div>
+    <div class="user-data">
+      <h2 id="emailTopo"></h2>
+      <a href="/editar.html">Alterar dados</a>
+    </div>
+  </div>
+  <ul class="topbar-menu">
+    <li><a href="/home/CriaAnalise/cria_analise.html">Criar análises</a></li>
+    <li><a href="/home/SuasAnalises/suas_analises.html">Suas análises</a></li>
+    <li id="adminButton" style="display: none;">
+      <a href="/home/adm/adm.html">Admin</a>
+    </li>
+    <li><a href="#" onclick="logoutUsuario()">Sair</a></li>
+  </ul>
+</div>
+
+
+
   <div class="image-container">
     <img src="../assets/Logo_Agora.png" alt="Imagem centralizada" />
   </div>
+
 </body>
 
 </html>

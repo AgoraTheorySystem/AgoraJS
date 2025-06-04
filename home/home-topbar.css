@@ -1,0 +1,108 @@
+#menu-burger, #menu-burger-label, #menu-sidebar {
+  display: none !important;
+}
+
+#home-topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100px;
+  background-color: #2b6f69;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  z-index: 999;
+  font-family: 'Ubuntu', sans-serif;
+}
+
+.topbar-user-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-picture {
+  width: 65px;
+  height: 65px;
+  background: #fff;
+  border-radius: 50%;
+  border: 4px solid #003d4c;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.user-picture img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.user-data {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.user-data h2 {
+  font-size: 16px;
+  color: #fff;
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.user-data a {
+  color: #ffffff;
+  text-decoration: underline;
+  font-weight: 500;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.user-data a:hover {
+  color: #fdd200;
+}
+
+.topbar-menu {
+  list-style: none;
+  display: flex;
+  gap: 25px;
+  margin: 0;
+  padding: 0;
+}
+
+.topbar-menu li a {
+  color: white;
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 18px;
+  font-family: 'Ubuntu', sans-serif;
+  position: relative;
+  transition: color 0.3s ease, transform 0.2s ease;
+}
+
+.topbar-menu li a::after {
+  content: '';
+  position: absolute;
+  width: 0%;
+  height: 2px;
+  bottom: -4px;
+  left: 0;
+  background-color: #fdd200;
+  transition: width 0.3s ease;
+}
+
+.topbar-menu li a:hover {
+  color: #fdd200;
+  transform: scale(1.05);
+}
+
+.topbar-menu li a:hover::after {
+  width: 100%;
+}
+
