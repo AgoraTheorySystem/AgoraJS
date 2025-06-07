@@ -88,31 +88,35 @@ async function loadPlanilhas() {
       return;
     }
 
-    // snapshot.val() => { "500": {...}, "501": {...} }
     const planilhas = snapshot.val();
-    const planilhaNomes = Object.keys(planilhas); // ["500", "501", ...]
+    const planilhaNomes = Object.keys(planilhas);
 
     container.innerHTML = '';
     planilhaNomes.forEach(planilhaNome => {
-      // Se não estiver salvo, busca e salva a planilha original
       if (!localStorage.getItem(`planilha_${planilhaNome}`)) {
         fetchAndSavePlanilha(planilhaNome);
       }
 
-      // Se não estiver salvo, busca e salva a tabela auxiliar
       if (!localStorage.getItem(`planilha_auxiliar_${planilhaNome}`)) {
         fetchAndSaveAuxiliaryTable(planilhaNome);
       }
 
-      // Se não estiver salvo, busca e salva a data de última alteração
       if (!localStorage.getItem(`planilha_ultima_alteracao_${planilhaNome}`)) {
         fetchAndSaveLastModification(planilhaNome);
       }
 
-      // Cria botão para acessar a planilha
+      // Cria botão com ícones
       const button = document.createElement('button');
-      button.textContent = planilhaNome;
       button.classList.add('planilha-button');
+
+      button.innerHTML = `
+        <span class="label">
+          <img class="icon" src="/assets/icone_suas_analises.png" alt="Ícone planilha">
+          ${planilhaNome}
+        </span>
+        <img class="config-icon" src="/assets/icone_admin.png" alt="Configuração">
+      `;
+
       button.addEventListener('click', () => handlePlanilhaClick(planilhaNome));
       container.appendChild(button);
     });
@@ -122,6 +126,7 @@ async function loadPlanilhas() {
     document.getElementById('planilhasContainer').innerHTML = "<p>Erro ao carregar as planilhas.</p>";
   }
 }
+
 
 // 6. Buscar e salvar planilha original no LocalStorage (juntando chunks)
 async function fetchAndSavePlanilha(planilhaNome) {
