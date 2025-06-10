@@ -71,7 +71,11 @@ function toggleSidebar() {
     const checkbox = document.getElementById('menu-burger');
     const sidebar = document.getElementById('menu-sidebar');
     if (checkbox && sidebar) {
-        sidebar.style.left = checkbox.checked ? '0' : '-100%';
+        if (checkbox.checked) {
+            sidebar.style.left = '0';  // Quando o menu estiver aberto
+        } else {
+            sidebar.style.left = '-100%';  // Quando o menu estiver fechado
+        }
     }
 }
 

@@ -49,15 +49,11 @@
 #menu-sidebar {
   position: fixed;
   top: 0;
-  left: -360px; 
+  left: -100%;  /* Alterado para -100% para garantir que o menu fique totalmente escondido */
   width: 360px;
   height: 100%;
   background: #2b6f69;
-  color: #fff;
-  padding-top: 70px;
-  padding-left: 18px;  
-  padding-right: 24px;
-  transition: left 0.3s ease;
+  transition: left 0.3s ease;  /* A transição de movimentação */
   z-index: 1000;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.15);
   display: flex;
@@ -67,18 +63,7 @@
 }
 
 #menu-burger:checked ~ #menu-sidebar {
-  left: 0; /* Correção do menu ficar indo pro meio */
-}
-
-#menu-sidebar ul {
-  list-style: none;
-  margin-left: 0 !important;
-  padding-left: 0 !important;
-  padding-right: 0;
-  margin-right: 0;
-  flex-grow: 1;
-  width: 100%;
-  box-sizing: border-box;
+  left: 0; /* Menu movido para a posição 0 quando aberto */
 }
 
 /* Usuário */
@@ -150,7 +135,6 @@
 #menu-user-info a:hover {
   color: #fdd200; /* amarelo ao passar o mouse */
 }
-
 
 /* Itens do Menu */
 .menu-item {
@@ -230,4 +214,3 @@
   font-size: 22px;
   user-select: none;
 }
-

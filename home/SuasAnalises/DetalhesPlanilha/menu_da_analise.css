@@ -1,116 +1,161 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
 
-/* Reset básico e fonte */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: "Montserrat", serif;
+    font-family: "Montserrat", sans-serif;
 }
 
-body{
-        background-color: #a9a9aa;
-}
-
-/* Estilização do título */
-.title {
-    text-align: center;
-    margin: 20px 0;
-    color: #0077A8;
-}
-
-/* Container flexível para os cards */
-.menu-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 20px;
-    padding: 20px;
-    align-items: stretch; /* Faz todos os cards terem a mesma altura na linha */
-}
-
-/* Estilos dos cards */
-.card {
-    display: flex;                /* Cria um flex container */
-    flex-direction: column;       /* Empilha o conteúdo na vertical */
-    justify-content: space-between; /* Distribui o conteúdo entre o topo e o rodapé */
-    background-color: #0094d3;
+body {
+    background-color: #1a1a2e;
+    background-image: url('/assets/fundo_senha.jpg'); /* Seu background-image permanece aqui */
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
     color: white;
-    min-width: 300px;
-    max-width: 400px;
-    border-radius: 10px;
-    padding: 15px;
-    text-align: center;
-    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease;
-    cursor: pointer;
-    box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
-.card:hover {
-    transform: scale(1.05);
-    box-shadow: 6px 6px 20px rgba(0, 0, 0, 1);
-    background-color: #0B5D7F;
-}
-
-.card:active {
-    transform: scale(0.98);
-}
-
-/* Efeito para as imagens dentro dos cards */
-.card-image img {
-    width: 80%;
-    height: 80%;
-    margin-top: 30px;
-    transition: transform 0.3s ease;
-}
-
-.card:hover .card-image img {
-    transform: scale(1.1);
-}
-
-h2 {
-    font-weight: bold;
-    margin-top: 30px;
-}
-
-/* O parágrafo pode “crescer” para empurrar o botão para baixo */
-p {
-    margin: 30px 0;
-    flex: 1; /* Flex:1 ajuda a ocupar o espaço vertical */
-}
-
-/* Botão */
-.analyze-btn {
-    background-color: #ffffff;
-    color: #0B5D7F;
-    border: none;
-    padding: 10px;
-    margin-top: 10px; /* Pequeno espaçamento do conteúdo acima */
+/* Ajustes na top-bar */
+.top-bar {
+    background-color: #2b6f69;
+    color: white;
+    padding: 10px 50px; /* Reduziu a altura */
+    text-align: right; /* Coloca o título à direita */
+    position: fixed;
     width: 100%;
-    border-radius: 5px;
-    cursor: pointer;
+    max-width: 1200px;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.4);
+    border-radius: 15px;
+    display: flex;
+    justify-content: flex-end; /* Título à direita */
+    align-items: center;
+}
+
+.top-bar-title {
+    margin: 0;
+    font-size: 1.5rem; /* Diminuído para ficar menor */
     font-weight: bold;
+    text-transform: uppercase;
+    color: white;
+}
+
+/* Ajustes no menu container */
+.menu-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* Se precisar de 4 colunas */
+    justify-content: center;
+    gap: 30px; /* Aumentado para dar mais espaçamento entre os cards */
+    padding: 30px;
+    align-items: stretch;
+    margin-top: 120px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+}
+
+/* Ajustes no card */
+.card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background-color: #2b6f69;
+    color: white;
+    width: 280px;
+    min-height: 650px;
+    max-height: 700px;
+    border-radius: 15px;
+    padding: 30px;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
+    border: 1px solid #3a3a4e;
+}
+
+/* Ajustes de hover no card */
+.card:hover {
+    transform: scale(1.05); /* Aumenta o efeito de hover */
+    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.5);
+    background-color: #1e5c57; /* Cor um pouco mais escura no hover */
+}
+
+/* Ajustes de imagem no card */
+.card-image {
+    width: 100%;
+    height: 250px; /* Aumentada a altura da área da imagem */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 25px; /* Distância entre a imagem e o título */
+}
+
+.card-image img {
+    width: 220px; /* Aumentado ainda mais o tamanho da imagem */
+    height: 220px; /* Aumentado ainda mais o tamanho da imagem */
+    object-fit: contain;
+}
+
+/* Ajustes nos botões */
+.analyze-btn {
+    background-color: #0f3460; /* Cor de fundo */
+    border-radius: 30px;
+    padding: 12px 24px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s all ease;
+    color: white;
+    border: none;
+    text-transform: uppercase;
+    width: 100%; /* Garantir que os botões ocupem toda a largura do card */
+    max-width: 100%; /* Remove o limite de 280px, garantindo que todos os botões ocupem o mesmo espaço */
+    display: block; /* Faz com que o botão ocupe toda a largura disponível dentro do card */
+    text-align: center; /* Centraliza o texto dentro do botão */
 }
 
 .analyze-btn:hover {
-    background-color: #0093c0;
-    color: #fff;
+    background-color: #1a4f8a;
+    transform: scale(1.1);
 }
 
-/* Responsividade */
-@media (max-width: 768px) {
+/* Ajustes Responsivos */
+@media (max-width: 1250px) {
     .menu-container {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .card {
-        width: 90%;
+        grid-template-columns: repeat(3, 1fr); /* Ajustado para 3 colunas */
+        max-width: 900px;
     }
 }
 
-@media (max-width: 400px) {
-    .card {
-        min-width: 250px;
+@media (max-width: 950px) {
+    .menu-container {
+        grid-template-columns: repeat(2, 1fr); /* Ajustado para 2 colunas */
+        max-width: 600px;
+    }
+}
+
+@media (max-width: 650px) {
+    .menu-container {
+        grid-template-columns: 1fr;
+        max-width: 350px;
+        padding: 20px;
+    }
+
+    .top-bar {
+        padding: 15px 20px;
+        top: 15px;
+    }
+
+    .top-bar-title {
+        font-size: 1.2rem;
     }
 }

@@ -33,3 +33,22 @@ categorias.forEach(categoria => {
         btn.addEventListener('click', () => handlePlanilhaClick(planilhaNome, categoria));
     });
 });
+
+document.addEventListener('DOMContentLoaded', function () {
+    const buttonTextMap = {
+        dashboard: "IR PARA ÁGORA",
+        persona: "IR PARA PERSONA",
+        prototipicas: "IR PARA PROTOTÍPICAS",
+        configuracoes: "CONFIGURAÇÕES"
+    };
+
+    const buttons = document.querySelectorAll('.analyze-btn');
+
+    buttons.forEach(button => {
+        const cardClass = button.classList[1]; // Obtém a segunda classe do botão (dashboard, persona, etc.)
+        if (buttonTextMap[cardClass]) {
+            button.textContent = buttonTextMap[cardClass]; // Atualiza o texto do botão
+        }
+    });
+});
+
