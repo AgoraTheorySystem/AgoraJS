@@ -58,6 +58,9 @@ h1 {
   cursor: pointer;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
   transition: background-color 0.3s, transform 0.2s;
+  overflow: hidden; /* Esconde o texto que ultrapassar o limite do botão */
+  text-overflow: ellipsis; /* Adiciona as reticências se o texto for muito longo */
+  white-space: nowrap; /* Impede o texto de quebrar em múltiplas linhas */
 }
 
 /* Botão amarelo em destaque */
@@ -127,5 +130,14 @@ h1 {
   .config-icon {
     width: 20px;
     height: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .planilha-button {
+    padding: 24px 28px;
+    font-size: 1.2rem;
+    max-width: 90%;
+    word-wrap: break-word; /* Permite a quebra de palavras longas em diferentes linhas */
   }
 }
