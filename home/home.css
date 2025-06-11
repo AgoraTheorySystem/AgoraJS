@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap');
 
 body {
     display: flex;
@@ -6,7 +6,7 @@ body {
     align-items: center;     /* centraliza vertical */
     height: 100vh;           /* altura da viewport */
     margin: 0;
-    font-family: "Open Sans", serif;
+    font-family: 'Ubuntu', sans-serif;
     background:
         linear-gradient(to right, #ffffff3c, #00000000 10%),
         url("../assets/fundo_home.jpg");
@@ -21,7 +21,7 @@ body {
             linear-gradient(to right, #ffffff3c, #00000000 40%),
             url("../assets/fundo_home.jpg");
         background-size: cover;
-        background-position: 40%;
+        background-position: center center; /* Centraliza a imagem para que a parte azul também apareça */
         background-repeat: no-repeat;
         height: 100vh;
         display: flex;

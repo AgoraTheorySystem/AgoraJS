@@ -57,9 +57,13 @@ function createUserCard(data, userId) {
             const toBrazilTime = (utcStr) =>
                 new Date(utcStr).toLocaleString("pt-BR", {
                     timeZone: "America/Sao_Paulo",
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric"
+                    weekday: "long", // Nome do dia da semana
+                    day: "2-digit",  // Dia
+                    month: "2-digit", // Mês
+                    year: "numeric",  // Ano
+                    hour: "2-digit",  // Hora
+                    minute: "2-digit", // Minuto
+                    second: "2-digit" // Segundo
                 });
 
             if (createdAtRaw && lastAccessRaw) {
@@ -71,8 +75,8 @@ function createUserCard(data, userId) {
                 timestampsDiv.innerHTML = `<p>Informações indisponíveis.</p>`;
             }
         })
-        .catch(() => {
-            card.querySelector(".timestamps").innerHTML = `<p>Erro ao carregar os dados.</p>`;
+        .catch((error) => {
+            card.querySelector(".timestamps").innerHTML = `<p>Erro ao carregar os dados: ${error.message}</p>`;
         });
 }
 

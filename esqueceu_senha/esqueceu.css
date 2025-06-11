@@ -1,5 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap');
 
 body {
     display: flex;
@@ -13,7 +12,7 @@ body {
     background-attachment: fixed;
     margin: 0;
     padding: 0;
-    font-family: "Montserrat", serif;
+    font-family: 'Ubuntu', sans-serif;
 }
 
 .container {
@@ -42,7 +41,6 @@ body {
     text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.7);
 }
 
-
 .Right {
     width: 100%;
     display: flex;
@@ -55,7 +53,6 @@ body {
     font-size: clamp(1.2rem, 2vw, 1.8rem);
     text-align: center;
 }
-
 
 .Right form {
     display: flex;
@@ -70,8 +67,6 @@ body {
     text-align: center;
     width: 100%;
 }
-
-
 
 .Right input[type="email"] {
     padding: 12px 15px;
@@ -134,7 +129,6 @@ body > * {
     position: relative;
     z-index: 1;
 }
-
 
 /* Responsividade para telas médias */
 @media (max-width: 1200px) {

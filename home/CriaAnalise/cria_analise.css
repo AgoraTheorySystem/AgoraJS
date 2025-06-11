@@ -1,12 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap');
+
 /* Reset de margens e paddings para garantir consistência */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: 'Ubuntu', sans-serif;
 }
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-image: url('/assets/fundo_home.jpg');
   background-size: cover;
   background-position: center;
@@ -20,7 +22,6 @@ body {
   padding: 20px;
 }
 
-
 /* Estilização do título */
 h1 {
   font-size: 2rem;
@@ -29,7 +30,6 @@ h1 {
   text-align: center;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
-
 
 /* Formatação do input de arquivo */
 #fileInput {
@@ -97,7 +97,6 @@ h1 {
     width: 100%;
   }
 }
-
 
 /* From Uiverse.io by Nawsome */
 .loader {
