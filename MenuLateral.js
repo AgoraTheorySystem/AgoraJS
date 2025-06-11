@@ -93,11 +93,12 @@ function logout() {
 
 // Construir o menu lateral
 function generateSidebarMenu() {
+    const isHome = window.location.pathname.includes('/home/home.html'); 
     const body = document.body;
 
     const html = `
     <input type="checkbox" id="menu-burger" hidden>
-    <label id="menu-burger-label" for="menu-burger">
+    <label id="menu-burger-label" for="menu-burger" style="${isHome ? 'display: none;' : ''}">
         <span id="bar1"></span>
         <span id="bar2"></span>
         <span id="bar3"></span>
@@ -155,7 +156,10 @@ function generateSidebarMenu() {
 
     body.insertAdjacentHTML('beforeend', html);
 
-    document.getElementById('menu-burger').addEventListener('change', toggleSidebar);
+    if (!isHome) {
+        document.getElementById('menu-burger').addEventListener('change', toggleSidebar);
+    }
+
     document.getElementById('menu-logout-icon-container').addEventListener('click', logout);
 
     // Verifica admin para mostrar botão Admin
