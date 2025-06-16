@@ -37,7 +37,6 @@ function createUserCard(data, userId) {
 
     document.getElementById("containerCards").appendChild(card);
 
-    // Event listeners dos botões
     card.querySelector(".btn-saiba-mais").addEventListener("click", () => {
         showExpandedCard(data, cardClass);
     });
@@ -46,7 +45,6 @@ function createUserCard(data, userId) {
         deleteUser(userId, card);
     });
 
-    // Carrega timestamps
     fetch(`${apiBaseUrl}/users/${userId}/timestamps`)
         .then(response => response.text())
         .then(htmlSnippet => {
@@ -57,13 +55,13 @@ function createUserCard(data, userId) {
             const toBrazilTime = (utcStr) =>
                 new Date(utcStr).toLocaleString("pt-BR", {
                     timeZone: "America/Sao_Paulo",
-                    weekday: "long", // Nome do dia da semana
-                    day: "2-digit",  // Dia
-                    month: "2-digit", // Mês
-                    year: "numeric",  // Ano
-                    hour: "2-digit",  // Hora
-                    minute: "2-digit", // Minuto
-                    second: "2-digit" // Segundo
+                    weekday: "long",
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit"
                 });
 
             if (createdAtRaw && lastAccessRaw) {
@@ -186,11 +184,12 @@ function createFilterButtons(accountTypes) {
 
 function applyFilter(filterType) {
     const expanded = document.querySelector(".expanded-card");
-    if (expanded) {
-        expanded.remove();
-        document.getElementById("containerCards").style.display = "flex";
-        document.getElementById("pagination-controls").style.display = "flex";
-    }
+    const voltarBtn = document.querySelector(".btn-voltar");
+    if (expanded) expanded.remove();
+    if (voltarBtn) voltarBtn.remove();
+
+    document.getElementById("containerCards").style.display = "flex";
+    document.getElementById("pagination-controls").style.display = "flex";
 
     document.querySelectorAll(".filter-tab").forEach(button => {
         button.classList.remove("active");
@@ -219,24 +218,76 @@ function showExpandedCard(data, cardClass) {
     const expandedContainer = document.createElement("div");
     expandedContainer.classList.add("expanded-card", cardClass);
 
-    expandedContainer.innerHTML = `
-        <h1>${data.tipo}</h1>
-        <button class="btn-voltar">Voltar</button>
-    `;
+    // Remove qualquer botão "Voltar" anterior
+    const previousBtn = document.querySelector(".btn-voltar");
+    if (previousBtn) previousBtn.remove();
 
-    Object.entries(data).forEach(([key, value]) => {
-        const info = document.createElement("p");
-        info.textContent = `${capitalizeFirstLetter(key)}: ${value}`;
-        expandedContainer.appendChild(info);
-    });
-
-    document.body.appendChild(expandedContainer);
-
-    expandedContainer.querySelector(".btn-voltar").addEventListener("click", () => {
+    // Botão Voltar
+    const voltarBtn = document.createElement("button");
+    voltarBtn.classList.add("btn-voltar");
+    voltarBtn.textContent = "Voltar";
+    voltarBtn.addEventListener("click", () => {
         expandedContainer.remove();
+        voltarBtn.remove();
         containerCards.style.display = "flex";
         document.getElementById("pagination-controls").style.display = "flex";
     });
+
+    // Título (tipo) e Email
+    const title = document.createElement("h1");
+    title.textContent = data.tipo || "Usuário";
+
+    const email = document.createElement("p");
+    email.textContent = data.email || "Email não informado";
+
+    const fields = {
+        cidade: "Cidade",
+        cnpj: "CNPJ",
+        endereco: "Endereço",
+        inscricao: "Inscrição",
+        interesses: "Interesses",
+        nacionalidade: "Nacionalidade",
+        nomeFantasia: "Nome Fantasia",
+        pais: "País",
+        razaoSocial: "Razão Social",
+        representanteCargo: "Cargo do Representante",
+        representanteContato: "Contato do Representante"
+    };
+
+    const infoElements = Object.entries(fields).map(([key, label]) => {
+        if (data[key]) {
+            const p = document.createElement("p");
+            p.innerHTML = `<strong>${label}:</strong> ${data[key]}`;
+            return p;
+        }
+        return null;
+    }).filter(el => el !== null);
+
+    const footer = document.createElement("div");
+    footer.classList.add("expanded-footer");
+
+    const lastAccess = document.createElement("div");
+    lastAccess.textContent = "último acesso: " + (data.lastAccess || "—");
+
+    const createdAt = document.createElement("div");
+    createdAt.textContent = "criado em: " + (data.createdAt || "—");
+
+    footer.appendChild(lastAccess);
+    footer.appendChild(createdAt);
+
+    const icon = document.createElement("img");
+    icon.src = "/assets/icon-detalhe.png";
+    icon.alt = "ícone";
+    icon.classList.add("corner-icon");
+
+    expandedContainer.appendChild(title);
+    expandedContainer.appendChild(email);
+    infoElements.forEach(el => expandedContainer.appendChild(el));
+    expandedContainer.appendChild(footer);
+    expandedContainer.appendChild(icon);
+
+    document.querySelector(".dashboard-wrapper").appendChild(expandedContainer);
+    document.querySelector(".dashboard-wrapper").appendChild(voltarBtn);
 }
 
 function capitalizeFirstLetter(string) {
@@ -276,5 +327,4 @@ async function fetchData() {
     });
 }
 
-// Inicia o carregamento
 fetchData();

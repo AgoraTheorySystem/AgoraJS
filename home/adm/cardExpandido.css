@@ -1,91 +1,111 @@
 .expanded-card {
-    max-width: 90%; /* Usa até 90% da largura disponível */
-    width: calc(100% - 40px); /* Garante ajuste dinâmico com padding */
-    margin-top: 20px;
-    margin-bottom: 25px;
-    margin-left: auto;
-    margin-right: auto;
-    border-radius: 25px;
-    padding: 20px; /* Espaçamento interno */
-    box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.5);
-    text-align: center;
-    overflow: hidden; /* Evita qualquer overflow */
+    background-color: #003645;
+    border-radius: 20px;
+    max-width: 750px;
+    margin: 50px auto;
+    padding: 30px 40px 60px 40px;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    position: relative;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+    text-align: left;
 }
 
 .expanded-card h1 {
-    font-size: 32px;
-    color: #fff;
-    margin-bottom: 20px;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 6px;
+    text-transform: uppercase;
 }
 
 .expanded-card p {
-    color: #fff;
-    font-size: 18px;
-    padding: 10px;
-    word-wrap: break-word; /* Quebra palavras longas */
-    line-height: 1.5;
+    font-size: 16px;
+    margin-bottom: 8px;
+    word-break: break-word;
 }
 
+.expanded-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 40px;
+    font-size: 13px;
+    color: #ccc;
+}
 
 .btn-voltar {
-    max-width: 500px;
-    width: 100%;
-    border: none;
-    background-color: #E8661A;
-    border-radius: 20px;
-    padding: 15px 19px;
-    color: #fff;
-    font-size: 20px;
+    display: block;
+    margin: 20px auto 0;
+    padding: 10px 24px;
+    background-color: #f4791f;
+    color: white;
     font-weight: bold;
-    box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.5);
-    font-family: "Montserrat", sans-serif;
+    border: none;
+    border-radius: 14px;
+    font-size: 16px;
     cursor: pointer;
-    transition: 0.2s;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .btn-voltar:hover {
-    background-color: #a94a17;
+    background-color: #d55c00;
 }
+
+.expanded-card .corner-icon {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: auto;
+}
+
+.expanded-card .corner-logo {
+    position: absolute;
+    bottom: 16px;
+    right: 20px;
+    width: 70px;
+    height: auto;
+}
+
 
 /* Responsividade */
 
-/* Para telas grandes (acima de 1200px) */
+/* Telas grandes */
 @media (min-width: 1200px) {
     .expanded-card {
-        max-width: 60%; /* Usa apenas 60% da largura para monitores grandes */
+        max-width: 900px;
     }
 }
 
-/* Para tablets (entre 768px e 1199px) */
+/* Tablets */
 @media (max-width: 1199px) {
     .expanded-card {
-        max-width: 80%; /* Usa 80% da largura */
-        padding: 15px 20px; /* Reduz o espaçamento interno */
+        max-width: 90%;
+        padding: 20px 30px;
     }
 
     .expanded-card h1 {
-        font-size: 28px; /* Reduz o tamanho do título */
+        font-size: 18px;
     }
 
     .expanded-card p {
-        font-size: 16px; /* Reduz o tamanho do texto */
+        font-size: 15px;
     }
 
     .btn-voltar {
-        font-size: 18px;
-        padding: 10px 15px;
+        font-size: 15px;
+        padding: 10px 20px;
     }
 }
 
-/* Para smartphones grandes (entre 480px e 767px) */
+/* Smartphones */
 @media (max-width: 767px) {
     .expanded-card {
-        max-width: 95%; /* Usa 95% da largura */
-        padding: 10px 15px;
+        max-width: 95%;
+        padding: 15px 20px;
     }
 
     .expanded-card h1 {
-        font-size: 24px;
+        font-size: 16px;
     }
 
     .expanded-card p {
@@ -93,28 +113,15 @@
     }
 
     .btn-voltar {
-        font-size: 16px;
-        padding: 10px 12px;
-    }
-}
-
-/* Para smartphones pequenos (abaixo de 480px) */
-@media (max-width: 479px) {
-    .expanded-card {
-        max-width: 98%; /* Usa quase toda a largura */
-        padding: 8px 10px;
-    }
-
-    .expanded-card h1 {
-        font-size: 20px;
-    }
-
-    .expanded-card p {
-        font-size: 16px;
-    }
-
-    .btn-voltar {
         font-size: 14px;
-        padding: 8px 10px;
+        padding: 8px 16px;
+    }
+
+    .corner-icon {
+        width: 30px;
+    }
+
+    .corner-logo {
+        width: 50px;
     }
 }
