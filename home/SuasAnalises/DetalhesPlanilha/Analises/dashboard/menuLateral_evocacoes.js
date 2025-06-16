@@ -120,7 +120,6 @@ async function fundirPalavrasSelecionadas() {
     return;
   }
 
-  // Carrega dados originais antes da fusão
   const planilhaRef = ref(database, `/users/${user.uid}/planilhas/${planilhaNome}`);
   let originalChunks = {};
   try {
@@ -131,7 +130,6 @@ async function fundirPalavrasSelecionadas() {
     return;
   }
 
-  // Carrega conteúdo local para contagem exata apenas nas colunas EVOC
   const rawData = JSON.parse(localStorage.getItem(`planilha_${planilhaNome}`)) || [];
   const header = rawData[0] || [];
   const evocCols = header.reduce((acc, col, idx) => {
@@ -139,7 +137,6 @@ async function fundirPalavrasSelecionadas() {
     return acc;
   }, []);
 
-  // Calcula contagem de cada palavra selecionada
   const counts = {};
   palavrasSelecionadas.forEach(p => counts[p] = 0);
   rawData.slice(1).forEach(row => {
@@ -149,7 +146,6 @@ async function fundirPalavrasSelecionadas() {
     });
   });
 
-  // Aplica fusão nos chunks originais
   const novosChunks = {};
   Object.keys(originalChunks).forEach(chunkKey => {
     novosChunks[chunkKey] = originalChunks[chunkKey].map(row =>
@@ -167,7 +163,6 @@ async function fundirPalavrasSelecionadas() {
     return;
   }
 
-  // Atualiza localStorage com dados fundidos
   const storedData = JSON.parse(localStorage.getItem(`planilha_${planilhaNome}`));
   const updatedData = storedData.map(row =>
     row.map(cell => {
@@ -177,7 +172,6 @@ async function fundirPalavrasSelecionadas() {
   );
   localStorage.setItem(`planilha_${planilhaNome}`, JSON.stringify(updatedData));
 
-  // Atualiza lematizações no Firebase
   const lemaRef = ref(database, `/users/${user.uid}/lematizacoes/${planilhaNome}`);
   let lemaAtual = {};
   try {
@@ -214,8 +208,26 @@ function criarMenuLateral() {
   botaoFundir.classList.add("menu-botao");
   botaoFundir.onclick = fundirPalavrasSelecionadas;
 
+  const botaoFusoes = document.createElement("button");
+  botaoFusoes.innerText = "Fusões";
+  botaoFusoes.classList.add("menu-botao");
+  botaoFusoes.onclick = () => {
+    window.filtroFusoes = true;
+    window.dispatchEvent(new CustomEvent("atualizarTabelaEvocacoes"));
+  };
+
+  const botaoExibirTodas = document.createElement("button");
+  botaoExibirTodas.innerText = "Exibir todas";
+  botaoExibirTodas.classList.add("menu-botao");
+  botaoExibirTodas.onclick = () => {
+    window.filtroFusoes = false;
+    window.dispatchEvent(new CustomEvent("atualizarTabelaEvocacoes"));
+  };
+
   menu.appendChild(botaoRemover);
   menu.appendChild(botaoFundir);
+  menu.appendChild(botaoFusoes);
+  menu.appendChild(botaoExibirTodas);
 
   document.body.appendChild(menu);
 }

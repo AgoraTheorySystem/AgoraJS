@@ -1,5 +1,3 @@
-// evocacoes.js
-
 import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-app.js";
 import firebaseConfig from '/firebase.js';
@@ -12,24 +10,23 @@ let currentPage = 1;
 let allWords = [];
 let currentLematizacoes = {};
 let currentSearch = "";
+let currentSortColumn = null;
+let currentSortDirection = "desc";
 
-// ——— seleção persistente ———
-// agora global, para o menu lateral poder ler!
+// Filtro de fusões
+window.filtroFusoes = false;
 window.selectedEvocacoes = [];
 
-// referências ao DOM do painel de selecionados:
 const selectedListEl = document.getElementById('selected-list');
 const selectedCountEl = document.getElementById('selected-count');
 const clearSelectedBtn = document.getElementById('clear-selected');
 
-// limpa tudo:
 clearSelectedBtn.addEventListener('click', () => {
   window.selectedEvocacoes = [];
   updateSelectedContainer();
-  renderTabela(); // re-renderiza pra desmarcar checkboxes
+  renderTabela();
 });
 
-// atualiza o painel de selecionados:
 function updateSelectedContainer() {
   selectedListEl.innerHTML = '';
   selectedCountEl.textContent = window.selectedEvocacoes.length;
@@ -110,17 +107,36 @@ function processarTabela(data) {
     }
   }
 
-  allWords = Object.entries(palavraContagem)
-    .sort((a, b) => b[1].total - a[1].total);
-
+  allWords = Object.entries(palavraContagem);
   renderTabela();
 }
 
 function renderTabela() {
   const termo = currentSearch;
-  const lista = termo
+  let lista = termo
     ? allWords.filter(([palavra]) => palavra.includes(termo))
-    : allWords;
+    : [...allWords];
+
+  if (window.filtroFusoes) {
+    lista = lista.filter(([palavra]) => {
+      const lema = currentLematizacoes[palavra];
+      return Array.isArray(lema) && lema.length > 0;
+    });
+  }
+
+  if (currentSortColumn) {
+    lista.sort(([palavraA, contA], [palavraB, contB]) => {
+      let valA = currentSortColumn === "palavra" ? palavraA : contA[currentSortColumn];
+      let valB = currentSortColumn === "palavra" ? palavraB : contB[currentSortColumn];
+      if (typeof valA === "string") {
+        valA = valA.toUpperCase();
+        valB = valB.toUpperCase();
+      }
+      if (valA < valB) return currentSortDirection === "asc" ? -1 : 1;
+      if (valA > valB) return currentSortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
+  }
 
   const container = document.getElementById("tabela-evocacoes");
   container.innerHTML = "";
@@ -134,19 +150,17 @@ function renderTabela() {
   table.innerHTML = `
     <thead>
       <tr>
-        <th></th>
-        <th>PALAVRA</th>
-        <th>QUANTIDADE TOTAL</th>
-        <th>QUANTIDADE ALTER</th>
-        <th>QUANTIDADE EGO</th>
+        <th><input type="checkbox" id="select-all-checkbox" /></th>
+        <th data-col="palavra" class="sortable">PALAVRA</th>
+        <th data-col="total" class="sortable">QUANTIDADE TOTAL</th>
+        <th data-col="alter" class="sortable">QUANTIDADE ALTER</th>
+        <th data-col="ego" class="sortable">QUANTIDADE EGO</th>
         <th>Fusões</th>
       </tr>
     </thead>
     <tbody>
       ${pageWords.map(([palavra, contagem]) => {
-        const palavraDestacada = termo
-          ? palavra.replace(regexHighlight, `<mark>$1</mark>`)
-          : palavra;
+        const palavraDestacada = termo ? palavra.replace(regexHighlight, `<mark>$1</mark>`) : palavra;
         const lema = currentLematizacoes[palavra] || "";
         return `
           <tr>
@@ -155,7 +169,7 @@ function renderTabela() {
             <td>${contagem.total}</td>
             <td>${contagem.alter}</td>
             <td>${contagem.ego}</td>
-            <td>${lema}</td>
+            <td>${Array.isArray(lema) ? lema.join(", ") : lema}</td>
           </tr>
         `;
       }).join("")}
@@ -163,13 +177,55 @@ function renderTabela() {
   `;
   container.appendChild(table);
 
-  // Sincroniza checkboxes com window.selectedEvocacoes
+  // Checkbox "Selecionar todas"
+  const selectAllCheckbox = table.querySelector('#select-all-checkbox');
+  if (selectAllCheckbox) {
+    const todasPalavrasVisiveis = pageWords.map(([palavra]) => palavra);
+    const todasSelecionadas = todasPalavrasVisiveis.every(p => window.selectedEvocacoes.includes(p));
+    const algumaSelecionada = todasPalavrasVisiveis.some(p => window.selectedEvocacoes.includes(p));
+
+    selectAllCheckbox.checked = todasSelecionadas;
+    selectAllCheckbox.indeterminate = !todasSelecionadas && algumaSelecionada;
+
+    selectAllCheckbox.addEventListener('change', () => {
+      if (selectAllCheckbox.checked) {
+        todasPalavrasVisiveis.forEach(p => {
+          if (!window.selectedEvocacoes.includes(p)) {
+            window.selectedEvocacoes.push(p);
+          }
+        });
+      } else {
+        window.selectedEvocacoes = window.selectedEvocacoes.filter(p => !todasPalavrasVisiveis.includes(p));
+      }
+      updateSelectedContainer();
+      renderTabela();
+    });
+  }
+
+  // Ordenação
+  table.querySelectorAll(".sortable").forEach(th => {
+    const col = th.getAttribute("data-col");
+    th.style.cursor = "pointer";
+    th.classList.remove("active-asc", "active-desc");
+    if (col === currentSortColumn) {
+      th.classList.add(currentSortDirection === "asc" ? "active-asc" : "active-desc");
+    }
+    th.addEventListener("click", () => {
+      if (currentSortColumn === col) {
+        currentSortDirection = currentSortDirection === "asc" ? "desc" : "asc";
+      } else {
+        currentSortColumn = col;
+        currentSortDirection = "asc";
+      }
+      renderTabela();
+    });
+  });
+
+  // Checkboxes individuais
   table.querySelectorAll('tbody tr').forEach((tr, idx) => {
     const checkbox = tr.querySelector('input[type="checkbox"]');
     const palavra = pageWords[idx][0];
-
     checkbox.checked = window.selectedEvocacoes.includes(palavra);
-
     checkbox.addEventListener('change', () => {
       if (checkbox.checked) {
         if (!window.selectedEvocacoes.includes(palavra)) {
@@ -182,7 +238,6 @@ function renderTabela() {
     });
   });
 
-  // Atualiza o painel sempre que recarrega a tabela
   updateSelectedContainer();
   renderizarPaginacao(lista.length);
 }
@@ -193,16 +248,14 @@ function renderizarPaginacao(totalItems) {
     paginationContainer = document.createElement("div");
     paginationContainer.id = "pagination";
     paginationContainer.classList.add("pagination");
-    // Inserir logo após a tabela para melhor posição visual
     const tabela = document.getElementById("tabela-evocacoes");
     tabela.insertAdjacentElement('afterend', paginationContainer);
   }
 
   paginationContainer.innerHTML = "";
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
-  const maxPagesToShow = 3; // máximo de botões de página para mostrar
+  const maxPagesToShow = 3;
 
-  // Função para criar botão com texto, ativo, desabilitado e listener
   function criarBotao(texto, pagina, ativo = false, desabilitado = false) {
     const btn = document.createElement("button");
     btn.innerText = texto;
@@ -212,68 +265,39 @@ function renderizarPaginacao(totalItems) {
       btn.addEventListener("click", () => {
         currentPage = pagina;
         renderTabela();
-        // Scroll suave para o topo da tabela após trocar página
         document.getElementById("tabela-evocacoes").scrollIntoView({ behavior: "smooth" });
       });
     }
     return btn;
   }
 
-  // Botões especiais: primeira, anterior, próximo, última
   paginationContainer.appendChild(criarBotao("«", 1, false, currentPage === 1));
   paginationContainer.appendChild(criarBotao("‹", currentPage - 1, false, currentPage === 1));
 
-  // Lógica para decidir quais números mostrar:
-  let startPage, endPage;
-  if (totalPages <= maxPagesToShow) {
-    startPage = 1;
-    endPage = totalPages;
-  } else {
-    // Mantém o atual mais 3 antes e 3 depois, dentro dos limites
-    startPage = currentPage - 1;
-    endPage = currentPage + 1;
-
-    if (startPage < 1) {
-      endPage += (1 - startPage);
-      startPage = 1;
-    }
-    if (endPage > totalPages) {
-      startPage -= (endPage - totalPages);
-      endPage = totalPages;
-    }
-    if (startPage < 1) startPage = 1;
-  }
-
-  // Se startPage > 1, mostra 1 e '...'
+  let startPage = Math.max(1, currentPage - 1);
+  let endPage = Math.min(totalPages, currentPage + 1);
   if (startPage > 1) {
     paginationContainer.appendChild(criarBotao("1", 1));
-    const dots = document.createElement("span");
-    dots.textContent = "...";
-    dots.style.padding = "0 8px";
-    paginationContainer.appendChild(dots);
+    paginationContainer.appendChild(document.createTextNode("..."));
   }
-
-  // Números das páginas
   for (let i = startPage; i <= endPage; i++) {
     paginationContainer.appendChild(criarBotao(i, i, i === currentPage));
   }
-
-  // Se endPage < totalPages, mostra '...' e última página
   if (endPage < totalPages) {
-    const dots = document.createElement("span");
-    dots.textContent = "...";
-    dots.style.padding = "0 8px";
-    paginationContainer.appendChild(dots);
+    paginationContainer.appendChild(document.createTextNode("..."));
     paginationContainer.appendChild(criarBotao(totalPages, totalPages));
   }
 
-  // Botões próximo e último
-  paginationContainer.appendChild(criarBotao("›", currentPage + 1, false, currentPage === totalPages || totalPages === 0));
-  paginationContainer.appendChild(criarBotao("»", totalPages, false, currentPage === totalPages || totalPages === 0));
+  paginationContainer.appendChild(criarBotao("›", currentPage + 1, false, currentPage === totalPages));
+  paginationContainer.appendChild(criarBotao("»", totalPages, false, currentPage === totalPages));
 }
 
 document.getElementById("busca-palavra")?.addEventListener("input", (e) => {
   currentSearch = e.target.value.trim().toUpperCase();
   currentPage = 1;
+  renderTabela();
+});
+
+window.addEventListener("atualizarTabelaEvocacoes", () => {
   renderTabela();
 });
