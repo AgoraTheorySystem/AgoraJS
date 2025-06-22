@@ -1,16 +1,14 @@
-(function() {
+(function () {
   let header = [];
   let rows = [];
 
-  // Plugin ChartDataLabels
   const DATALABELS_URL = 'https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js';
 
-  // Títulos e legendas dos gráficos
   const chartConfig = {
-    egoCardsChart:   { title: 'Análise de Frequência EGO',   subtitle: 'Distribuição de respostas por cada EGO' },
-    egoChart:        { title: 'Termos Principais EGO',       subtitle: 'Top 4 termos mais frequentes em EGO' },
+    egoCardsChart: { title: 'Análise de Frequência EGO', subtitle: 'Distribuição de respostas por cada EGO' },
+    egoChart: { title: 'Termos Principais EGO', subtitle: 'Top 4 termos mais frequentes em EGO' },
     alterCardsChart: { title: 'Análise de Frequência ALTER', subtitle: 'Distribuição de respostas por cada ALTER' },
-    alterChart:      { title: 'Termos Principais ALTER',     subtitle: 'Top 4 termos mais frequentes em ALTER' }
+    alterChart: { title: 'Termos Principais ALTER', subtitle: 'Top 4 termos mais frequentes em ALTER' }
   };
 
   function loadScript(url) {
@@ -18,7 +16,7 @@
       const s = document.createElement('script');
       s.src = url;
       s.async = true;
-      s.onload  = () => resolve();
+      s.onload = () => resolve();
       s.onerror = () => reject(new Error(`Falha ao carregar ${url}`));
       document.head.appendChild(s);
     });
@@ -36,12 +34,44 @@
     const planilha = new URLSearchParams(location.search).get('planilha');
     if (!planilha) return alert("Falta o parâmetro 'planilha' na URL.");
 
+    // Inserir imagem de topo
+    const barraTopo = document.createElement('div');
+    barraTopo.className = 'banner-imagem';
+    barraTopo.style.backgroundImage = 'url("/assets/banner_dashboard.jpg")';
+    barraTopo.style.height = '160px';
+    barraTopo.style.backgroundSize = 'cover';
+    barraTopo.style.backgroundPosition = 'center';
+    barraTopo.style.backgroundRepeat = 'no-repeat';
+    document.body.prepend(barraTopo);
+
+    // Painel de informações abaixo do menu
+    const infoPanel = document.createElement('div');
+    infoPanel.className = 'painel-info';
+    infoPanel.innerHTML = `
+      <div class="info-card alto"></div>
+      <div class="info-card"><p class="valor">500</p><p>Quantidade de pessoas</p></div>
+      <div class="info-card">
+        <p class="valor">500</p><p>Homens</p>
+        <p class="valor">500</p><p>Mulheres</p>
+      </div>
+      <div class="info-card">
+        <p class="valor">33 anos</p><p>Média de idade</p>
+        <p class="valor">30 anos</p><p>Média de idade</p>
+      </div>
+      <div class="info-card"></div>
+      <div class="info-card grande"></div>
+      <div class="info-card"></div>
+      <div class="info-card"></div>
+    `;
+
+
     const main = document.querySelector('main.container');
     main.innerHTML = '<h1>Dashboard de Análise de Dados</h1>';
+    main.parentNode.insertBefore(infoPanel, main);
 
     const sections = [
-      { id: 'egoCards',   title: 'Egos',   charts: ['egoChart','egoCardsChart']   },
-      { id: 'alterCards', title: 'Alters', charts: ['alterChart','alterCardsChart'] },
+      { id: 'egoCards', title: 'Egos', charts: ['egoChart', 'egoCardsChart'] },
+      { id: 'alterCards', title: 'Alters', charts: ['alterChart', 'alterCardsChart'] },
       { id: 'othersCards', title: 'Outros Campos' }
     ];
     createSections(main, sections);
@@ -49,29 +79,27 @@
     const data = loadData(planilha);
     if (!data) return;
     header = data[0].map(h => String(h).trim().toUpperCase());
-    rows   = data.slice(1);
+    rows = data.slice(1);
 
-    const egoIdxs   = [1,2,3,4,5].map(n => header.indexOf(`EVOC${n}`)).filter(i=>i>=0);
-    const alterIdxs = [6,7,8,9,10].map(n=>header.indexOf(`EVOC${n}`)).filter(i=>i>=0);
-    const egoRes   = egoIdxs.map(calc);
+    const egoIdxs = [1, 2, 3, 4, 5].map(n => header.indexOf(`EVOC${n}`)).filter(i => i >= 0);
+    const alterIdxs = [6, 7, 8, 9, 10].map(n => header.indexOf(`EVOC${n}`)).filter(i => i >= 0);
+    const egoRes = egoIdxs.map(calc);
     const alterRes = alterIdxs.map(calc);
 
-    renderCards('egoCards',   egoRes,   'EGO ');
+    renderCards('egoCards', egoRes, 'EGO ');
     renderCards('alterCards', alterRes, 'ALTER ');
 
-    // Desenha os gráficos de acordo com a ordem: termos principais primeiro, depois frequência
-    drawTopTermsChart('egoChart',   calcTopTerms(1,5),  getAllTerms(1,5).length,  '#4caf50');
-    drawChart(         'egoCardsChart',   egoRes,   ['#f44336','#8bc34a','#2196f3','#ffeb3b','#4caf50']);
-    drawTopTermsChart('alterChart', calcTopTerms(6,10), getAllTerms(6,10).length, '#009688');
-    drawChart(       'alterCardsChart', alterRes, ['#e91e63','#9c27b0','#3f51b5','#009688','#ff9800']);
+    drawTopTermsChart('egoChart', calcTopTerms(1, 5), getAllTerms(1, 5).length, '#4caf50');
+    drawChart('egoCardsChart', egoRes, ['#f44336', '#8bc34a', '#2196f3', '#ffeb3b', '#4caf50']);
+    drawTopTermsChart('alterChart', calcTopTerms(6, 10), getAllTerms(6, 10).length, '#009688');
+    drawChart('alterCardsChart', alterRes, ['#e91e63', '#9c27b0', '#3f51b5', '#009688', '#ff9800']);
 
     generateOtherCards(header, rows, document.getElementById('othersCards'));
 
-    // Move cards para dentro do gráfico de Análise de Frequência (segundo gráfico de cada seção)
     moveCardsIntoChart('egoCards');
     moveCardsIntoChart('alterCards');
 
-    reorderSections(['egoCards','alterCards','othersCards']);
+    reorderSections(['egoCards', 'alterCards', 'othersCards']);
   }
 
   function createSections(main, sections) {
@@ -104,43 +132,47 @@
   }
 
   function loadData(planilha) {
-    try { return JSON.parse(localStorage.getItem(`planilha_${planilha}`)) || []; }
-    catch { alert('Erro ao carregar dados.'); return null; }
-  }
-
-  function calc(colIdx) {
-    const vals = rows.map(r=>r[colIdx]).filter(v=>v&&String(v).trim().toUpperCase()!=='VAZIO');
-    const nums = vals.map(v=>parseFloat(String(v).replace(',','.'))).filter(n=>!isNaN(n));
-    if (nums.length>=vals.length/2) {
-      const sum = nums.reduce((a,b)=>a+b,0);
-      return { isNum:true, avg:(sum/nums.length).toFixed(2), total:vals.length };
-    } else {
-      const freq = {};
-      vals.forEach(v=> freq[v]=(freq[v]||0)+1 );
-      const [top, topCount] = Object.entries(freq).sort((a,b)=>b[1]-a[1])[0]||['N/D',0];
-      return { isNum:false, top, topCount, total:vals.length };
+    try {
+      return JSON.parse(localStorage.getItem(`planilha_${planilha}`)) || [];
+    } catch {
+      alert('Erro ao carregar dados.');
+      return null;
     }
   }
 
-  function getAllTerms(start,end) {
+  function calc(colIdx) {
+    const vals = rows.map(r => r[colIdx]).filter(v => v && String(v).trim().toUpperCase() !== 'VAZIO');
+    const nums = vals.map(v => parseFloat(String(v).replace(',', '.'))).filter(n => !isNaN(n));
+    if (nums.length >= vals.length / 2) {
+      const sum = nums.reduce((a, b) => a + b, 0);
+      return { isNum: true, avg: (sum / nums.length).toFixed(2), total: vals.length };
+    } else {
+      const freq = {};
+      vals.forEach(v => freq[v] = (freq[v] || 0) + 1);
+      const [top, topCount] = Object.entries(freq).sort((a, b) => b[1] - a[1])[0] || ['N/D', 0];
+      return { isNum: false, top, topCount, total: vals.length };
+    }
+  }
+
+  function getAllTerms(start, end) {
     return rows.flatMap(r => {
-      return Array.from({length: end-start+1}, (_,i) => r[ header.indexOf(`EVOC${start+i}`) ])
-        .filter(v => v && String(v).trim().toUpperCase()!=='VAZIO');
+      return Array.from({ length: end - start + 1 }, (_, i) => r[header.indexOf(`EVOC${start + i}`)])
+        .filter(v => v && String(v).trim().toUpperCase() !== 'VAZIO');
     });
   }
 
-  function calcTopTerms(start,end) {
+  function calcTopTerms(start, end) {
     const freq = {};
-    getAllTerms(start,end).forEach(v=> freq[v]=(freq[v]||0)+1);
+    getAllTerms(start, end).forEach(v => freq[v] = (freq[v] || 0) + 1);
     return Object.entries(freq)
-      .sort((a,b)=>b[1]-a[1])
-      .slice(0,4)
-      .map(([term,count])=>({term,count}));
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 4)
+      .map(([term, count]) => ({ term, count }));
   }
 
   function renderCards(containerId, results, prefix) {
     const cont = document.getElementById(containerId);
-    results.forEach((r,i) => cont.appendChild(createCard(prefix + (i+1), r)));
+    results.forEach((r, i) => cont.appendChild(createCard(prefix + (i + 1), r)));
   }
 
   function createCard(title, result) {
@@ -157,38 +189,63 @@
       {
         type: 'bar',
         data: {
-          labels: results.map((r,i) => r.isNum ? `Col${i+1}` : r.top),
+          labels: results.map((r, i) => r.isNum ? `Col${i + 1}` : r.top),
           datasets: [
             { label: 'Frequência', data: results.map(r => r.isNum ? 0 : r.topCount), backgroundColor: colors },
-            { label: 'Total',      data: results.map(r => r.total), backgroundColor: 'rgba(200,200,200,0.7)' }
+            { label: 'Total', data: results.map(r => r.total), backgroundColor: 'rgba(200,200,200,0.7)' }
           ]
         },
-        options: { responsive: true, maintainAspectRatio: false, scales: { x:{ stacked:false }, y:{ beginAtZero:true } }, plugins: { legend:{ position:'top' }, tooltip:{ enabled:false }, datalabels:{ anchor:'end', align:'start', formatter: v => v } } },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: { x: { stacked: false }, y: { beginAtZero: true } },
+          plugins: {
+            legend: { position: 'top' },
+            tooltip: { enabled: false },
+            datalabels: { anchor: 'end', align: 'start', formatter: v => v }
+          }
+        },
         plugins: [ChartDataLabels]
       }
     );
   }
 
   function drawTopTermsChart(canvasId, topTerms, total, color) {
-    const labels = [...topTerms.map(t=>t.term), 'Total'];
-    const freqData = [...topTerms.map(t=>t.count), null];
-    const totData  = [...topTerms.map(()=>null), total];
+    const labels = [...topTerms.map(t => t.term), 'Total'];
+    const freqData = [...topTerms.map(t => t.count), null];
+    const totData = [...topTerms.map(() => null), total];
     new Chart(
       document.getElementById(canvasId).getContext('2d'),
       {
         type: 'bar',
-        data: { labels, datasets: [ { label:'Frequência', data: freqData, backgroundColor: color }, { label:'Total', data: totData, backgroundColor:'rgba(200,200,200,0.7)' } ] },
-        options:{ responsive:true, maintainAspectRatio:false, scales:{ x:{ stacked:false }, y:{ beginAtZero:true } }, plugins:{ legend:{ position:'top' } } }
+        data: {
+          labels,
+          datasets: [
+            { label: 'Frequência', data: freqData, backgroundColor: color },
+            { label: 'Total', data: totData, backgroundColor: 'rgba(200,200,200,0.7)' }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: { x: { stacked: false }, y: { beginAtZero: true } },
+          plugins: { legend: { position: 'top' } }
+        }
       }
     );
   }
 
   function generateOtherCards(headerParam, rowsParam, container) {
-    headerParam.forEach((col,i) => { if (!col.startsWith('EVOC')) container.appendChild(createCard(col, calc(i))); });
+    headerParam.forEach((col, i) => {
+      if (!col.startsWith('EVOC')) container.appendChild(createCard(col, calc(i)));
+    });
   }
 
   function reorderSections(order) {
     const main = document.querySelector('main.container');
-    order.forEach(id => { const sec = main.querySelector(`section.${id}`); if (sec) main.appendChild(sec); });
+    order.forEach(id => {
+      const sec = main.querySelector(`section.${id}`);
+      if (sec) main.appendChild(sec);
+    });
   }
 })();

@@ -1,112 +1,109 @@
-/* Container do menu */
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap');
+
+/* ——— CONTAINER DO MENU ——— */
 .container {
   margin-top: 50px;
   margin-left: auto;
   margin-right: auto;
-  max-width: 1620px;
-  padding: 0 15px; /* Adicionando espaçamento lateral */
-}
-
-/* Estilização do menu para telas maiores */
-.container .menu {
-  background: linear-gradient(135deg, #0a2e43, #17426C, #091d2e); /* Gradiente suave, criando profundidade */
+  max-width: 1200px; /* mesmo valor dos cards */
+  padding: 0 15px;
   display: flex;
-  justify-content: space-between; /* Usar espaço entre os itens para maior dinamismo */
+  justify-content: center;
+}
+
+
+.container .menu {
+  background-color: #2b6f69;
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  border-radius: 50px; /* Bordas arredondadas mais acentuadas */
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
-  padding: 15px 30px; /* Aumentando o padding para um efeito mais espaçoso */
-  transition: all 0.4s ease; /* Suavizando transições */
-  flex-wrap: wrap; /* Para permitir que o conteúdo se ajuste melhor em telas menores */
-  gap: 15px; /* Espaçamento entre os itens */
+  border-radius: 48px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  padding: 20px 32px;
+  width: 100%;
+  max-width: 1600px;
+  gap: 1.5rem;                  /* reduzido para caber todos */
+  flex-wrap: nowrap;           /* NÃO deixa quebrar linha */
+  box-sizing: border-box;
+  overflow: hidden;            /* evita qualquer extravaso visual */
 }
 
-/* Estilo para os links do menu */
 .container .menu a {
-  padding: 20px 25px;
-  text-decoration: none;
-  color: white;
-  font-family: "Roboto", sans-serif; /* Mudando para uma fonte mais moderna */
-  font-size: 18px;
-  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 18px;
+  color: #FFFFFF;
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
   text-transform: uppercase;
-  position: relative;
-  transition: color 0.3s ease, transform 0.3s ease;
-  cursor: pointer;
-  border-radius: 10px;
-  overflow: hidden;
-  display: inline-block;
+  text-decoration: none;
+  border-radius: 32px;
+  white-space: nowrap;
+  transition: color 0.2s ease;
+  min-width: auto;
+  text-align: center;
 }
 
-/* Efeito de hover: destaque futurista */
+
+
+/* ——— HOVER: APENAS TEXTO AMARELO ——— */
 .container .menu a:hover {
-  color: #fdd200;
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.8); /* Brilho intenso */
-  transform: scale(1.1); /* Aumento de tamanho ao passar o mouse */
-  background: rgba(255, 255, 255, 0.1); /* Fundo semitransparente */
+  background: none;
+  color: #FFD600;
 }
 
-/* Efeito de borda dinâmica ao passar o mouse */
-.container .menu a::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 3px;
-  background-color: #fdd200;
-  transform: scaleX(0);
-  transform-origin: bottom right;
-  transition: transform 0.3s ease;
+/* ——— LINK ATIVO: SOMENTE COR AMARELA ——— */
+.container .menu a.active {
+  background: none !important;
+  color: #FFD600 !important;
+  border: none !important;
+  text-shadow: none !important;
 }
 
-.container .menu a:hover::after {
-  transform: scaleX(1);
-  transform-origin: bottom left;
+/* ——— REMOVE TRAÇOS E EFEITOS ANTIGOS ——— */
+.container .menu a::after,
+.container .menu a::before,
+.container .menu a.active::after,
+.container .menu a.active::before {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  transform: none !important;
 }
 
-/* Media query para dispositivos móveis (800px ou menos) */
+/* ——— RESPONSIVIDADE (800px ou menos) ——— */
 @media (max-width: 800px) {
   .container .menu {
-    flex-direction: column; /* Empilha os links verticalmente */
+    flex-direction: column;
     justify-content: flex-start;
     align-items: stretch;
     margin-top: 20px;
-    padding: 20px 0; /* Ajuste de padding para uma boa distribuição */
-    gap: 10px; /* Distância entre os links */
+    padding: 20px 0;
+    gap: 10px;
+    max-width: 100%;
+    flex-wrap: wrap;
   }
 
   .container .menu a {
     padding: 15px 20px;
-    font-size: 16px; /* Menor tamanho para melhor leitura */
+    font-size: 16px;
     width: 100%;
     text-align: center;
   }
 
-  /* Efeito para quando o link é pressionado (ex: no mobile) */
   .container .menu a:active {
-    transform: scale(0.98); /* Reduz o tamanho para simular um clique */
+    transform: scale(0.98);
   }
 }
 
-/* Responsividade extrema - telas menores que 600px */
+/* ——— RESPONSIVIDADE EXTREMA (600px ou menos) ——— */
 @media (max-width: 600px) {
   .container .menu a {
-    font-size: 14px; /* Tamanho de fonte otimizado para telas muito pequenas */
+    font-size: 14px;
     padding: 12px 15px;
   }
 }
-
-/* Estilização do menu ativo */
-.menu a.active {
-  color: #fdd200;
-  border-bottom: 4px solid #fdd200; /* Borda mais espessa para o item ativo */
-  background-color: rgba(255, 255, 255, 0.15); /* Fundo sutil para item ativo */
-}
-
-/* Efeito de brilho suave ao passar o mouse sobre o menu */
-.container .menu:hover {
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
-  transform: translateY(-5px); /* Eleva o menu levemente */
-}
-

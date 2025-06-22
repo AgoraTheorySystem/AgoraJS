@@ -4,7 +4,6 @@
   --color-primary:   #2A9D8F;
   --color-secondary: #264653;
   --color-accent:    #E76F51;
-  --color-bg:        #a9a9aa;
   --color-surface:   #FFFFFF;
   --color-text:      #1D3557;
   --color-subtext:   #457B9D;
@@ -46,10 +45,14 @@ html {
   color: var(--color-text);
   scroll-behavior: smooth;
 }
-body {
-  overflow-x: hidden;
+body.dashboard {
+  background-image: url('/assets/fundo_senha.jpg');
+  background-size: 100% auto;
+  background-repeat: repeat;
+  background-position: top center;
   min-height: 100vh;
 }
+
 img, canvas {
   max-width: 100%;
   height: auto;
@@ -65,10 +68,64 @@ img, canvas {
   flex-direction: column;
   gap: var(--space-lg);
 }
-header.container {
-  padding-top: var(--space-sm);
-  padding-bottom: var(--space-sm);
+/* ——— ESTILO DE MENU REFINADO E CENTRALIZADO ——— */
+header.container nav.menu {
+  background-color: #2b6f69;
+  border-radius: 36px;
+  display: flex;
+  justify-content: center;              /* centraliza horizontalmente */
+  align-items: center;                 /* centraliza verticalmente */
+  gap: 2.5rem;                          /* aumenta a distância entre os links */
+  padding: 20px 40px;                  /* aumenta a altura e largura do menu */
+  margin: 2rem auto;
+  max-width: 1000px;                   /* largura máxima da barra */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
+
+/* Links do menu */
+header.container nav.menu a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  padding: 0 18px;
+  color: #FFFFFF;
+  font-size: 1rem;                     /* fonte aumentada */
+  font-weight: 700;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-radius: 20px;
+  line-height: 1;
+  white-space: nowrap;
+  transition: color 0.2s;
+}
+
+/* Apenas texto amarelo no hover */
+header.container nav.menu a:hover {
+  background: none;
+  color: #FFD600;
+}
+
+/* Apenas texto amarelo no ativo */
+header.container nav.menu a.active {
+  background: none !important;
+  color: #FFD600 !important;
+}
+
+/* Remove qualquer efeito decorativo adicional */
+header.container nav.menu a::after,
+header.container nav.menu a::before,
+header.container nav.menu a.active::after,
+header.container nav.menu a.active::before {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+
 
 /* ——— TYPOGRAPHY ——— */
 h1, h3, h4, h5, h6 {
@@ -85,29 +142,43 @@ p, span, small {
   margin-bottom: var(--space-xs);
 }
 
-/* ——— NAVIGATION MENU ——— */
-.menu {
+/* ——— NAVIGATION MENU (fit & simple hover) ——— */
+nav.menu {
+  background-color: #2b6f69;
+  border-radius: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;            /* espaço entre botões */
+  height: 40px;        /* altura uniforme da barra */
+  padding: 0 8px;      /* padding interno da barra */
+  margin: 1.5rem auto; /* posicionamento */
+}
+
+nav.menu a {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
   justify-content: center;
-  gap: var(--space-sm);
-  background: var(--color-surface);
-  padding: var(--space-sm) var(--space-md);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
-}
-.menu a {
-  color: var(--color-primary);
+  height: 100%;
+  padding: 0 12px;       /* espaço interno de cada botão */
+  color: #FFFFFF;
   text-decoration: none;
+  text-transform: uppercase;
   font-weight: 600;
-  padding: var(--space-xs) var(--space-sm);
-  border-radius: var(--radius-sm);
-  transition: background 0.25s ease, color 0.25s ease;
+  font-size: 0.8rem;     /* tamanho da fonte */
+  border-radius: 16px;   /* arredonda cada botão */
+  transition: color 0.2s;
 }
-.menu a:hover {
-  background: var(--color-primary);
-  color: var(--color-surface);
+
+nav.menu a:hover {
+  background: none;        /* sem fundo no hover */
+  color: #FFD600;          /* texto amarelo no hover */
 }
+
+nav.menu a.active {
+  background-color: #FFD600;
+  color: #0E1F2D;
+}
+
 
 /* ——— LOADER ANIMATION ——— */
 #loading {
@@ -197,6 +268,118 @@ section.group .chart-container canvas {
   font-weight: bold;
   font-family: var(--font-mono);
   color: var(--color-subtext);
+}
+
+.barra-topo {
+  background-image: url("/assets/1c9b6f3d-d37b-49e7-89e6-b1a0410de423.png"); /* fundo com padrão */
+  background-size: cover;
+  background-position: center;
+  padding: 25px 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-bottom: 4px solid #0f4c75;
+}
+
+.barra-conteudo {
+  width: 100%;
+  max-width: 1440px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.barra-logo {
+  display: flex;
+  align-items: center;
+  background-color: #00394d;
+  padding: 12px 20px;
+  border-radius: 20px;
+  gap: 15px;
+}
+
+.barra-logo img {
+  height: 50px;
+  width: 50px;
+  object-fit: contain;
+}
+
+.titulo-site {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: white;
+  text-transform: uppercase;
+}
+
+.barra-planilha {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: white;
+  background: #0097a7;
+  padding: 12px 20px;
+  border-radius: 16px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.banner-imagem {
+  width: 100%;
+  height: auto;
+  max-height: 120px; /* ajuste conforme o ideal */
+  background-image: url("/assets/37dc4175-6a52-4859-9b6b-0eaea5ab9dc7.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  margin-bottom: 0;
+}
+
+.painel-info {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: auto auto;
+  gap: 1rem;
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.info-card {
+  background-color: white;
+  border-radius: 20px;
+  padding: 1rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  min-height: 100px;
+}
+
+.info-card .valor {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #2b6f69;
+  margin-bottom: 0.3rem;
+}
+
+.info-card.grande {
+  grid-column: span 2;
+  min-height: 120px;
+}
+
+.info-card.alto {
+  grid-row: span 2;
+  min-height: 100%;
+}
+
+/* Responsivo */
+@media (max-width: 1024px) {
+  .painel-info {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-template-rows: auto;
+  }
 }
 
 /* ——— RESPONSIVE BREAKPOINTS ——— */
