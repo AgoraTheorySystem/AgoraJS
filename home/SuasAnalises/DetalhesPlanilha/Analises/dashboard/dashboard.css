@@ -374,6 +374,64 @@ section.group .chart-container canvas {
   min-height: 100%;
 }
 
+.top-barra-planilha {
+  padding: 60px 30px;
+  background: transparent;
+  border: none;
+  display: flex;
+  justify-content: center;
+}
+
+.barra-unificada {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 40px;
+  max-width: 1300px;
+  width: 100%;
+  padding: 5px 30px;
+  border-radius: 20px;
+  background-color: #2b6f69; /* verde original */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.barra-logo {
+  display: flex;
+  align-items: center;
+  background: transparent; /* remove fundo azul escuro */
+  padding: 12px 20px;
+  border-radius: 20px;
+  gap: 15px;
+}
+
+.barra-logo img {
+  height: 85px;
+  width: 85px;
+  object-fit: contain;
+  border-radius: 14px;
+}
+
+.titulo-site {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: white;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.barra-planilha {
+  font-size: 1rem;
+  font-weight: bold;
+  font-size: 1.4rem;
+  color: white;
+  background: transparent; 
+  padding: 0;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+
+
 /* Responsivo */
 @media (max-width: 1024px) {
   .painel-info {

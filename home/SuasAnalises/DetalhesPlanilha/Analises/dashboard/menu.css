@@ -1,16 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap');
 
-/* ——— CONTAINER DO MENU ——— */
 .container {
   margin-top: 50px;
   margin-left: auto;
   margin-right: auto;
-  max-width: 1200px; /* mesmo valor dos cards */
+  max-width: 1200px; 
   padding: 0 15px;
   display: flex;
   justify-content: center;
 }
-
 
 .container .menu {
   background-color: #2b6f69;
@@ -22,10 +20,10 @@
   padding: 20px 32px;
   width: 100%;
   max-width: 1600px;
-  gap: 1.5rem;                  /* reduzido para caber todos */
-  flex-wrap: nowrap;           /* NÃO deixa quebrar linha */
+  gap: 1.5rem;                  
+  flex-wrap: nowrap;           
   box-sizing: border-box;
-  overflow: hidden;            /* evita qualquer extravaso visual */
+  overflow: hidden;           
 }
 
 .container .menu a {
@@ -44,17 +42,16 @@
   transition: color 0.2s ease;
   min-width: auto;
   text-align: center;
+  transition: all 0.2s ease;
+
 }
 
-
-
-/* ——— HOVER: APENAS TEXTO AMARELO ——— */
 .container .menu a:hover {
   background: none;
   color: #FFD600;
+  transform: scale(1.05);                   
 }
 
-/* ——— LINK ATIVO: SOMENTE COR AMARELA ——— */
 .container .menu a.active {
   background: none !important;
   color: #FFD600 !important;
@@ -62,7 +59,6 @@
   text-shadow: none !important;
 }
 
-/* ——— REMOVE TRAÇOS E EFEITOS ANTIGOS ——— */
 .container .menu a::after,
 .container .menu a::before,
 .container .menu a.active::after,
@@ -75,7 +71,6 @@
   transform: none !important;
 }
 
-/* ——— RESPONSIVIDADE (800px ou menos) ——— */
 @media (max-width: 800px) {
   .container .menu {
     flex-direction: column;
@@ -100,7 +95,6 @@
   }
 }
 
-/* ——— RESPONSIVIDADE EXTREMA (600px ou menos) ——— */
 @media (max-width: 600px) {
   .container .menu a {
     font-size: 14px;

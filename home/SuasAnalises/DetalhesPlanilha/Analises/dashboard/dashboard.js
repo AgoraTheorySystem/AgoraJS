@@ -34,15 +34,21 @@
     const planilha = new URLSearchParams(location.search).get('planilha');
     if (!planilha) return alert("Falta o parâmetro 'planilha' na URL.");
 
-    // Inserir imagem de topo
-    const barraTopo = document.createElement('div');
-    barraTopo.className = 'banner-imagem';
-    barraTopo.style.backgroundImage = 'url("/assets/banner_dashboard.jpg")';
-    barraTopo.style.height = '160px';
-    barraTopo.style.backgroundSize = 'cover';
-    barraTopo.style.backgroundPosition = 'center';
-    barraTopo.style.backgroundRepeat = 'no-repeat';
-    document.body.prepend(barraTopo);
+    // Inserir barra superior com nome da planilha
+  const barraTop = document.createElement('div');
+  barraTop.className = 'top-barra-planilha';
+  barraTop.innerHTML = `
+  <div class="barra-unificada verde">
+    <div class="barra-logo">
+      <img src="/assets/tipo_de_analise_agora.png" alt="Logo Ágora">
+      <div class="titulo-site">METODOLOGIAS DAS<br>ÁGORAS COGNITIVAS</div>
+    </div>
+    <div class="barra-planilha">${planilha.toUpperCase()}</div>
+  </div>
+`;
+
+  
+  document.body.insertBefore(barraTop, document.body.firstChild);
 
     // Painel de informações abaixo do menu
     const infoPanel = document.createElement('div');
