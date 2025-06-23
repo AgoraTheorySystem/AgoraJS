@@ -71,6 +71,128 @@
   transform: none !important;
 }
 
+nav.menu {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #2b6f69;
+  border-radius: 24px;
+  padding: 10px 20px;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.menu-logo img {
+  height: 40px;
+  width: auto;
+}
+
+.menu-links {
+  display: flex;
+  gap: 18px;
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+}
+
+.menu-links a {
+  padding: 10px 18px;
+  color: #fff;
+  font-weight: bold;
+  text-decoration: none;
+  border-radius: 24px;
+  transition: all 0.2s ease;
+}
+
+.menu-links a:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: scale(1.05);
+  color: #FFD600;
+  box-shadow: 0 0 6px rgba(255, 214, 0, 0.5);
+}
+
+.menu-links a.active {
+  color: #FFD600;
+}
+
+.barra-externa {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  gap: 4px;
+  background: transparent;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.icon-esquerda {
+  height: 40px;
+  width: auto;
+  margin-right: 4px;
+}
+
+nav.menu {
+  flex: 1;
+  max-width: 1200px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background-color: #2b6f69;
+  border-radius: 24px;
+  padding: 10px 20px;
+  gap: 16px;
+  margin-left: 0;
+}
+
+nav.menu a {
+  padding: 8px 14px;
+  color: #fff;
+  font-weight: bold;
+  text-decoration: none;
+  border-radius: 24px;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+}
+
+nav.menu a:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #FFD600;
+}
+
+nav.menu a.active {
+  background: none !important;
+  color: #FFD600 !important;
+  box-shadow: none !important;
+} 
+
+.menu-search {
+  display: flex;
+  align-items: center;
+  background: white;
+  border-radius: 20px;
+  padding: 4px 10px;
+  gap: 6px;
+  height: 36px;
+  min-width: 180px;
+}
+
+.menu-search input {
+  border: none;
+  outline: none;
+  font-size: 0.9rem;
+  padding: 5px 8px;
+  width: 120px;
+}
+
+.menu-search button {
+  background: none;
+  border: none;
+  color: #2b6f69;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
 @media (max-width: 800px) {
   .container .menu {
     flex-direction: column;

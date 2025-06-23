@@ -128,7 +128,13 @@ header.container nav.menu a.active::before {
 
 
 /* ——— TYPOGRAPHY ——— */
-h1, h3, h4, h5, h6 {
+h1{
+  color: #FFD600;
+  line-height: 1.2;
+  margin-bottom: var(--space-sm);
+}
+
+h3, h4, h5, h6 {
   color: var(--color-secondary);
   line-height: 1.2;
   margin-bottom: var(--space-sm);

@@ -22,15 +22,20 @@
 </head>
 
 <body class="dashboard">
-  <!-- Navegação lateral ou superior -->
-  <header class="container">
+  <header class="barra-externa">
+      <img src="/assets/logo_agora.png" alt="Logo Ágora" class="icon-esquerda" />
+
     <nav class="menu">
-      <a class="menu_analises">Menu das Análises</a>
       <a href="./dashboard.html?planilha=">Dashboard</a>
       <a href="./agora.html?planilha=">Socioeconômico</a>
       <a href="./evocacoes.html?planilha=">Evocações</a>
-      <a href="./formaragora.html?planilha=">Formar Ágoras</a>
+      <a href="./formaragora.html?planilha=">Metodologia Ágora</a>
     </nav>
+
+    <div class="menu-search">
+      <input type="text" placeholder="Pesquisar..." id="campoBusca" />
+      <button id="botaoBusca"><i class="fas fa-search"></i></button>
+    </div>
   </header>
 
   <!-- Conteúdo Principal -->

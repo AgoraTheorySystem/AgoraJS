@@ -34,18 +34,18 @@
     const planilha = new URLSearchParams(location.search).get('planilha');
     if (!planilha) return alert("Falta o parâmetro 'planilha' na URL.");
 
-    // Inserir barra superior com nome da planilha
-  const barraTop = document.createElement('div');
-  barraTop.className = 'top-barra-planilha';
-  barraTop.innerHTML = `
-  <div class="barra-unificada verde">
-    <div class="barra-logo">
-      <img src="/assets/tipo_de_analise_agora.png" alt="Logo Ágora">
-      <div class="titulo-site">METODOLOGIAS DAS<br>ÁGORAS COGNITIVAS</div>
+      
+    const barraTop = document.createElement('div');
+    barraTop.className = 'top-barra-planilha';
+    barraTop.innerHTML = `
+    <div class="barra-unificada verde">
+      <div class="barra-logo">
+        <img src="/assets/tipo_de_analise_agora.png" alt="Logo Ágora">
+        <div class="titulo-site">METODOLOGIAS DAS<br>ÁGORAS COGNITIVAS</div>
+      </div>
+      <div class="barra-planilha">${planilha.toUpperCase()}</div>
     </div>
-    <div class="barra-planilha">${planilha.toUpperCase()}</div>
-  </div>
-`;
+  `;
 
   
   document.body.insertBefore(barraTop, document.body.firstChild);
