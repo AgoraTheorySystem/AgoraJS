@@ -2,6 +2,10 @@
   let header = [];
   let rows = [];
 
+  let currentPlanilhaName = ''; // Variável para armazenar o nome da planilha atual
+  const SELECTED_CARDS_BASE_STORAGE_KEY = 'agora_selected_cards_'; // Chave base
+  let currentlySelectedCardIds = new Set(); // Será carregado após obter o nome da planilha
+
   const DATALABELS_URL = 'https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js';
 
   const chartConfig = {
@@ -34,6 +38,16 @@
     const planilha = new URLSearchParams(location.search).get('planilha');
     if (!planilha) return alert("Falta o parâmetro 'planilha' na URL.");
 
+    currentPlanilhaName = planilha; // Armazena o nome da planilha
+    // Carrega os IDs selecionados com base na planilha atual
+    try {
+        currentlySelectedCardIds = new Set(JSON.parse(localStorage.getItem(SELECTED_CARDS_BASE_STORAGE_KEY + currentPlanilhaName) || '[]'));
+        console.log(`[STORAGE] Carregando cards selecionados para '${currentPlanilhaName}':`, Array.from(currentlySelectedCardIds));
+    } catch (e) {
+        console.error("[STORAGE] Erro ao carregar cards do localStorage:", e);
+        currentlySelectedCardIds = new Set(); // Resetar em caso de erro
+    }
+
     const barraTop = document.createElement('div');
     barraTop.className = 'top-barra-planilha';
     barraTop.innerHTML = `
@@ -47,28 +61,17 @@
   `;
     document.body.insertBefore(barraTop, document.body.firstChild);
 
-    // Painel de informações abaixo do menu
-    const infoPanel = document.createElement('div');
-    infoPanel.className = 'painel-info';
-    infoPanel.innerHTML = `
-      <div class="info-card alto"></div>
-      <div class="info-card"><p class="valor">0</p><p>Quantidade de pessoas</p></div>
-      <div class="info-card" id="gender-card">
-        <p class="valor" id="male-count">0</p><p>Homens</p>
-        <p class="valor" id="female-count">0</p><p>Mulheres</p>
-      </div>
-      <div class="info-card" id="age-card">
-        <p class="valor" id="average-age">0 anos</p><p>Média de idade</p>
-      </div>
-      <div class="info-card"></div>
-      <div class="info-card grande"></div>
-      <div class="info-card"></div>
-      <div class="info-card"></div>
-    `;
-    document.body.insertBefore(infoPanel, document.querySelector('main.container'));
-
     const main = document.querySelector('main.container');
     main.innerHTML = '<h1>Dashboard de Análise de Dados</h1>';
+
+    const selectedCardsDisplay = document.getElementById('selected-cards-display');
+    if (!selectedCardsDisplay) {
+        console.error("O container #selected-cards-display não foi encontrado no HTML.");
+        return;
+    }
+    selectedCardsDisplay.innerHTML = '';
+    selectedCardsDisplay.style.maxWidth = '1200px';
+    selectedCardsDisplay.style.margin = '2rem auto';
 
     const sections = [
       { id: 'egoCards', title: 'Egos', charts: ['egoChart', 'egoCardsChart'] },
@@ -82,14 +85,12 @@
     header = data[0].map(h => String(h).trim().toUpperCase());
     rows = data.slice(1);
 
-    // Modificação para pegar a quantidade de pessoas
     const totalPessoas = rows.length;
     const quantidadePessoasCard = document.querySelector('.info-card p.valor');
     if (quantidadePessoasCard) {
       quantidadePessoasCard.textContent = totalPessoas;
     }
 
-    // --- Lógica para contar Homens e Mulheres ---
     const genderColIndex = header.indexOf('SEXO');
     let maleCount = 0;
     let femaleCount = 0;
@@ -109,19 +110,17 @@
     const femaleCountElement = document.getElementById('female-count');
     if (maleCountElement) maleCountElement.textContent = maleCount;
     if (femaleCountElement) femaleCountElement.textContent = femaleCount;
-    // --- Fim da lógica para Homens e Mulheres ---
 
-    // --- Nova lógica para calcular a média de idade usando a coluna 'IDADE' ---
-    const ageColIndex = header.indexOf('IDADE'); // Encontra o índice da coluna 'IDADE'
+    const ageColIndex = header.indexOf('IDADE');
     let totalAge = 0;
     let validAgeCount = 0;
 
-    if (ageColIndex !== -1) { // Verifica se a coluna 'IDADE' existe
+    if (ageColIndex !== -1) {
       rows.forEach(row => {
         const ageValue = String(row[ageColIndex]).trim();
-        const age = parseFloat(ageValue); // Converte o valor para número
+        const age = parseFloat(ageValue);
 
-        if (!isNaN(age) && age > 0) { // Valida se é um número e maior que zero
+        if (!isNaN(age) && age > 0) {
           totalAge += age;
           validAgeCount++;
         }
@@ -133,7 +132,6 @@
     if (averageAgeElement) {
       averageAgeElement.textContent = `${averageAge} anos`;
     }
-    // --- Fim da nova lógica para média de idade ---
 
     const egoIdxs = [1, 2, 3, 4, 5].map(n => header.indexOf(`EVOC${n}`)).filter(i => i >= 0);
     const alterIdxs = [6, 7, 8, 9, 10].map(n => header.indexOf(`EVOC${n}`)).filter(i => i >= 0);
@@ -154,6 +152,12 @@
     moveCardsIntoChart('alterCards');
 
     reorderSections(['egoCards', 'alterCards', 'othersCards']);
+
+    // Reaplicar estado após TODO o DOM dos cards estar renderizado
+    // Usamos um pequeno timeout para garantir que o DOM esteja completamente "settled"
+    setTimeout(() => {
+        reapplySelectedState();
+    }, 100); // Pequeno atraso de 100ms
   }
 
   function createSections(main, sections) {
@@ -225,17 +229,137 @@
 
   function renderCards(containerId, results, prefix) {
     const cont = document.getElementById(containerId);
-    results.forEach((r, i) => cont.appendChild(createCard(prefix + (i + 1), r)));
+    results.forEach((r, i) => cont.appendChild(createCard(prefix + (i + 1), r, containerId)));
   }
 
-  function createCard(title, result) {
+  function createCard(title, result, parentContainerId) {
     const card = document.createElement('div');
     card.className = 'card';
+    card.setAttribute('data-selected', 'false');
+    // Gerar um ID mais robusto combinando o container, o título e um índice baseado no tempo para unicidade.
+    // Usamos um hash simples para o título para garantir que IDs sejam concisos e únicos para o conteúdo.
+    const safeTitle = title.replace(/[^a-zA-Z0-9-]/g, '_');
+    const cardContentHash = btoa(unescape(encodeURIComponent(title + result.top + result.avg))).slice(0, 8); // Hash do conteúdo
+    card.id = `original-card-${parentContainerId}-${safeTitle}-${cardContentHash}`; // Novo ID mais robusto
+  
     const val = result.isNum ? result.avg : `${result.top} (${result.topCount})`;
-    card.innerHTML = `<h3>${title}</h3><p>${val}</p>`;
+    card.innerHTML = `<h3>${title}</h3><p>${val}<i class="fas fa-star star-icon"></i></p>`;
+
+    card.addEventListener('click', function () {
+      const isSelected = card.getAttribute('data-selected') === 'true';
+      card.setAttribute('data-selected', !isSelected);
+
+      if (!isSelected) {
+        card.classList.add('selected');
+        currentlySelectedCardIds.add(card.id);
+        saveSelectedCards();
+        console.log(`[CARD EVENT] Original card selected: ${card.id}`); // Debug log
+        duplicateCardToTop(card.id, title, val);
+      } else {
+        card.classList.remove('selected');
+        currentlySelectedCardIds.delete(card.id);
+        saveSelectedCards();
+        console.log(`[CARD EVENT] Original card deselected: ${card.id}`); // Debug log
+        removeDuplicatedCard(card.id);
+      }
+    });
+
     return card;
   }
 
+  function duplicateCardToTop(originalCardId, title, value) {
+    const topContainer = document.getElementById('selected-cards-display');
+    if (topContainer) {
+      if (topContainer.querySelector(`#cloned-${originalCardId}`)) {
+          console.warn(`[DUPLICATE] Card duplicado para ${originalCardId} já existe. Ignorando.`); // Debug log
+          return;
+      }
+
+      const clonedCard = document.createElement('div');
+      clonedCard.className = 'card duplicated-card';
+      clonedCard.id = `cloned-${originalCardId}`;
+      clonedCard.innerHTML = `<h3>${title}</h3><p>${value}</p>`;
+
+      clonedCard.addEventListener('click', function(event) {
+          event.stopPropagation();
+          console.log(`[DUPLICATE EVENT] Clicked duplicated card: ${clonedCard.id}. Attempting to deselect original: ${originalCardId}`); // Debug log
+          const originalCard = document.getElementById(originalCardId);
+          if (originalCard) {
+              originalCard.classList.remove('selected');
+              originalCard.setAttribute('data-selected', 'false');
+              currentlySelectedCardIds.delete(originalCard.id); // Remove do Set
+              saveSelectedCards(); // Salva no localStorage
+              removeDuplicatedCard(originalCardId);
+              console.log(`[DUPLICATE EVENT] Successfully deselected original card and removed duplicated for: ${originalCardId}`); // Debug log
+          } else {
+              console.error(`[DUPLICATE EVENT] Original card with ID ${originalCardId} not found when clicking duplicated card. Removing only duplicated.`); // Debug log
+              currentlySelectedCardIds.delete(originalCardId); // Limpa do armazenamento se o original não for encontrado
+              saveSelectedCards(); // Salva
+              removeDuplicatedCard(originalCardId);
+          }
+      });
+
+      topContainer.appendChild(clonedCard);
+      console.log(`[DUPLICATE] Duplicated card added: ${clonedCard.id}`); // Debug log
+    }
+  }
+
+  function removeDuplicatedCard(originalCardId) {
+    const topContainer = document.getElementById('selected-cards-display');
+    if (topContainer) {
+      const clonedCardId = `cloned-${originalCardId}`;
+      const clonedCard = topContainer.querySelector(`#${clonedCardId}`);
+      if (clonedCard) {
+        topContainer.removeChild(clonedCard);
+        console.log(`[DUPLICATE] Duplicated card removed: ${clonedCardId}`); // Debug log
+      } else {
+        console.warn(`[DUPLICATE] Attempted to remove non-existent duplicated card: ${clonedCardId}`); // Debug log
+      }
+    }
+  }
+
+  // --- Funções de persistência ---
+
+  function saveSelectedCards() {
+      try {
+          localStorage.setItem(SELECTED_CARDS_BASE_STORAGE_KEY + currentPlanilhaName, JSON.stringify(Array.from(currentlySelectedCardIds)));
+          console.log(`[STORAGE] Cards selecionados salvos para '${currentPlanilhaName}':`, Array.from(currentlySelectedCardIds));
+      } catch (e) {
+          console.error("[STORAGE] Erro ao salvar cards no localStorage:", e);
+      }
+  }
+
+  function reapplySelectedState() {
+      console.log(`[STORAGE] Reaplicando estado selecionado para '${currentPlanilhaName}'. IDs a re-aplicar:`, Array.from(currentlySelectedCardIds));
+      const foundCardsToReselect = []; // Para depurar cards não encontrados
+      currentlySelectedCardIds.forEach(id => {
+          const originalCard = document.getElementById(id);
+          if (originalCard) {
+              // Aplicar a classe e atributo 'selected'
+              originalCard.classList.add('selected');
+              originalCard.setAttribute('data-selected', 'true');
+              
+              // Extrair title e value para duplicar (garantir que pega o texto correto do DOM)
+              const title = originalCard.querySelector('h3') ? originalCard.querySelector('h3').textContent : 'N/A';
+              const value = originalCard.querySelector('p') ? originalCard.querySelector('p').textContent : 'N/A';
+
+              duplicateCardToTop(originalCard.id, title, value);
+              foundCardsToReselect.push(id); // Adiciona aos encontrados
+              console.log(`[STORAGE] Re-selecionado e duplicado card: ${id}`);
+          } else {
+              console.warn(`[STORAGE] Card com ID ${id} não encontrado durante reapplySelectedState. Removendo do armazenamento.`);
+              // Se o card original não for encontrado, remove-o do armazenamento para evitar problemas futuros.
+              currentlySelectedCardIds.delete(id);
+          }
+      });
+      // Salvar o estado limpo se houver cards que não foram encontrados
+      if (foundCardsToReselect.length !== currentlySelectedCardIds.size) {
+          saveSelectedCards();
+      }
+      console.log(`[STORAGE] Concluída a reaplicação. Cards efetivamente re-aplicados: ${foundCardsToReselect.length}/${currentlySelectedCardIds.size}.`);
+  }
+
+  // --- Funções de gráfico (sem alterações) ---
   function drawChart(canvasId, results, colors) {
     new Chart(
       document.getElementById(canvasId).getContext('2d'),
@@ -255,11 +379,11 @@
           plugins: {
             legend: { position: 'top' },
             tooltip: { enabled: false },
-            datalabels: { // <--- Adicione ou modifique esta seção
+            datalabels: {
               anchor: 'end',
               align: 'start',
               formatter: v => v,
-              color: '#FFFFFF' // <--- Define a cor do texto para branco
+              color: '#FFFFFF'
             }
           }
         },
@@ -269,18 +393,15 @@
   }
 
   function drawTopTermsChart(canvasId, topTerms, total, color) {
-    const labels = [...topTerms.map(t => t.term), 'Total'];
-    const freqData = [...topTerms.map(t => t.count), null];
-    const totData = [...topTerms.map(() => null), total];
     new Chart(
       document.getElementById(canvasId).getContext('2d'),
       {
         type: 'bar',
         data: {
-          labels,
+          labels: [...topTerms.map(t => t.term), 'Total'],
           datasets: [
-            { label: 'Frequência', data: freqData, backgroundColor: color },
-            { label: 'Total', data: totData, backgroundColor: 'rgba(200,200,200,0.7)' }
+            { label: 'Frequência', data: [...topTerms.map(t => t.count), null], backgroundColor: color },
+            { label: 'Total', data: [...topTerms.map(() => null), total], backgroundColor: 'rgba(200,200,200,0.7)' }
           ]
         },
         options: {
@@ -289,23 +410,24 @@
           scales: { x: { stacked: false }, y: { beginAtZero: true } },
           plugins: {
             legend: { position: 'top' },
-            datalabels: { // <--- Adicione esta seção aqui também
+            datalabels: {
               anchor: 'end',
               align: 'start',
               formatter: v => v,
-              color: '#FFFFFF' // <--- Define a cor do texto para branco
+              color: '#FFFFFF'
             }
           }
         },
-        plugins: [ChartDataLabels] // <--- Certifique-se de que o plugin está aqui
+        plugins: [ChartDataLabels]
       }
     );
   }
 
   function generateOtherCards(headerParam, rowsParam, container) {
     headerParam.forEach((col, i) => {
-      // Exclui as colunas 'SEXO' e 'IDADE' dos "Outros Campos"
-      if (!col.startsWith('EVOC') && col !== 'SEXO' && col !== 'IDADE') container.appendChild(createCard(col, calc(i)));
+      if (!col.startsWith('EVOC') && col !== 'SEXO' && col !== 'IDADE') {
+        container.appendChild(createCard(col, calc(i), 'othersCards'));
+      }
     });
   }
 

@@ -7,13 +7,11 @@
   <title>Ágora - Dashboard</title>
   <link rel="icon" href="/assets/icon.png" type="image/png" />
   
-  <!-- Estilos -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
   <link href="/assets/hamburguer.css" rel="stylesheet" />
   <link href="menu.css" rel="stylesheet" />
   <link href="dashboard.css" rel="stylesheet" />
 
-  <!-- Scripts -->
   <script src="/MenuLateral.js" type="module" defer></script>
   <script src="menu.js" type="module" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
@@ -38,9 +36,12 @@
     </div>
   </header>
 
-  <!-- Conteúdo Principal -->
+  <div id="selected-cards-display" class="cards-container"></div> 
+
   <main class="container" id="dashboard-content">
-    <!-- Conteúdo será injetado dinamicamente pelo JS -->
+    <section class="group" id="favorites">
+      <div id="othersCards" class="cards-container"></div>
+    </section>
   </main>
 </body>
 </html>
