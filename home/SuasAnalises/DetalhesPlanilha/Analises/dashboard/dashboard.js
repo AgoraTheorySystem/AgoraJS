@@ -236,11 +236,9 @@
     const card = document.createElement('div');
     card.className = 'card';
     card.setAttribute('data-selected', 'false');
-    // Gerar um ID mais robusto combinando o container, o título e um índice baseado no tempo para unicidade.
-    // Usamos um hash simples para o título para garantir que IDs sejam concisos e únicos para o conteúdo.
     const safeTitle = title.replace(/[^a-zA-Z0-9-]/g, '_');
-    const cardContentHash = btoa(unescape(encodeURIComponent(title + result.top + result.avg))).slice(0, 8); // Hash do conteúdo
-    card.id = `original-card-${parentContainerId}-${safeTitle}-${cardContentHash}`; // Novo ID mais robusto
+    const cardContentHash = btoa(unescape(encodeURIComponent(title + result.top + result.avg))).slice(0, 8); 
+    card.id = `original-card-${parentContainerId}-${safeTitle}-${cardContentHash}`; 
   
     const val = result.isNum ? result.avg : `${result.top} (${result.topCount})`;
     card.innerHTML = `<h3>${title}</h3><p>${val}<i class="fas fa-star star-icon"></i></p>`;
@@ -352,14 +350,13 @@
               currentlySelectedCardIds.delete(id);
           }
       });
-      // Salvar o estado limpo se houver cards que não foram encontrados
+      
       if (foundCardsToReselect.length !== currentlySelectedCardIds.size) {
           saveSelectedCards();
       }
       console.log(`[STORAGE] Concluída a reaplicação. Cards efetivamente re-aplicados: ${foundCardsToReselect.length}/${currentlySelectedCardIds.size}.`);
   }
 
-  // --- Funções de gráfico (sem alterações) ---
   function drawChart(canvasId, results, colors) {
     new Chart(
       document.getElementById(canvasId).getContext('2d'),

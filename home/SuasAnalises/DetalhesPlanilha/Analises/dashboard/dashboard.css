@@ -90,7 +90,7 @@ header.container nav.menu a {
   height: 48px;
   padding: 0 18px;
   color: #FFFFFF;
-  font-size: 1rem;                     /* fonte aumentada */
+  font-size: 1rem;                     
   font-weight: 700;
   text-transform: uppercase;
   text-decoration: none;
@@ -100,19 +100,19 @@ header.container nav.menu a {
   transition: color 0.2s;
 }
 
-/* Apenas texto amarelo no hover */
+
 header.container nav.menu a:hover {
   background: none;
   color: #FFD600;
 }
 
-/* Apenas texto amarelo no ativo */
+
 header.container nav.menu a.active {
   background: none !important;
   color: #FFD600 !important;
 }
 
-/* Remove qualquer efeito decorativo adicional */
+
 header.container nav.menu a::after,
 header.container nav.menu a::before,
 header.container nav.menu a.active::after,
@@ -127,7 +127,7 @@ header.container nav.menu a.active::before {
 
 
 
-/* ——— TYPOGRAPHY ——— */
+
 h1{
   color: #FFD600;
   line-height: 1.2;
@@ -148,16 +148,16 @@ p, span, small {
   margin-bottom: var(--space-xs);
 }
 
-/* ——— NAVIGATION MENU (fit & simple hover) ——— */
+
 nav.menu {
   background-color: #2b6f69;
   border-radius: 24px;
   display: inline-flex;
   align-items: center;
-  gap: 8px;            /* espaço entre botões */
-  height: 40px;        /* altura uniforme da barra */
-  padding: 0 8px;      /* padding interno da barra */
-  margin: 1.5rem auto; /* posicionamento */
+  gap: 8px;            
+  height: 40px;        
+  padding: 0 8px;      
+  margin: 1.5rem auto; 
 }
 
 nav.menu a {
@@ -165,19 +165,19 @@ nav.menu a {
   align-items: center;
   justify-content: center;
   height: 100%;
-  padding: 0 12px;       /* espaço interno de cada botão */
+  padding: 0 12px;       
   color: #FFFFFF;
   text-decoration: none;
   text-transform: uppercase;
   font-weight: 600;
-  font-size: 0.8rem;     /* tamanho da fonte */
-  border-radius: 16px;   /* arredonda cada botão */
+  font-size: 0.8rem;     
+  border-radius: 16px;  
   transition: color 0.2s;
 }
 
 nav.menu a:hover {
-  background: none;        /* sem fundo no hover */
-  color: #FFD600;          /* texto amarelo no hover */
+  background: none;        
+  color: #FFD600;          
 }
 
 nav.menu a.active {
@@ -257,13 +257,11 @@ section.group .chart-container canvas {
   align-items: center;
   text-align: center;
   transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-
-  /* NOVAS PROPRIEDADES PARA TRATAMENTO DE TEXTO */
-  overflow: hidden; /* Esconde o conteúdo que transborda */
-  text-overflow: ellipsis; /* Adiciona reticências (...) se o texto for cortado */
-  white-space: normal; /* Permite que o texto quebre em várias linhas */
-  word-wrap: break-word; /* Força quebras de linha em palavras longas */
-  hyphens: auto; /* Permite hifenização automática (pode exigir lang attribute no HTML) */
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+  white-space: normal; 
+  word-wrap: break-word;
+  hyphens: auto; 
 }
 .card:hover {
   transform: translateY(-6px);
@@ -272,17 +270,13 @@ section.group .chart-container canvas {
 }
 .card h3,
 .card p {
-  /* Garante que o texto dentro de h3 e p também se ajuste */
-  word-wrap: break-word; /* Quebra palavras longas que podem exceder a largura */
-  overflow-wrap: break-word; /* Outra propriedade para quebra de linha */
-  white-space: normal; /* Garante que o texto quebre linhas */
-  margin-bottom: var(--space-xs); /* Ajuste conforme necessário */
-  width: 100%; /* Ocupa a largura total disponível no card */
-  text-align: center; /* Mantém o alinhamento central */
-  /* Se você preferir truncar com ..., use: */
-  /* white-space: nowrap; */
-  /* overflow: hidden; */
-  /* text-overflow: ellipsis; */
+  word-wrap: break-word; 
+  overflow-wrap: break-word; 
+  white-space: normal; 
+  margin-bottom: var(--space-xs); 
+  width: 100%; 
+  text-align: center; 
+  
 }
 .card h3 {
   font-size: 1.1rem;
@@ -435,21 +429,12 @@ section.group .chart-container canvas {
   color: #f44336; 
 }
 
-/* Add this to your dashboard.css file */
-
-/* Dentro do seu arquivo dashboard.css, adicione ou ajuste estas regras: */
-
-/* Garante que o container dos cards selecionados esteja visível e acima de outros elementos */
-/* Dentro do seu arquivo dashboard.css */
-
-/* Estilo para o novo container dos cards selecionados */
 #selected-cards-display {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-md);
   padding: var(--space-md);
-  /* MODIFICAÇÃO CHAVE AQUI: Um fundo sólido e claro para contraste */
-  background-color: var(--color-surface); /* Ou use um branco puro: #FFFFFF */
+  background-color: var(--color-surface); 
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
   margin: var(--space-lg) auto;
@@ -457,48 +442,41 @@ section.group .chart-container canvas {
   justify-content: center;
   align-items: center;
   min-height: 80px;
-  position: relative; /* Mantido para z-index */
-  z-index: 10; /* Mantido para z-index */
-  overflow: visible; /* Mantido */
+  position: relative; 
+  z-index: 10; 
+  overflow: visible; 
 }
 
-/* Estilo para os cards que são duplicados para a área superior */
 .duplicated-card {
-  /* Mantém as classes card, então herda muito do estilo base .card */
-  border: 2px solid var(--color-accent); /* Borda para destaque */
-  background-color: var(--color-surface); /* Garante que o fundo do card duplicado é sólido e claro */
-  opacity: 1; /* Garante que não há transparência desnecessária */
-  transform: none !important; /* Remove efeitos de hover/transformação no duplicado */
-  box-shadow: var(--shadow-sm); /* Uma sombra leve para destacá-lo da área de exibição */
-  cursor: pointer; /* Indica que é clicável */
-  z-index: 11; /* Para garantir que estejam acima do container */
-
-  /* Opcional: ajustar a cor do texto para garantir que seja legível no fundo claro */
-  color: var(--color-text); /* Cor principal do texto para contraste */
+  border: 2px solid var(--color-accent);
+  background-color: var(--color-surface); 
+  opacity: 1; 
+  transform: none !important; 
+  box-shadow: var(--shadow-sm); 
+  cursor: pointer; 
+  z-index: 11; 
+  color: var(--color-text); 
 }
 
-/* Garante que o texto dentro dos cards duplicados seja visível */
 .duplicated-card h3,
 .duplicated-card p {
-    color: var(--color-text); /* Força a cor do texto para ser legível */
+    color: var(--color-text); 
 }
 
-/* Garante que o ícone de estrela também seja visível */
 .duplicated-card .star-icon {
-    color: var(--color-accent); /* Ou outra cor que se destaque */
+    color: var(--color-accent); 
 }
 
-/* Manter o estilo de card original para quando estiver selecionado */
+
 .card.selected {
-  background-color: #ffeb3b; /* Fundo amarelo quando selecionado */
-  border: 2px solid #f44336; /* Borda vermelha quando selecionado */
+  background-color: #ffeb3b; 
+  border: 2px solid #f44336; 
 }
 
 .card.selected .star-icon {
-  color: #f44336; /* Estrela vermelha quando selecionado */
+  color: #f44336; 
 }
 
-/* Ensure original card hover effects still work */
 .card:hover {
   transform: translateY(-6px);
   box-shadow: var(--shadow-md);

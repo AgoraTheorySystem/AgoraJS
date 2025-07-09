@@ -154,7 +154,51 @@ function generateSidebarMenu() {
     </div>
     `;
 
-    body.insertAdjacentHTML('beforeend', html);
+    body.insertAdjacentHTML('afterbegin', html); // Manter afterbegin
+    console.log('Menu lateral HTML injetado no DOM como afterbegin.');
+
+    // **NOVO: Forçar estilos via JavaScript após a injeção do HTML**
+    const menuLabel = document.getElementById('menu-burger-label');
+    const sidebar = document.getElementById('menu-sidebar');
+    const htmlEl = document.documentElement; // Elemento <html>
+    const bodyEl = document.body;
+
+    if (htmlEl) {
+        htmlEl.style.overflowX = 'hidden';
+        htmlEl.style.width = '100%';
+        htmlEl.style.height = '100%';
+        htmlEl.style.margin = '0';
+        htmlEl.style.padding = '0';
+        console.log('Estilos forçados no HTML.');
+    }
+    if (bodyEl) {
+        bodyEl.style.overflowX = 'hidden';
+        bodyEl.style.width = '100%';
+        bodyEl.style.height = '100%';
+        bodyEl.style.margin = '0';
+        bodyEl.style.padding = '0';
+        console.log('Estilos forçados no BODY.');
+    }
+
+    if (menuLabel) {
+        menuLabel.style.position = 'fixed';
+        menuLabel.style.top = '10px';
+        menuLabel.style.left = '10px';
+        menuLabel.style.zIndex = '9999';
+        console.log('Estilos forçados no menu-burger-label.');
+    }
+    if (sidebar) {
+        sidebar.style.position = 'fixed';
+        sidebar.style.top = '0';
+        sidebar.style.left = '-100%';
+        sidebar.style.width = '360px';
+        sidebar.style.height = '100%';
+        sidebar.style.zIndex = '9998';
+        sidebar.style.background = '#2b6f69'; // Garante cor
+        console.log('Estilos forçados na menu-sidebar.');
+    }
+    // FIM NOVO
+
 
     if (!isHome) {
         document.getElementById('menu-burger').addEventListener('change', toggleSidebar);
