@@ -1,10 +1,31 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-app.js";
 import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
+// Adicionada a importação do 'onAuthStateChanged'
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-auth.js";
 import firebaseConfig from '/firebase.js';
 
 // 1. Inicializar o Firebase
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
+const auth = getAuth(app); // Inicializa o Auth para usar o observador
+
+const DB_NAME = 'agoraDB';
+const STORE_NAME = 'planilhas';
+
+// Abre ou cria o banco de dados IndexedDB
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, 1);
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: 'key' });
+      }
+    };
+    request.onsuccess = (event) => resolve(event.target.result);
+    request.onerror = (event) => reject(event.target.error);
+  });
+}
 
 // 2. Recuperar o usuário da sessão
 function getUser() {
@@ -31,84 +52,102 @@ function toggleLoading(show) {
   }
 }
 
-// 4. Verificar planilhas (originais, auxiliares, última alteração) no LocalStorage
-//    e remover as que não existirem mais no Firebase
-async function verificarPlanilhasLocalStorage() {
+// 4. Verificar planilhas no IndexedDB e remover as que não existem mais no Firebase
+async function verificarPlanilhasIndexedDB() {
   try {
     if (!user || !user.uid) {
       console.error("Usuário não autenticado.");
       return;
     }
 
-    // Obtém todas as chaves do LocalStorage que começam com "planilha_"
-    const planilhasSalvas = Object.keys(localStorage).filter(key => key.startsWith("planilha_"));
-    
-    // Filtra apenas as planilhas principais (exclui auxiliares e metadados)
+    const db = await openDB();
+    const transaction = db.transaction(STORE_NAME, 'readonly');
+    const store = transaction.objectStore(STORE_NAME);
+    const getAllKeysRequest = store.getAllKeys();
+
+    const planilhasSalvas = await new Promise((resolve, reject) => {
+        getAllKeysRequest.onsuccess = (event) => {
+            resolve(event.target.result.filter(key => key.startsWith("planilha_")));
+        };
+        getAllKeysRequest.onerror = (event) => reject(event.target.error);
+    });
+
     const planilhasPrincipais = planilhasSalvas
       .filter(key => !key.startsWith("planilha_auxiliar_") && !key.startsWith("planilha_ultima_alteracao_"));
 
-    const planilhasRef = ref(database, `/users/${user.uid}/planilhas`);
-    const snapshot = await get(planilhasRef);
-    const planilhasNoFirebase = snapshot.exists() ? Object.keys(snapshot.val()) : [];
+    const token = await auth.currentUser.getIdToken();
+    const shallowQueryUrl = `${firebaseConfig.databaseURL}/users/${user.uid}/planilhas.json?auth=${token}&shallow=true`;
+    const response = await fetch(shallowQueryUrl);
+    const planilhasShallow = await response.json();
+    const planilhasNoFirebase = planilhasShallow ? Object.keys(planilhasShallow) : [];
 
-    console.log("Planilhas no Firebase:", planilhasNoFirebase);
+    console.log("Planilhas no Firebase (verificação):", planilhasNoFirebase);
+
+    const deleteTransaction = db.transaction(STORE_NAME, 'readwrite');
+    const deleteStore = deleteTransaction.objectStore(STORE_NAME);
 
     planilhasPrincipais.forEach(planilhaKey => {
-      const nomePlanilha = planilhaKey.replace("planilha_", ""); 
-
-      console.log(`Verificando: ${nomePlanilha}`);
-
-      // Se a planilha principal não existir no Firebase, remove todas as suas versões do LocalStorage
+      const nomePlanilha = planilhaKey.replace("planilha_", "");
       if (!planilhasNoFirebase.includes(nomePlanilha)) {
-        localStorage.removeItem(planilhaKey);
-        localStorage.removeItem(`planilha_auxiliar_${nomePlanilha}`);
-        localStorage.removeItem(`planilha_ultima_alteracao_${nomePlanilha}`);
-
-        console.log(`Planilha "${nomePlanilha}" e suas versões auxiliares foram removidas do LocalStorage.`);
+        deleteStore.delete(planilhaKey);
+        deleteStore.delete(`planilha_auxiliar_${nomePlanilha}`);
+        deleteStore.delete(`planilha_ultima_alteracao_${nomePlanilha}`);
+        console.log(`Planilha "${nomePlanilha}" e seus dados auxiliares foram removidos do IndexedDB.`);
       }
     });
+
   } catch (error) {
-    console.error("Erro ao verificar planilhas no Firebase:", error);
+    console.error("Erro ao verificar planilhas no IndexedDB:", error);
   }
 }
 
-// 5. Carregar e exibir a lista de planilhas originais
+// 5. Carregar e exibir a lista de planilhas
 async function loadPlanilhas() {
   if (!user) return;
   toggleLoading(true);
 
-  const planilhasRef = ref(database, `/users/${user.uid}/planilhas`);
   try {
-    const snapshot = await get(planilhasRef);
+    const token = await auth.currentUser.getIdToken();
+    const shallowQueryUrl = `${firebaseConfig.databaseURL}/users/${user.uid}/planilhas.json?auth=${token}&shallow=true`;
+
+    const response = await fetch(shallowQueryUrl);
+    if (!response.ok) {
+      throw new Error(`Erro na requisição shallow: ${response.statusText}`);
+    }
+    const planilhasShallow = await response.json();
+    const planilhaNomes = planilhasShallow ? Object.keys(planilhasShallow) : [];
+
     toggleLoading(false);
 
     const container = document.getElementById('planilhasContainer');
-    if (!snapshot.exists()) {
+    if (planilhaNomes.length === 0) {
       container.innerHTML = "<p>Nenhuma planilha encontrada.</p>";
       return;
     }
 
-    const planilhas = snapshot.val();
-    const planilhaNomes = Object.keys(planilhas);
-
+    const db = await openDB();
     container.innerHTML = '';
-    planilhaNomes.forEach(planilhaNome => {
-      if (!localStorage.getItem(`planilha_${planilhaNome}`)) {
-        fetchAndSavePlanilha(planilhaNome);
-      }
 
-      if (!localStorage.getItem(`planilha_auxiliar_${planilhaNome}`)) {
-        fetchAndSaveAuxiliaryTable(planilhaNome);
-      }
+    for (const planilhaNome of planilhaNomes) {
+      const transaction = db.transaction(STORE_NAME, 'readonly');
+      const store = transaction.objectStore(STORE_NAME);
 
-      if (!localStorage.getItem(`planilha_ultima_alteracao_${planilhaNome}`)) {
-        fetchAndSaveLastModification(planilhaNome);
-      }
+      const planilhaReq = store.get(`planilha_${planilhaNome}`);
+      const auxiliarReq = store.get(`planilha_auxiliar_${planilhaNome}`);
+      const modReq = store.get(`planilha_ultima_alteracao_${planilhaNome}`);
 
-      // Cria botão com ícones
+      const [planilhaData, auxiliarData, modData] = await Promise.all([
+          new Promise(r => { planilhaReq.onsuccess = e => r(e.target.result); }),
+          new Promise(r => { auxiliarReq.onsuccess = e => r(e.target.result); }),
+          new Promise(r => { modReq.onsuccess = e => r(e.target.result); })
+      ]);
+
+      if (!planilhaData) await fetchAndSavePlanilha(planilhaNome);
+      if (!auxiliarData) await fetchAndSaveAuxiliaryTable(planilhaNome);
+      if (!modData) await fetchAndSaveLastModification(planilhaNome);
+
       const button = document.createElement('button');
       button.classList.add('planilha-button');
-
       button.innerHTML = `
         <span class="label">
           <img class="icon" src="/assets/icone_suas_analises.png" alt="Ícone planilha">
@@ -116,58 +155,51 @@ async function loadPlanilhas() {
         </span>
         <img class="config-icon" src="/assets/icone_admin.png" alt="Configuração">
       `;
-
       button.addEventListener('click', () => handlePlanilhaClick(planilhaNome));
       container.appendChild(button);
-    });
+    }
   } catch (error) {
     toggleLoading(false);
-    console.error("Erro ao carregar as planilhas:", error);
+    console.error("Erro ao carregar a lista de planilhas:", error);
     document.getElementById('planilhasContainer').innerHTML = "<p>Erro ao carregar as planilhas.</p>";
   }
 }
 
-
-// 6. Buscar e salvar planilha original no LocalStorage (juntando chunks)
+// 6. Buscar e salvar planilha no IndexedDB
 async function fetchAndSavePlanilha(planilhaNome) {
-  const fileRef = ref(database, `/users/${user.uid}/planilhas/${planilhaNome}`);
-  try {
-    const snapshot = await get(fileRef);
-    if (!snapshot.exists()) {
-      console.warn(`A planilha "${planilhaNome}" não foi encontrada no Firebase.`);
-      return;
+    const fileRef = ref(database, `/users/${user.uid}/planilhas/${planilhaNome}`);
+    try {
+        const snapshot = await get(fileRef);
+        if (!snapshot.exists()) {
+            console.warn(`A planilha "${planilhaNome}" não foi encontrada no Firebase.`);
+            return;
+        }
+        const planilhaChunks = snapshot.val();
+        let fullPlanilhaData = [];
+        Object.keys(planilhaChunks).forEach(chunkKey => {
+            fullPlanilhaData = fullPlanilhaData.concat(planilhaChunks[chunkKey]);
+        });
+        await saveToIndexedDB(`planilha_${planilhaNome}`, fullPlanilhaData);
+    } catch (error) {
+        console.error("Erro ao buscar a planilha:", error);
     }
-    // Ex.: { chunk_0: [...], chunk_1: [...], ... }
-    const planilhaChunks = snapshot.val();
-    let fullPlanilhaData = [];
-    Object.keys(planilhaChunks).forEach(chunkKey => {
-      const chunkData = planilhaChunks[chunkKey];
-      fullPlanilhaData = fullPlanilhaData.concat(chunkData);
-    });
-    // Salva a planilha original no LocalStorage com a chave "planilha_{planilhaNome}"
-    saveToLocalStorage(`planilha_${planilhaNome}`, fullPlanilhaData);
-  } catch (error) {
-    console.error("Erro ao buscar a planilha:", error);
-  }
 }
 
-// 7. Buscar e salvar tabela auxiliar (juntando chunks)
+// 7. Buscar e salvar tabela auxiliar
 async function fetchAndSaveAuxiliaryTable(fileName) {
   const auxiliaryRef = ref(database, `/users/${user.uid}/tabelasAuxiliares/${fileName}`);
   try {
     const snapshot = await get(auxiliaryRef);
     if (!snapshot.exists()) {
-      console.warn(`Tabela auxiliar "${fileName}" não encontrada no Firebase.`);
+      console.warn(`Tabela auxiliar "${fileName}" não encontrada.`);
       return;
     }
     const auxiliaryChunks = snapshot.val();
     let fullAuxiliaryData = [];
     Object.keys(auxiliaryChunks).forEach(chunkKey => {
-      const chunkData = auxiliaryChunks[chunkKey];
-      fullAuxiliaryData = fullAuxiliaryData.concat(chunkData);
+      fullAuxiliaryData = fullAuxiliaryData.concat(auxiliaryChunks[chunkKey]);
     });
-    // Salva a tabela auxiliar no LocalStorage com a chave "planilha_auxiliar_{fileName}"
-    saveToLocalStorage(`planilha_auxiliar_${fileName}`, fullAuxiliaryData);
+    await saveToIndexedDB(`planilha_auxiliar_${fileName}`, fullAuxiliaryData);
   } catch (error) {
     console.error(`Erro ao buscar a tabela auxiliar "${fileName}":`, error);
   }
@@ -179,28 +211,27 @@ async function fetchAndSaveLastModification(fileName) {
   try {
     const snapshot = await get(modRef);
     if (!snapshot.exists()) {
-      console.warn(`Data de última alteração para "${fileName}" não encontrada no Firebase.`);
+      console.warn(`Data de última alteração para "${fileName}" não encontrada.`);
       return;
     }
     const modifications = snapshot.val();
-    // Se houver mais de uma data, seleciona a mais recente (maior timestamp)
-    const modificationsArray = Object.values(modifications);
-    modificationsArray.sort((a, b) => b.timestamp - a.timestamp);
-    const latestModification = modificationsArray[0];
-    // Salva no LocalStorage com a chave "planilha_ultima_alteracao_{fileName}"
-    saveToLocalStorage(`planilha_ultima_alteracao_${fileName}`, latestModification);
+    const latestModification = Object.values(modifications).sort((a, b) => b.timestamp - a.timestamp)[0];
+    await saveToIndexedDB(`planilha_ultima_alteracao_${fileName}`, latestModification);
   } catch (error) {
     console.error(`Erro ao buscar data de última alteração para "${fileName}":`, error);
   }
 }
 
-// 9. Função genérica para salvar dados no LocalStorage
-function saveToLocalStorage(key, data) {
+// 9. Função genérica para salvar dados no IndexedDB
+async function saveToIndexedDB(key, data) {
   try {
-    localStorage.setItem(key, JSON.stringify(data));
-    console.log(`Dados salvos no LocalStorage com a chave "${key}".`);
+    const db = await openDB();
+    const transaction = db.transaction(STORE_NAME, 'readwrite');
+    const store = transaction.objectStore(STORE_NAME);
+    store.put({ key, value: data });
+    console.log(`Dados salvos no IndexedDB com a chave "${key}".`);
   } catch (error) {
-    console.error("Erro ao salvar no LocalStorage:", error);
+    console.error("Erro ao salvar no IndexedDB:", error);
   }
 }
 
@@ -221,56 +252,30 @@ function handlePlanilhaClick(planilhaNome) {
   });
 }
 
-// 11. (Opcional) Exibir planilha local para debug
-function exibirPlanilhaLocal(fileName) {
-  const key = `planilha_${fileName}`;
-  const planilha = localStorage.getItem(key);
-  if (planilha) {
-    console.log(`Conteúdo da planilha "${fileName}":`);
-    console.table(JSON.parse(planilha));
-  } else {
-    console.warn(`Nenhuma planilha com o nome "${fileName}" foi encontrada no LocalStorage.`);
+// ... (as funções de debug podem ser mantidas, mas não são essenciais para a funcionalidade)
+
+// 13. Evento de inicialização (MODIFICADO)
+document.addEventListener('DOMContentLoaded', () => {
+  // Verifica o usuário da sessão primeiro
+  if (!user) {
+    console.log("Nenhum usuário na sessão, redirecionando...");
+    window.location.href = '/index.html';
+    return;
   }
-}
 
-// 12. Função para obter e exibir todas as planilhas do LocalStorage (para teste)
-function obterPlanilhasLocalStorage() {
-  const planilhas = {};
-  const planilhasAuxiliares = {};
-  const planilhasUltimaAlteracao = {};
-
-  Object.keys(localStorage).forEach(key => {
-    try {
-      if (key.startsWith("planilha_")) {
-        const nomePlanilha = key.replace("planilha_", "");
-        if (key.startsWith("planilha_auxiliar_")) {
-          planilhasAuxiliares[nomePlanilha] = JSON.parse(localStorage.getItem(key));
-        } else if (key.startsWith("planilha_ultima_alteracao_")) {
-          planilhasUltimaAlteracao[nomePlanilha] = JSON.parse(localStorage.getItem(key));
-        } else {
-          planilhas[nomePlanilha] = JSON.parse(localStorage.getItem(key));
-        }
-      }
-    } catch (error) {
-      console.error(`Erro ao ler a chave "${key}" do LocalStorage:`, error);
+  // Usa o onAuthStateChanged para garantir que o Firebase Auth está inicializado
+  onAuthStateChanged(auth, async (firebaseUser) => {
+    if (firebaseUser) {
+      // O usuário está logado e o objeto auth está pronto.
+      console.log("Estado de autenticação do Firebase confirmado. Usuário:", firebaseUser.uid);
+      
+      // Agora é seguro chamar as funções que dependem da autenticação
+      await verificarPlanilhasIndexedDB();
+      await loadPlanilhas();
+    } else {
+      // O usuário não está logado.
+      console.log("Usuário não está autenticado no Firebase. Redirecionando...");
+      window.location.href = '/index.html';
     }
   });
-
-  console.log("Planilhas principais:", planilhas);
-  console.log("Planilhas auxiliares:", planilhasAuxiliares);
-  console.log("Planilhas últimas alterações:", planilhasUltimaAlteracao);
-
-  return { planilhas, planilhasAuxiliares, planilhasUltimaAlteracao };
-}
-
-// 13. Evento de inicialização
-document.addEventListener('DOMContentLoaded', async () => {
-  if (!user) return;
-  // Primeiro, verifica e limpa os itens que não existem mais no Firebase
-  await verificarPlanilhasLocalStorage();
-  // Depois, carrega e exibe a lista de planilhas
-  await loadPlanilhas();
 });
-
-// Exemplo de uso para debug:
-obterPlanilhasLocalStorage();

@@ -8,12 +8,71 @@
 
   const DATALABELS_URL = 'https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js';
 
+  const DB_NAME = 'agoraDB';
+  const STORE_NAME = 'planilhas';
+
   const chartConfig = {
     egoCardsChart: { title: 'Análise de Frequência EGO', subtitle: 'Distribuição de respostas por cada EGO' },
     egoChart: { title: 'Termos Principais EGO', subtitle: 'Top 4 termos mais frequentes em EGO' },
     alterCardsChart: { title: 'Análise de Frequência ALTER', subtitle: 'Distribuição de respostas por cada ALTER' },
     alterChart: { title: 'Termos Principais ALTER', subtitle: 'Top 4 termos mais frequentes em ALTER' }
   };
+
+  // Abre ou cria o banco de dados IndexedDB
+  function openDB() {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(DB_NAME, 1);
+
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME, { keyPath: 'key' });
+        }
+      };
+
+      request.onsuccess = (event) => {
+        resolve(event.target.result);
+      };
+
+      request.onerror = (event) => {
+        reject(event.target.error);
+      };
+    });
+  }
+
+    // Pega um item do IndexedDB
+    async function getItem(key) {
+        const db = await openDB();
+        const transaction = db.transaction(STORE_NAME, 'readonly');
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.get(key);
+
+        return new Promise((resolve, reject) => {
+            request.onsuccess = (event) => {
+                resolve(event.target.result ? event.target.result.value : null);
+            };
+            request.onerror = (event) => {
+                reject(event.target.error);
+            };
+        });
+    }
+
+    // Adiciona ou atualiza um item no IndexedDB
+    async function setItem(key, value) {
+        const db = await openDB();
+        const transaction = db.transaction(STORE_NAME, 'readwrite');
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.put({ key, value });
+
+        return new Promise((resolve, reject) => {
+            transaction.oncomplete = () => {
+                resolve();
+            };
+            transaction.onerror = (event) => {
+                reject(event.target.error);
+            };
+        });
+    }
 
   function loadScript(url) {
     return new Promise((resolve, reject) => {
@@ -34,19 +93,21 @@
     .catch(console.warn)
     .finally(runDashboard);
 
-  function runDashboard() {
+  async function runDashboard() {
     const planilha = new URLSearchParams(location.search).get('planilha');
     if (!planilha) return alert("Falta o parâmetro 'planilha' na URL.");
 
     currentPlanilhaName = planilha; // Armazena o nome da planilha
-    // Carrega os IDs selecionados com base na planilha atual
+    // Carrega os IDs selecionados com base na planilha atual do IndexedDB
     try {
-        currentlySelectedCardIds = new Set(JSON.parse(localStorage.getItem(SELECTED_CARDS_BASE_STORAGE_KEY + currentPlanilhaName) || '[]'));
+        const savedCards = await getItem(SELECTED_CARDS_BASE_STORAGE_KEY + currentPlanilhaName);
+        currentlySelectedCardIds = new Set(savedCards || []);
         console.log(`[STORAGE] Carregando cards selecionados para '${currentPlanilhaName}':`, Array.from(currentlySelectedCardIds));
     } catch (e) {
-        console.error("[STORAGE] Erro ao carregar cards do localStorage:", e);
+        console.error("[STORAGE] Erro ao carregar cards do IndexedDB:", e);
         currentlySelectedCardIds = new Set(); // Resetar em caso de erro
     }
+
 
     const barraTop = document.createElement('div');
     barraTop.className = 'top-barra-planilha';
@@ -80,7 +141,7 @@
     ];
     createSections(main, sections);
 
-    const data = loadData(planilha);
+    const data = await loadData(planilha);
     if (!data) return;
     header = data[0].map(h => String(h).trim().toUpperCase());
     rows = data.slice(1);
@@ -189,9 +250,9 @@
     if (cards && charts[1]) charts[1].appendChild(cards);
   }
 
-  function loadData(planilha) {
+  async function loadData(planilha) {
     try {
-      return JSON.parse(localStorage.getItem(`planilha_${planilha}`)) || [];
+        return await getItem(`planilha_${planilha}`) || [];
     } catch {
       alert('Erro ao carregar dados.');
       return null;
@@ -237,9 +298,9 @@
     card.className = 'card';
     card.setAttribute('data-selected', 'false');
     const safeTitle = title.replace(/[^a-zA-Z0-9-]/g, '_');
-    const cardContentHash = btoa(unescape(encodeURIComponent(title + result.top + result.avg))).slice(0, 8); 
-    card.id = `original-card-${parentContainerId}-${safeTitle}-${cardContentHash}`; 
-  
+    const cardContentHash = btoa(unescape(encodeURIComponent(title + result.top + result.avg))).slice(0, 8);
+    card.id = `original-card-${parentContainerId}-${safeTitle}-${cardContentHash}`;
+
     const val = result.isNum ? result.avg : `${result.top} (${result.topCount})`;
     card.innerHTML = `<h3>${title}</h3><p>${val}<i class="fas fa-star star-icon"></i></p>`;
 
@@ -286,7 +347,7 @@
               originalCard.classList.remove('selected');
               originalCard.setAttribute('data-selected', 'false');
               currentlySelectedCardIds.delete(originalCard.id); // Remove do Set
-              saveSelectedCards(); // Salva no localStorage
+              saveSelectedCards(); // Salva no IndexedDB
               removeDuplicatedCard(originalCardId);
               console.log(`[DUPLICATE EVENT] Successfully deselected original card and removed duplicated for: ${originalCardId}`); // Debug log
           } else {
@@ -318,12 +379,12 @@
 
   // --- Funções de persistência ---
 
-  function saveSelectedCards() {
+  async function saveSelectedCards() {
       try {
-          localStorage.setItem(SELECTED_CARDS_BASE_STORAGE_KEY + currentPlanilhaName, JSON.stringify(Array.from(currentlySelectedCardIds)));
+          await setItem(SELECTED_CARDS_BASE_STORAGE_KEY + currentPlanilhaName, Array.from(currentlySelectedCardIds));
           console.log(`[STORAGE] Cards selecionados salvos para '${currentPlanilhaName}':`, Array.from(currentlySelectedCardIds));
       } catch (e) {
-          console.error("[STORAGE] Erro ao salvar cards no localStorage:", e);
+          console.error("[STORAGE] Erro ao salvar cards no IndexedDB:", e);
       }
   }
 
@@ -336,7 +397,7 @@
               // Aplicar a classe e atributo 'selected'
               originalCard.classList.add('selected');
               originalCard.setAttribute('data-selected', 'true');
-              
+
               // Extrair title e value para duplicar (garantir que pega o texto correto do DOM)
               const title = originalCard.querySelector('h3') ? originalCard.querySelector('h3').textContent : 'N/A';
               const value = originalCard.querySelector('p') ? originalCard.querySelector('p').textContent : 'N/A';
@@ -350,7 +411,7 @@
               currentlySelectedCardIds.delete(id);
           }
       });
-      
+
       if (foundCardsToReselect.length !== currentlySelectedCardIds.size) {
           saveSelectedCards();
       }

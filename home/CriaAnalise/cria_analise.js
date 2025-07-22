@@ -6,6 +6,31 @@ import firebaseConfig from '/firebase.js';
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
+const DB_NAME = 'agoraDB';
+const STORE_NAME = 'planilhas';
+
+// Abre ou cria o banco de dados IndexedDB
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, 1);
+
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: 'key' });
+      }
+    };
+
+    request.onsuccess = (event) => {
+      resolve(event.target.result);
+    };
+
+    request.onerror = (event) => {
+      reject(event.target.error);
+    };
+  });
+}
+
 /* ==============================
    FUNÇÕES AUXILIARES
 ============================== */
@@ -75,15 +100,29 @@ function convertToUppercase(data) {
   return data.map(row => row.map(cell => (typeof cell === 'string' ? cell.toUpperCase() : cell)));
 }
 
-// Salva dados no LocalStorage
-function saveToLocalStorage(key, data) {
-  try {
-    localStorage.setItem(key, JSON.stringify(data));
-    console.log(`Dados salvos no LocalStorage com a chave "${key}".`);
-  } catch (error) {
-    console.error("Erro ao salvar no LocalStorage:", error);
-  }
+// Salva dados no IndexedDB
+async function saveToIndexedDB(key, data) {
+    try {
+        const db = await openDB();
+        const transaction = db.transaction(STORE_NAME, 'readwrite');
+        const store = transaction.objectStore(STORE_NAME);
+        store.put({ key, value: data });
+
+        return new Promise((resolve, reject) => {
+            transaction.oncomplete = () => {
+                console.log(`Dados salvos no IndexedDB com a chave "${key}".`);
+                resolve();
+            };
+            transaction.onerror = (event) => {
+                console.error("Erro ao salvar no IndexedDB:", event.target.error);
+                reject(event.target.error);
+            };
+        });
+    } catch (error) {
+        console.error("Erro ao abrir o banco de dados:", error);
+    }
 }
+
 
 // Mostra ou oculta o "loading"
 function toggleLoading(show) {
@@ -114,8 +153,8 @@ async function saveData(user, data, fileName) {
     }
   }
 
-  // Salva no LocalStorage com a chave "planilha_{fileName}"
-  saveToLocalStorage(`planilha_${fileName}`, data);
+  // Salva no IndexedDB com a chave "planilha_{fileName}"
+  await saveToIndexedDB(`planilha_${fileName}`, data);
 }
 
 /* ==============================
@@ -176,29 +215,6 @@ function processEvocData(rawData) {
   ];
 }
 
-/*
-async function saveAuxiliaryTable(user, auxiliaryData, fileName) {
-  const chunkSize = 500;
-  const totalRows = auxiliaryData.length;
-  let chunkIndex = 0;
-
-  for (let i = 0; i < totalRows; i += chunkSize) {
-    const chunk = auxiliaryData.slice(i, i + chunkSize);
-    // Exemplo: /users/uid/tabelasAuxiliares/500/chunk_0
-    const chunkRef = ref(database, `/users/${user.uid}/tabelasAuxiliares/${fileName}/chunk_${chunkIndex}`);
-    try {
-      await set(chunkRef, chunk);
-      console.log(`Chunk ${chunkIndex} salvo para a tabela auxiliar "${fileName}".`);
-      chunkIndex++;
-    } catch (error) {
-      throw new Error(`Erro ao salvar chunk ${chunkIndex} da tabela auxiliar: ${error.message}`);
-    }
-  }
-  // Salva no LocalStorage => "planilha_auxiliar_500"
-  saveToLocalStorage(`planilha_auxiliar_${fileName}`, auxiliaryData);
-}
-/*
-
 /* ==============================
    3) SALVAR DATA DE ÚLTIMA ALTERAÇÃO
 ============================== */
@@ -217,8 +233,8 @@ async function saveLastModification(user, fileName) {
   } catch (error) {
     throw new Error(`Erro ao salvar data de última alteração: ${error.message}`);
   }
-  // Salva no LocalStorage => "planilha_ultima_alteracao_500"
-  saveToLocalStorage(`planilha_ultima_alteracao_${fileName}`, today.getTime());
+  // Salva no IndexedDB => "planilha_ultima_alteracao_500"
+  await saveToIndexedDB(`planilha_ultima_alteracao_${fileName}`, today.getTime());
 }
 
 /* ==============================

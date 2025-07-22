@@ -1,196 +1,321 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-import { getDatabase, ref, update, get, remove } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-app.js";
+import { getDatabase, ref, get, set, remove } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
 import firebaseConfig from '/firebase.js';
+
+// =================================================================
+// INICIALIZAÇÃO E CONFIGURAÇÃO
+// =================================================================
 
 // Inicializar Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// 🔹 PEGAR O NOME DA PLANILHA ATUAL PELA URL
-const queryString = window.location.search;
-const urlParams = new URLSearchParams(queryString);
-const planilhaNome = urlParams.get("planilha"); // Nome original da planilha
+// Constantes do IndexedDB
+const DB_NAME = 'agoraDB';
+const STORE_NAME = 'planilhas';
 
-document.querySelector(".menu-bar").innerHTML += ` - ${planilhaNome}`;
+// =================================================================
+// FUNÇÕES AUXILIARES (IndexedDB e Sessão)
+// =================================================================
 
-const userData = sessionStorage.getItem('user');
-const user = JSON.parse(userData);
-const userId = user.uid; // ID do usuário no Firebase
+/**
+ * Abre ou cria o banco de dados IndexedDB.
+ * @returns {Promise<IDBDatabase>}
+ */
+function openDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, 1);
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains(STORE_NAME)) {
+                db.createObjectStore(STORE_NAME, { keyPath: 'key' });
+            }
+        };
+        request.onsuccess = (event) => resolve(event.target.result);
+        request.onerror = (event) => reject(event.target.error);
+    });
+}
 
-// 🔹 Criar o elemento de loading (oculto inicialmente)
-const loadingContainer = document.createElement("div");
-loadingContainer.id = "loading-container";
-loadingContainer.innerHTML = `
-  <div class="loader">
-    <div class="dot"></div>
-    <div class="dot"></div>
-    <div class="dot"></div>
-    <div class="dot"></div>
-    <div class="dot"></div>
-  </div>
-  <p>Aguarde... alterando a planilha.</p>
-`;
-loadingContainer.style.display = "none"; // Começa invisível
-document.body.appendChild(loadingContainer);
+/**
+ * Pega um item do IndexedDB pela chave.
+ * @param {string} key - A chave do item a ser recuperado.
+ * @returns {Promise<any|null>} O valor do item ou nulo se não encontrado.
+ */
+async function getItem(key) {
+    const db = await openDB();
+    const transaction = db.transaction(STORE_NAME, 'readonly');
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.get(key);
 
-// 🔹 FUNÇÃO PARA ALTERAR O NOME
+    return new Promise((resolve, reject) => {
+        request.onsuccess = (event) => {
+            resolve(event.target.result ? event.target.result.value : null);
+        };
+        request.onerror = (event) => reject(event.target.error);
+    });
+}
+
+/**
+ * Salva ou atualiza um item no IndexedDB.
+ * @param {string} key - A chave do item.
+ * @param {any} value - O valor a ser salvo.
+ * @returns {Promise<void>}
+ */
+async function setItem(key, value) {
+    const db = await openDB();
+    const transaction = db.transaction(STORE_NAME, 'readwrite');
+    const store = transaction.objectStore(STORE_NAME);
+    store.put({ key, value });
+
+    return new Promise((resolve, reject) => {
+        transaction.oncomplete = () => resolve();
+        transaction.onerror = (event) => reject(event.target.error);
+    });
+}
+
+/**
+ * Remove um item do IndexedDB pela chave.
+ * @param {string} key - A chave do item a ser removido.
+ * @returns {Promise<void>}
+ */
+async function removeItem(key) {
+    const db = await openDB();
+    const transaction = db.transaction(STORE_NAME, 'readwrite');
+    const store = transaction.objectStore(STORE_NAME);
+    store.delete(key);
+
+    return new Promise((resolve, reject) => {
+        transaction.oncomplete = () => resolve();
+        transaction.onerror = (event) => reject(event.target.error);
+    });
+}
+
+/**
+ * Recupera os dados do usuário da sessionStorage.
+ * @returns {{uid: string}|null} Objeto com o UID do usuário ou nulo em caso de erro.
+ */
+function getUserFromSession() {
+    try {
+        const userData = sessionStorage.getItem('user');
+        if (!userData) throw new Error("Dados do usuário não encontrados na sessão.");
+        const parsedData = JSON.parse(userData);
+        if (!parsedData.uid) throw new Error("UID do usuário inválido.");
+        return { uid: parsedData.uid };
+    } catch (error) {
+        console.error("Erro ao recuperar dados do usuário:", error);
+        Swal.fire({ icon: 'error', title: 'Erro de Autenticação', text: 'Por favor, faça login novamente.' });
+        return null;
+    }
+}
+
+/**
+ * Mostra ou esconde o elemento de loading.
+ * @param {boolean} show - True para mostrar, false para esconder.
+ */
+function toggleLoading(show) {
+    const loadingElement = document.getElementById('loading-container');
+    if (loadingElement) {
+        loadingElement.style.display = show ? 'flex' : 'none';
+    }
+}
+
+
+// =================================================================
+// LÓGICA PRINCIPAL (Alterar Nome e Excluir)
+// =================================================================
+
+/**
+ * Renomeia uma análise no Firebase e no IndexedDB.
+ */
 window.alterarNome = async function () {
-    let novoNome = document.getElementById("nome").value.trim();
-    let botao = document.querySelector("button");
+    const user = getUserFromSession();
+    if (!user) return;
+
+    const novoNome = document.getElementById("nome").value.trim();
+    const urlParams = new URLSearchParams(window.location.search);
+    const nomeAntigo = urlParams.get("planilha");
 
     if (!novoNome) {
-        Swal.fire({
-            icon: "warning",
-            title: "Nome inválido",
-            text: "Digite um nome válido para a planilha!",
-            confirmButtonColor: "#3085d6",
-        });
+        Swal.fire("Atenção", "O novo nome não pode estar vazio.", "warning");
+        return;
+    }
+    if (novoNome === nomeAntigo) {
+        Swal.fire("Informação", "O novo nome é igual ao antigo.", "info");
         return;
     }
 
-    loadingContainer.style.display = "block";
-    botao.disabled = true;
-    botao.innerText = "Alterando...";
-
-    const oldKey = `planilha_${planilhaNome}`;
-    const newKey = `planilha_${novoNome}`;
-    let planilhaData = localStorage.getItem(oldKey);
-
-    if (planilhaData) {
-        localStorage.setItem(newKey, planilhaData);
-        localStorage.removeItem(oldKey);
-        console.log(`Planilha renomeada no LocalStorage: ${oldKey} → ${newKey}`);
-    } else {
-        Swal.fire({
-            icon: "error",
-            title: "Erro",
-            text: "Planilha não encontrada no LocalStorage.",
-            confirmButtonColor: "#d33",
-        });
-        loadingContainer.style.display = "none";
-        botao.disabled = false;
-        botao.innerText = "Enviar";
-        return;
-    }
-
-    // 🔹 Caminhos no Firebase a atualizar
-    const paths = [
-        "planilhas",
-        "UltimasAlteracoes",
-        "tabelasAuxiliares"
-    ];
+    toggleLoading(true);
 
     try {
-        for (const path of paths) {
-            const oldRef = ref(db, `users/${userId}/${path}/${planilhaNome}`);
-            const newRef = ref(db, `users/${userId}/${path}/${novoNome}`);
+        // --- 1. Renomear no Firebase ---
+        const pathsToProcess = ["planilhas", "UltimasAlteracoes", "tabelasAuxiliares", "lematizacoes"];
+        
+        const firebasePromises = pathsToProcess.map(async (path) => {
+            const oldRef = ref(db, `users/${user.uid}/${path}/${nomeAntigo}`);
             const snapshot = await get(oldRef);
 
             if (snapshot.exists()) {
-                const data = snapshot.val();
-                await update(newRef, data);
+                // Para 'planilhas', copia em chunks para evitar erro de "Write too large".
+                // Para outros paths, copia o nó inteiro.
+                if (path === 'planilhas') {
+                    const chunkPromises = [];
+                    snapshot.forEach((chunkSnapshot) => {
+                        const chunkKey = chunkSnapshot.key;
+                        const chunkData = chunkSnapshot.val();
+                        const newChunkRef = ref(db, `users/${user.uid}/${path}/${novoNome}/${chunkKey}`);
+                        chunkPromises.push(set(newChunkRef, chunkData));
+                    });
+                    await Promise.all(chunkPromises);
+                } else {
+                    const data = snapshot.val();
+                    const newRef = ref(db, `users/${user.uid}/${path}/${novoNome}`);
+                    await set(newRef, data);
+                }
+                
+                // Após a cópia bem-sucedida, remove os dados antigos.
                 await remove(oldRef);
-                console.log(`Renomeado: ${path}/${planilhaNome} → ${path}/${novoNome}`);
-            } else {
-                console.warn(`Não encontrado: ${path}/${planilhaNome}`);
+                console.log(`Firebase: '${path}/${nomeAntigo}' renomeado para '${path}/${novoNome}'.`);
             }
-        }
+        });
+
+        // --- 2. Renomear no IndexedDB ---
+        const indexedDBKeys = {
+            main: `planilha_${nomeAntigo}`,
+            modificacao: `planilha_ultima_alteracao_${nomeAntigo}`,
+            // auxiliar: `planilha_auxiliar_${nomeAntigo}` // Descomente se usar
+        };
+        const indexedDBPromises = Object.entries(indexedDBKeys).map(async ([, oldKey]) => {
+            const data = await getItem(oldKey);
+            if (data !== null) {
+                const newKey = oldKey.replace(nomeAntigo, novoNome);
+                await setItem(newKey, data);
+                await removeItem(oldKey);
+                console.log(`IndexedDB: '${oldKey}' renomeado para '${newKey}'.`);
+            }
+        });
+
+        // Aguarda a conclusão de todas as operações
+        await Promise.all([...firebasePromises, ...indexedDBPromises]);
 
         Swal.fire({
             icon: "success",
-            title: "Nome alterado!",
-            text: "A planilha foi renomeada com sucesso.",
-            confirmButtonColor: "#28a745",
+            title: "Sucesso!",
+            text: "A análise foi renomeada.",
         }).then(() => {
-            window.location.href = `?planilha=${novoNome}`;
+            // Redireciona para a página de listagem de análises
+            window.location.href = "/home/SuasAnalises/suas_analises.html";
         });
 
     } catch (error) {
-        console.error("Erro ao atualizar Firebase:", error);
-        Swal.fire({
-            icon: "error",
-            title: "Erro no Firebase",
-            text: "Houve um erro ao atualizar a planilha. Tente novamente.",
-            confirmButtonColor: "#d33",
-        });
+        console.error("Erro ao renomear a análise:", error);
+        Swal.fire("Erro", `Não foi possível renomear a análise. Verifique sua conexão e tente novamente. Detalhes: ${error.message}`, "error");
     } finally {
-        loadingContainer.style.display = "none";
-        botao.disabled = false;
-        botao.innerText = "Enviar";
+        toggleLoading(false);
     }
 };
 
-// 🔹 FUNÇÃO PARA EXCLUIR A PLANILHA
+/**
+ * Exclui permanentemente uma análise do Firebase e do IndexedDB.
+ */
 window.excluirAnalise = async function () {
-    Swal.fire({
-        title: "Tem certeza?",
-        text: `Deseja excluir permanentemente a planilha "${planilhaNome}"? Esta ação não pode ser desfeita.`,
+    const user = getUserFromSession();
+    if (!user) return;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const nomePlanilha = urlParams.get("planilha");
+
+    const result = await Swal.fire({
+        title: "Você tem certeza?",
+        text: `Esta ação excluirá permanentemente a análise "${nomePlanilha}". Isso não pode ser desfeito.`,
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#d33",
         cancelButtonColor: "#3085d6",
-        confirmButtonText: "Sim, excluir",
-        cancelButtonText: "Cancelar"
-    }).then(async (result) => {
-        if (result.isConfirmed) {
-            loadingContainer.style.display = "block";
-
-            // 🔹 Remover do LocalStorage
-            const planilhaKey = `planilha_${planilhaNome}`;
-            const planilhaKey_auxiliar = `planilha_auxiliar_${planilhaNome}`;
-            const planilhaKey_ultima_alteracao = `planilha_ultima_alteracao_${planilhaNome}`;
-            if (localStorage.getItem(planilhaKey)) {
-                localStorage.removeItem(planilhaKey);
-                localStorage.removeItem(planilhaKey_auxiliar);
-                localStorage.removeItem(planilhaKey_ultima_alteracao);
-                console.log(`Planilha "${planilhaKey}" removida do LocalStorage.`);
-                console.log(`Planilha "${planilhaKey_auxiliar}" removida do LocalStorage.`);
-                console.log(`Planilha "${planilhaKey_ultima_alteracao}" removida do LocalStorage.`);
-            }
-
-            try {
-                // 🔹 Referências no Firebase
-                const pathsToDelete = [
-                    `users/${userId}/planilhas/${planilhaNome}`,
-                    `users/${userId}/UltimasAlteracoes/${planilhaNome}`,
-                    `users/${userId}/tabelasAuxiliares/${planilhaNome}`
-                ];
-
-                for (const path of pathsToDelete) {
-                    await remove(ref(db, path));
-                    console.log(`Removido: ${path}`);
-                }
-
-                loadingContainer.style.display = "none";
-
-                Swal.fire({
-                    icon: "success",
-                    title: "Excluído!",
-                    text: `A planilha "${planilhaNome}" foi removida com sucesso.`,
-                    confirmButtonColor: "#28a745",
-                }).then(() => {
-                    window.location.href = "/home/SuasAnalises/suas_analises.html";
-                });
-
-            } catch (error) {
-                console.error("Erro ao excluir no Firebase:", error);
-                Swal.fire({
-                    icon: "error",
-                    title: "Erro ao excluir",
-                    text: "Houve um problema ao excluir a planilha. Tente novamente.",
-                    confirmButtonColor: "#d33",
-                });
-                loadingContainer.style.display = "none";
-            }
-        }
+        confirmButtonText: "Sim, excluir!",
+        cancelButtonText: "Cancelar",
     });
+
+    if (result.isConfirmed) {
+        toggleLoading(true);
+        try {
+            // --- 1. Excluir do Firebase ---
+            const pathsToDelete = ["planilhas", "UltimasAlteracoes", "tabelasAuxiliares", "lematizacoes"];
+            const firebasePromises = pathsToDelete.map(path => {
+                const dataRef = ref(db, `users/${user.uid}/${path}/${nomePlanilha}`);
+                return remove(dataRef);
+            });
+
+            // --- 2. Excluir do IndexedDB ---
+            const keysToRemove = [
+                `planilha_${nomePlanilha}`,
+                `planilha_ultima_alteracao_${nomePlanilha}`,
+                // `planilha_auxiliar_${nomePlanilha}` // Descomente se usar
+            ];
+            const indexedDBPromises = keysToRemove.map(key => removeItem(key));
+
+            await Promise.all([...firebasePromises, ...indexedDBPromises]);
+
+            Swal.fire({
+                icon: "success",
+                title: "Excluído!",
+                text: `A análise "${nomePlanilha}" foi removida com sucesso.`,
+            }).then(() => {
+                window.location.href = "/home/SuasAnalises/suas_analises.html";
+            });
+
+        } catch (error) {
+            console.error("Erro ao excluir a análise:", error);
+            Swal.fire("Erro", `Não foi possível excluir a análise. Verifique sua conexão e tente novamente. Detalhes: ${error.message}`, "error");
+        } finally {
+            toggleLoading(false);
+        }
+    }
 };
 
-const menuAnalisesBtn = document.querySelector(".btn_menu_analises");
-    if (menuAnalisesBtn) {
-      menuAnalisesBtn.addEventListener("click", () => {
-        // Ajuste o caminho abaixo conforme a estrutura do seu projeto
-        const targetUrl = `/home/SuasAnalises/DetalhesPlanilha/menu_da_analise.html?planilha=${encodeURIComponent(planilhaNome)}`;
-        window.location.href = targetUrl;
-      });
+// =================================================================
+// INICIALIZAÇÃO DA PÁGINA
+// =================================================================
+
+document.addEventListener("DOMContentLoaded", () => {
+    // Pega o nome da planilha da URL para exibir no título
+    const urlParams = new URLSearchParams(window.location.search);
+    const planilhaNome = urlParams.get("planilha");
+
+    if (planilhaNome) {
+        const titleElement = document.querySelector(".Title_Menu_da_análise");
+        if (titleElement) {
+            titleElement.textContent = `Menu da análise: ${planilhaNome}`;
+        }
     }
+    
+    // Configura o botão de voltar
+    const menuAnalisesBtn = document.querySelector(".btn_menu_analises");
+    if (menuAnalisesBtn) {
+        menuAnalisesBtn.addEventListener("click", () => {
+            const targetUrl = `/home/SuasAnalises/DetalhesPlanilha/menu_da_analise.html?planilha=${encodeURIComponent(planilhaNome)}`;
+            window.location.href = targetUrl;
+        });
+    }
+
+    // Cria o elemento de loading e o adiciona ao body
+    const loadingContainer = document.createElement("div");
+    loadingContainer.id = "loading-container";
+    loadingContainer.style.display = "none"; // Começa oculto
+    loadingContainer.style.position = "fixed";
+    loadingContainer.style.top = "0";
+    loadingContainer.style.left = "0";
+    loadingContainer.style.width = "100%";
+    loadingContainer.style.height = "100%";
+    loadingContainer.style.backgroundColor = "rgba(0, 0, 0, 0.7)";
+    loadingContainer.style.justifyContent = "center";
+    loadingContainer.style.alignItems = "center";
+    loadingContainer.style.zIndex = "1000";
+    loadingContainer.style.flexDirection = "column";
+    loadingContainer.innerHTML = `
+      <div class="loader">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+      <p style="color: white; margin-top: 20px;">Processando sua solicitação...</p>
+    `;
+    document.body.appendChild(loadingContainer);
+});

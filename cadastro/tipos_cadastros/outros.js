@@ -56,11 +56,31 @@ form.addEventListener("submit", async (e) => {
         });
         form.reset(); // Reseta o formulário
         window.location.href = "../../index.html";
-    } catch (error) {
-        Swal.fire({
-            icon: "error",
-            title: "Erro ao cadastrar",
-            text: "Devido a algum motivo, não foi possível realizar o cadastro",
-        });
+    // ... (código anterior do try)
+} catch (error) {
+    console.error("Erro detalhado do Firebase:", error); // Adicione isso para ver o erro completo no console
+    
+    // Mapeia os códigos de erro do Firebase para mensagens amigáveis
+    let mensagemErro = "Não foi possível realizar o cadastro. Tente novamente.";
+    switch (error.code) {
+        case 'auth/email-already-in-use':
+            mensagemErro = "Este endereço de e-mail já está em uso por outra conta.";
+            break;
+        case 'auth/invalid-email':
+            mensagemErro = "O endereço de e-mail fornecido não é válido.";
+            break;
+        case 'auth/weak-password':
+            mensagemErro = "A senha é muito fraca. Ela deve ter no mínimo 6 caracteres.";
+            break;
+        case 'auth/network-request-failed':
+            mensagemErro = "Houve um problema de conexão com a internet. Verifique sua rede.";
+            break;
     }
+
+    Swal.fire({
+        icon: "error",
+        title: "Erro ao Cadastrar",
+        text: mensagemErro, // Exibe a mensagem específica do erro
+    });
+}
 });

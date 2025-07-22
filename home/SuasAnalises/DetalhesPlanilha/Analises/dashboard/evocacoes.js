@@ -13,6 +13,49 @@ let currentSearch = "";
 let currentSortColumn = null;
 let currentSortDirection = "desc";
 
+const DB_NAME = 'agoraDB';
+const STORE_NAME = 'planilhas';
+
+// Abre ou cria o banco de dados IndexedDB
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, 1);
+
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: 'key' });
+      }
+    };
+
+    request.onsuccess = (event) => {
+      resolve(event.target.result);
+    };
+
+    request.onerror = (event) => {
+      reject(event.target.error);
+    };
+  });
+}
+
+// Pega um item do IndexedDB
+async function getItem(key) {
+    const db = await openDB();
+    const transaction = db.transaction(STORE_NAME, 'readonly');
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.get(key);
+
+    return new Promise((resolve, reject) => {
+        request.onsuccess = (event) => {
+            resolve(event.target.result ? event.target.result.value : null);
+        };
+        request.onerror = (event) => {
+            reject(event.target.error);
+        };
+    });
+}
+
+
 // Filtro de fusões
 window.filtroFusoes = false;
 window.selectedEvocacoes = [];
@@ -57,7 +100,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   try {
-    const data = JSON.parse(localStorage.getItem(`planilha_${planilhaNome}`));
+    const data = await getItem(`planilha_${planilhaNome}`);
     if (!data || data.length === 0) {
       Swal.fire({ icon: 'error', title: 'Erro!', text: "Nenhum dado encontrado para esta planilha." });
       return;
@@ -92,7 +135,8 @@ function processarTabela(data) {
     for (let j = 0; j < header.length; j++) {
       const coluna = header[j].toUpperCase();
       if (/^EVOC[1-9]$|^EVOC10$/.test(coluna)) {
-        const palavra = (row[j] || "").trim().toUpperCase();
+        // LINHA CORRIGIDA AQUI
+        const palavra = String(row[j] || "").trim().toUpperCase();
         if (!palavra || palavra === "VAZIO") continue;
         if (!palavraContagem[palavra]) {
           palavraContagem[palavra] = { total: 0, ego: 0, alter: 0 };
