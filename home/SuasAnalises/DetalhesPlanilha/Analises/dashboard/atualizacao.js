@@ -6,6 +6,65 @@ import firebaseConfig from '/firebase.js';
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
+const DB_NAME = 'agoraDB';
+const STORE_NAME = 'planilhas';
+
+// Abre ou cria o banco de dados IndexedDB
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, 1);
+
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: 'key' });
+      }
+    };
+
+    request.onsuccess = (event) => {
+      resolve(event.target.result);
+    };
+
+    request.onerror = (event) => {
+      reject(event.target.error);
+    };
+  });
+}
+
+// Pega um item do IndexedDB
+async function getItem(key) {
+    const db = await openDB();
+    const transaction = db.transaction(STORE_NAME, 'readonly');
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.get(key);
+
+    return new Promise((resolve, reject) => {
+        request.onsuccess = (event) => {
+            resolve(event.target.result ? event.target.result.value : null);
+        };
+        request.onerror = (event) => {
+            reject(event.target.error);
+        };
+    });
+}
+
+// Adiciona ou atualiza um item no IndexedDB
+async function setItem(key, value) {
+    const db = await openDB();
+    const transaction = db.transaction(STORE_NAME, 'readwrite');
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.put({ key, value });
+
+    return new Promise((resolve, reject) => {
+        transaction.oncomplete = () => {
+            resolve();
+        };
+        transaction.onerror = (event) => {
+            reject(event.target.error);
+        };
+    });
+}
+
 // Pega o nome da planilha a partir da URL
 const urlParams = new URLSearchParams(window.location.search);
 const planilhaNome = urlParams.get("planilha");
@@ -27,36 +86,55 @@ function getUserFromSession() {
     }
 }
 
-const planilhasUltimaAlteracao = {};
+async function getAllAlteracaoKeys() {
+    const db = await openDB();
+    const transaction = db.transaction(STORE_NAME, 'readonly');
+    const store = transaction.objectStore(STORE_NAME);
+    const getAllKeysRequest = store.getAllKeys();
 
-Object.keys(localStorage).forEach(key => {
-    try {
-        if (key.startsWith("planilha_") && key.startsWith("planilha_ultima_alteracao_")) {
+    return new Promise((resolve, reject) => {
+        getAllKeysRequest.onsuccess = (event) => {
+            resolve(event.target.result.filter(key => key.startsWith("planilha_ultima_alteracao_")));
+        };
+        getAllKeysRequest.onerror = (event) => {
+            reject(event.target.error);
+        };
+    });
+}
+
+
+async function loadAlteracoes() {
+    const planilhasUltimaAlteracao = {};
+    const keys = await getAllAlteracaoKeys();
+
+    for (const key of keys) {
+        try {
             const nomePlanilha = key.replace("planilha_ultima_alteracao_", "");
-            planilhasUltimaAlteracao[nomePlanilha] = JSON.parse(localStorage.getItem(key));
+            planilhasUltimaAlteracao[nomePlanilha] = await getItem(key);
+        } catch (error) {
+            console.error(`Erro ao ler a chave "${key}" do IndexedDB:`, error);
         }
-    } catch (error) {
-        console.error(`Erro ao ler a chave "${key}" do LocalStorage:`, error);
     }
-});
+    return planilhasUltimaAlteracao;
+}
 
-// Compara os valores do localStorage e Firebase (agora usando números, não mais timestamp)
+
+// Compara os valores do IndexedDB e Firebase (agora usando números, não mais timestamp)
 async function compareData(user, fileName) {
     try {
-        // A chave no localStorage que contém o número da última alteração
-        const localStorageKey = `planilha_ultima_alteracao_${fileName}`;
-        const today = new Date();
+        // A chave no IndexedDB que contém o número da última alteração
+        const indexedDBKey = `planilha_ultima_alteracao_${fileName}`;
 
-        // Recupera o valor salvo no localStorage (número da última alteração)
-        const localStorageData = localStorage.getItem(localStorageKey);
+        // Recupera o valor salvo no IndexedDB (número da última alteração)
+        const indexedDBData = await getItem(indexedDBKey);
 
-        if (!localStorageData) {
-            console.warn("Dado do localStorage não encontrado.");
+        if (!indexedDBData) {
+            console.warn("Dado do IndexedDB não encontrado.");
             return;
         }
 
-        const localStorageValue = localStorageData;
-        console.log("Valor do localStorage:", localStorageValue);
+        const indexedDBValue = indexedDBData;
+        console.log("Valor do IndexedDB:", indexedDBValue);
 
         // A referência no Firebase que contém o número da última alteração
         const firebaseRef = ref(database, `/users/${user.uid}/UltimasAlteracoes/${fileName}`);
@@ -72,13 +150,13 @@ async function compareData(user, fileName) {
 
         console.log("Valor do Firebase:", firebaseValue);
 
-        if (localStorageValue === firebaseValue) {
+        if (indexedDBValue === firebaseValue) {
             console.log("Valores IGUAIS.");
         } else {
             console.log("Valores DIFERENTES.");
             await fetchAndSavePlanilha(user, fileName);
             await fetchAndSaveAuxiliaryTable(user, fileName);
-            saveTimestampToLocalStorage(`${fileName}`, firebaseValue);
+            saveTimestampToIndexedDB(`${fileName}`, firebaseValue);
         }
 
     } catch (error) {
@@ -86,7 +164,7 @@ async function compareData(user, fileName) {
     }
 }
 
-// Busca a planilha do Firebase e salva no localStorage
+// Busca a planilha do Firebase e salva no IndexedDB
 async function fetchAndSavePlanilha(user, fileName) {
     const fileRef = ref(database, `/users/${user.uid}/planilhas/${fileName}`);
 
@@ -105,20 +183,20 @@ async function fetchAndSavePlanilha(user, fileName) {
             fullPlanilhaData = fullPlanilhaData.concat(planilhaChunks[chunkKey]);
         });
 
-        saveToLocalStorage(fileName, fullPlanilhaData);
+        saveToIndexedDB(fileName, fullPlanilhaData);
     } catch (error) {
         console.error("Erro ao buscar planilha:", error);
     }
 }
 
-// Salva a planilha no localStorage
-function saveToLocalStorage(fileName, data) {
+// Salva a planilha no IndexedDB
+async function saveToIndexedDB(fileName, data) {
     try {
         const key = `planilha_${fileName}`;
-        localStorage.setItem(key, JSON.stringify(data));
-        console.log(`Planilha "${fileName}" salva no localStorage.`);
+        await setItem(key, data);
+        console.log(`Planilha "${fileName}" salva no IndexedDB.`);
     } catch (error) {
-        console.error("Erro ao salvar no localStorage:", error);
+        console.error("Erro ao salvar no IndexedDB:", error);
     }
 }
 
@@ -127,18 +205,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     const user = getUserFromSession();
     if (!user || !planilhaNome) return;
 
-    await compareData(user, planilhaNome);
+    // Atrasamos a execução para dar tempo da página renderizar completamente
+    setTimeout(() => {
+        compareData(user, planilhaNome);
+    }, 500); // Atraso de 500ms (meio segundo)
 });
 
-// Salva o número no localStorage
-function saveTimestampToLocalStorage(fileName, value) {
+// Salva o número no IndexedDB
+async function saveTimestampToIndexedDB(fileName, value) {
     try {
         const key = `planilha_ultima_alteracao_${fileName}`;
-        localStorage.setItem(key, value);
-        console.log(`Número salvo no localStorage para "${fileName}":`, value);
+        await setItem(key, value);
+        console.log(`Número salvo no IndexedDB para "${fileName}":`, value);
         setTimeout(location.reload(),1000);
     } catch (error) {
-        console.error("Erro ao salvar o número no localStorage:", error);
+        console.error("Erro ao salvar o número no IndexedDB:", error);
     }
 }
 
@@ -160,12 +241,11 @@ async function fetchAndSaveAuxiliaryTable(user, fileName) {
             fullAuxData = fullAuxData.concat(auxChunks[chunkKey]);
         });
 
-        // Salva no localStorage com a mesma chave usada originalmente
-        saveToLocalStorage(`auxiliar_${fileName}`, fullAuxData);
-        console.log(`Tabela auxiliar "${fileName}" salva no localStorage.`);
+        // Salva no IndexedDB com a mesma chave usada originalmente
+        await saveToIndexedDB(`auxiliar_${fileName}`, fullAuxData);
+        console.log(`Tabela auxiliar "${fileName}" salva no IndexedDB.`);
 
     } catch (error) {
         console.error("Erro ao buscar tabela auxiliar:", error);
     }
 }
-

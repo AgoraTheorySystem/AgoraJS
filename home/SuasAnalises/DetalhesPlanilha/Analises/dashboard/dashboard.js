@@ -8,12 +8,71 @@
 
   const DATALABELS_URL = 'https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js';
 
+  const DB_NAME = 'agoraDB';
+  const STORE_NAME = 'planilhas';
+
   const chartConfig = {
     egoCardsChart: { title: 'Análise de Frequência EGO', subtitle: 'Distribuição de respostas por cada EGO' },
     egoChart: { title: 'Termos Principais EGO', subtitle: 'Top 4 termos mais frequentes em EGO' },
     alterCardsChart: { title: 'Análise de Frequência ALTER', subtitle: 'Distribuição de respostas por cada ALTER' },
     alterChart: { title: 'Termos Principais ALTER', subtitle: 'Top 4 termos mais frequentes em ALTER' }
   };
+
+  // Abre ou cria o banco de dados IndexedDB
+  function openDB() {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(DB_NAME, 1);
+
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME, { keyPath: 'key' });
+        }
+      };
+
+      request.onsuccess = (event) => {
+        resolve(event.target.result);
+      };
+
+      request.onerror = (event) => {
+        reject(event.target.error);
+      };
+    });
+  }
+
+    // Pega um item do IndexedDB
+    async function getItem(key) {
+        const db = await openDB();
+        const transaction = db.transaction(STORE_NAME, 'readonly');
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.get(key);
+
+        return new Promise((resolve, reject) => {
+            request.onsuccess = (event) => {
+                resolve(event.target.result ? event.target.result.value : null);
+            };
+            request.onerror = (event) => {
+                reject(event.target.error);
+            };
+        });
+    }
+
+    // Adiciona ou atualiza um item no IndexedDB
+    async function setItem(key, value) {
+        const db = await openDB();
+        const transaction = db.transaction(STORE_NAME, 'readwrite');
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.put({ key, value });
+
+        return new Promise((resolve, reject) => {
+            transaction.oncomplete = () => {
+                resolve();
+            };
+            transaction.onerror = (event) => {
+                reject(event.target.error);
+            };
+        });
+    }
 
   function loadScript(url) {
     return new Promise((resolve, reject) => {
@@ -34,10 +93,11 @@
     .catch(console.warn)
     .finally(runDashboard);
 
-  function runDashboard() {
+  async function runDashboard() {
     const planilha = new URLSearchParams(location.search).get('planilha');
     if (!planilha) return alert("Falta o parâmetro 'planilha' na URL.");
 
+<<<<<<< HEAD
     currentPlanilhaName = planilha;
 
     try {
@@ -45,7 +105,19 @@
     } catch (e) {
       console.error("[STORAGE] Erro ao carregar cards do localStorage:", e);
       currentlySelectedCardIds = new Set();
+=======
+    currentPlanilhaName = planilha; // Armazena o nome da planilha
+    // Carrega os IDs selecionados com base na planilha atual do IndexedDB
+    try {
+        const savedCards = await getItem(SELECTED_CARDS_BASE_STORAGE_KEY + currentPlanilhaName);
+        currentlySelectedCardIds = new Set(savedCards || []);
+        console.log(`[STORAGE] Carregando cards selecionados para '${currentPlanilhaName}':`, Array.from(currentlySelectedCardIds));
+    } catch (e) {
+        console.error("[STORAGE] Erro ao carregar cards do IndexedDB:", e);
+        currentlySelectedCardIds = new Set(); // Resetar em caso de erro
+>>>>>>> c79f5825b9851fac7dd356bb5a4d8a070f5d621b
     }
+
 
     const barraTop = document.createElement('div');
     barraTop.className = 'top-barra-planilha';
@@ -80,7 +152,7 @@
     ];
     createSections(main, sections);
 
-    const data = loadData(planilha);
+    const data = await loadData(planilha);
     if (!data) return;
 
     header = data[0].map(h => String(h).trim().toUpperCase()); // <- FIX: não é mais const
@@ -143,9 +215,9 @@
     if (cards && charts[1]) charts[1].appendChild(cards);
   }
 
-  function loadData(planilha) {
+  async function loadData(planilha) {
     try {
-      return JSON.parse(localStorage.getItem(`planilha_${planilha}`)) || [];
+        return await getItem(`planilha_${planilha}`) || [];
     } catch {
       alert('Erro ao carregar dados.');
       return null;
@@ -190,6 +262,10 @@
     const safeTitle = title.replace(/[^a-zA-Z0-9-]/g, '_');
     const cardContentHash = btoa(unescape(encodeURIComponent(title + result.top + result.avg))).slice(0, 8);
     card.id = `original-card-${parentContainerId}-${safeTitle}-${cardContentHash}`;
+<<<<<<< HEAD
+=======
+
+>>>>>>> c79f5825b9851fac7dd356bb5a4d8a070f5d621b
     const val = result.isNum ? result.avg : `${result.top} (${result.topCount})`;
     card.innerHTML = `<h3>${title}</h3><p>${val}<i class="far fa-star star-icon"></i></p>`;
 
@@ -232,12 +308,43 @@
         const star = originalCard.querySelector('.star-icon');
         if (star) star.classList.replace('fas', 'far');
       }
+<<<<<<< HEAD
       currentlySelectedCardIds.delete(originalCardId);
       saveSelectedCards();
       removeDuplicatedCard(originalCardId);
     });
     topContainer.appendChild(clonedCard);
     updateNoFavoritesMessage();
+=======
+
+      const clonedCard = document.createElement('div');
+      clonedCard.className = 'card duplicated-card';
+      clonedCard.id = `cloned-${originalCardId}`;
+      clonedCard.innerHTML = `<h3>${title}</h3><p>${value}</p>`;
+
+      clonedCard.addEventListener('click', function(event) {
+          event.stopPropagation();
+          console.log(`[DUPLICATE EVENT] Clicked duplicated card: ${clonedCard.id}. Attempting to deselect original: ${originalCardId}`); // Debug log
+          const originalCard = document.getElementById(originalCardId);
+          if (originalCard) {
+              originalCard.classList.remove('selected');
+              originalCard.setAttribute('data-selected', 'false');
+              currentlySelectedCardIds.delete(originalCard.id); // Remove do Set
+              saveSelectedCards(); // Salva no IndexedDB
+              removeDuplicatedCard(originalCardId);
+              console.log(`[DUPLICATE EVENT] Successfully deselected original card and removed duplicated for: ${originalCardId}`); // Debug log
+          } else {
+              console.error(`[DUPLICATE EVENT] Original card with ID ${originalCardId} not found when clicking duplicated card. Removing only duplicated.`); // Debug log
+              currentlySelectedCardIds.delete(originalCardId); // Limpa do armazenamento se o original não for encontrado
+              saveSelectedCards(); // Salva
+              removeDuplicatedCard(originalCardId);
+          }
+      });
+
+      topContainer.appendChild(clonedCard);
+      console.log(`[DUPLICATE] Duplicated card added: ${clonedCard.id}`); // Debug log
+    }
+>>>>>>> c79f5825b9851fac7dd356bb5a4d8a070f5d621b
   }
 
   function removeDuplicatedCard(originalCardId) {
@@ -256,6 +363,7 @@
     }
   }
 
+<<<<<<< HEAD
   function reapplySelectedState() {
     currentlySelectedCardIds.forEach(id => {
       const originalCard = document.getElementById(id);
@@ -267,6 +375,45 @@
         duplicateCardToTop(originalCard.id, title, value);
       } else {
         currentlySelectedCardIds.delete(id);
+=======
+  // --- Funções de persistência ---
+
+  async function saveSelectedCards() {
+      try {
+          await setItem(SELECTED_CARDS_BASE_STORAGE_KEY + currentPlanilhaName, Array.from(currentlySelectedCardIds));
+          console.log(`[STORAGE] Cards selecionados salvos para '${currentPlanilhaName}':`, Array.from(currentlySelectedCardIds));
+      } catch (e) {
+          console.error("[STORAGE] Erro ao salvar cards no IndexedDB:", e);
+      }
+  }
+
+  function reapplySelectedState() {
+      console.log(`[STORAGE] Reaplicando estado selecionado para '${currentPlanilhaName}'. IDs a re-aplicar:`, Array.from(currentlySelectedCardIds));
+      const foundCardsToReselect = []; // Para depurar cards não encontrados
+      currentlySelectedCardIds.forEach(id => {
+          const originalCard = document.getElementById(id);
+          if (originalCard) {
+              // Aplicar a classe e atributo 'selected'
+              originalCard.classList.add('selected');
+              originalCard.setAttribute('data-selected', 'true');
+
+              // Extrair title e value para duplicar (garantir que pega o texto correto do DOM)
+              const title = originalCard.querySelector('h3') ? originalCard.querySelector('h3').textContent : 'N/A';
+              const value = originalCard.querySelector('p') ? originalCard.querySelector('p').textContent : 'N/A';
+
+              duplicateCardToTop(originalCard.id, title, value);
+              foundCardsToReselect.push(id); // Adiciona aos encontrados
+              console.log(`[STORAGE] Re-selecionado e duplicado card: ${id}`);
+          } else {
+              console.warn(`[STORAGE] Card com ID ${id} não encontrado durante reapplySelectedState. Removendo do armazenamento.`);
+              // Se o card original não for encontrado, remove-o do armazenamento para evitar problemas futuros.
+              currentlySelectedCardIds.delete(id);
+          }
+      });
+
+      if (foundCardsToReselect.length !== currentlySelectedCardIds.size) {
+          saveSelectedCards();
+>>>>>>> c79f5825b9851fac7dd356bb5a4d8a070f5d621b
       }
     });
     saveSelectedCards();

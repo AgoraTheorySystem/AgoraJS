@@ -84,8 +84,24 @@ function logout() {
     const auth = getAuth();
     signOut(auth).then(() => {
         sessionStorage.clear();
-        localStorage.clear();
-        window.location.href = '/index.html';
+        const DBDeleteRequest = window.indexedDB.deleteDatabase('agoraDB');
+
+        DBDeleteRequest.onerror = function(event) {
+          console.log("Error deleting database.");
+        };
+
+        DBDeleteRequest.onsuccess = function(event) {
+          console.log("Database deleted successfully");
+          // Redireciona somente após o banco de dados ser excluído com sucesso.
+          window.location.href = '/index.html';
+        };
+
+        DBDeleteRequest.onblocked = function(event) {
+            console.log("Database delete blocked. Please close other connections.");
+            // Lida com o caso em que o banco de dados está bloqueado.
+            // Você pode querer informar o usuário.
+        };
+
     }).catch((error) => {
         console.error('Erro ao deslogar:', error);
     });
@@ -93,7 +109,7 @@ function logout() {
 
 // Construir o menu lateral
 function generateSidebarMenu() {
-    const isHome = window.location.pathname.includes('/home/home.html'); 
+    const isHome = window.location.pathname.includes('/home/home.html');
     const body = document.body;
 
     const html = `

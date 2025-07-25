@@ -76,7 +76,7 @@ body {
     border-radius: 15px;
     padding: 30px;
     text-align: center;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.3s ease, background-color 0.3s ease;
     cursor: pointer;
     box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
     border: 1px solid #3a3a4e;
@@ -84,9 +84,9 @@ body {
 
 /* Ajustes de hover no card */
 .card:hover {
-    transform: scale(1.05); /* Aumenta o efeito de hover */
-    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.5);
-    background-color: #1e5c57; /* Cor um pouco mais escura no hover */
+    transform: scale(1.05) translateY(-5px); /* Efeito de levantar o card */
+    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.5); /* A sombra é aplicada instantaneamente, sem transição pesada */
+    background-color: #1e5c57;
 }
 
 /* Ajustes de imagem no card */

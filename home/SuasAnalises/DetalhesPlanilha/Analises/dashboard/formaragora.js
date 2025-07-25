@@ -7,6 +7,49 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
+  const DB_NAME = 'agoraDB';
+  const STORE_NAME = 'planilhas';
+
+  // Abre ou cria o banco de dados IndexedDB
+  function openDB() {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(DB_NAME, 1);
+
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME, { keyPath: 'key' });
+        }
+      };
+
+      request.onsuccess = (event) => {
+        resolve(event.target.result);
+      };
+
+      request.onerror = (event) => {
+        reject(event.target.error);
+      };
+    });
+  }
+
+  // Pega um item do IndexedDB
+  async function getItem(key) {
+      const db = await openDB();
+      const transaction = db.transaction(STORE_NAME, 'readonly');
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.get(key);
+
+      return new Promise((resolve, reject) => {
+          request.onsuccess = (event) => {
+              resolve(event.target.result ? event.target.result.value : null);
+          };
+          request.onerror = (event) => {
+              reject(event.target.error);
+          };
+      });
+  }
+
+
   // Armazena a palavra selecionada em cada um dos 5 níveis
   const selectedWords = Array(5).fill(null);
   // Guarda referência aos containers de cada planilha (nível)
@@ -24,7 +67,6 @@ document.addEventListener("DOMContentLoaded", () => {
       extraOpcao.style.display = "none";
     }
   }
-
   // Inicializa a visibilidade correta assim que a página carrega
   atualizarVisibilidadeExtraOpcao();
 
@@ -106,15 +148,16 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentPage = 1;
     let currentSearch = "";
 
-    // Busca os dados brutos no localStorage
-    function loadData() {
-      const key = `planilha_${planilhaNome}`;
-      try {
-        const raw = localStorage.getItem(key);
-        return raw ? JSON.parse(raw) : [];
-      } catch {
-        return [];
-      }
+    // Busca os dados brutos no IndexedDB
+    async function loadData() {
+        const key = `planilha_${planilhaNome}`;
+        try {
+            const raw = await getItem(key);
+            return raw || [];
+        } catch (error) {
+            console.error(error);
+            return [];
+        }
     }
 
     // Calcula frequência das palavras no intervalo (Ego: EVOC1–5 ou Alter: EVOC6–10),
@@ -219,7 +262,7 @@ document.addEventListener("DOMContentLoaded", () => {
           td2.textContent = count;
           tr.append(td1, td2);
 
-          // Ao clicar, marca-se como palavra selecionada no nível, 
+          // Ao clicar, marca-se como palavra selecionada no nível,
           // limpa-se seleções abaixo e refaz tabelas dos níveis superiores
           tr.addEventListener("click", () => {
             selectedWords[level - 1] = word;
@@ -277,18 +320,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Processo inicial de carregamento de dados e renderização
     container.loading.style.display = "block";
-    setTimeout(() => {
-      const data = loadData();
-      if (data.length < 2) {
+    loadData().then(data => {
+        if (data.length < 2) {
+          container.loading.style.display = "none";
+          return;
+        }
+        headerData = data[0];
+        tableData = data.slice(1);
+        renderTableHeader();
+        renderTable(1);
         container.loading.style.display = "none";
-        return;
-      }
-      headerData = data[0];
-      tableData = data.slice(1);
-      renderTableHeader();
-      renderTable(1);
-      container.loading.style.display = "none";
-    }, 300);
+    });
 
     // Ao mudar de "aspecto" (Ego/Alter), refaz a tabela deste nível
     document

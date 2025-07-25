@@ -9,6 +9,9 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
+  const DB_NAME = 'agoraDB';
+  const STORE_NAME = 'planilhas';
+
   let data = [];
   let filteredData = [];
   let headerData = [];
@@ -16,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentQuery = "";
   let currentPage = 1;
   const rowsPerPage = 10;
-  
+
   // Seleciona os elementos do DOM referentes à tabela, paginação e filtro
   const table = document.getElementById("data-table");
   const tableHead = table.querySelector("thead");
@@ -27,14 +30,53 @@ document.addEventListener("DOMContentLoaded", () => {
   const loadingDiv = document.getElementById("loading");
   const filterInput = document.getElementById("filter-input");
 
-  // Função para carregar dados do LocalStorage
-  function loadFromLocalStorage(fileName) {
+  // Abre ou cria o banco de dados IndexedDB
+  function openDB() {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(DB_NAME, 1);
+
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME, { keyPath: 'key' });
+        }
+      };
+
+      request.onsuccess = (event) => {
+        resolve(event.target.result);
+      };
+
+      request.onerror = (event) => {
+        reject(event.target.error);
+      };
+    });
+  }
+
+  // Pega um item do IndexedDB
+  async function getItem(key) {
+    const db = await openDB();
+    const transaction = db.transaction(STORE_NAME, 'readonly');
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.get(key);
+
+    return new Promise((resolve, reject) => {
+        request.onsuccess = (event) => {
+            resolve(event.target.result ? event.target.result.value : null);
+        };
+        request.onerror = (event) => {
+            reject(event.target.error);
+        };
+    });
+  }
+
+  // Função para carregar dados do IndexedDB
+  async function loadFromIndexedDB(fileName) {
     const key = `planilha_${fileName}`;
-    const storedData = localStorage.getItem(key);
     try {
-      return storedData ? JSON.parse(storedData) : [];
+        const storedData = await getItem(key);
+        return storedData ? storedData : [];
     } catch (error) {
-      console.error("Erro ao ler os dados do LocalStorage:", error);
+      console.error("Erro ao ler os dados do IndexedDB:", error);
       return [];
     }
   }
@@ -63,14 +105,14 @@ document.addEventListener("DOMContentLoaded", () => {
       tableHead.appendChild(headerRow);
     }
   }
-  
+
   // Renderiza o corpo da tabela com os dados paginados e destaca o termo pesquisado
   function renderTable(page) {
     tableBody.innerHTML = "";
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
     const paginatedData = filteredData.slice(start, end);
-  
+
     if (paginatedData.length === 0) {
       const row = document.createElement("tr");
       const cell = document.createElement("td");
@@ -92,7 +134,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     updatePagination();
   }
-  
+
   // Atualiza os botões e os números da paginação
   function updatePagination() {
     const totalPages = Math.max(1, Math.ceil(filteredData.length / rowsPerPage));
@@ -120,7 +162,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
   }
-  
+
   // Função auxiliar para determinar quais números de página exibir:
   // Exibe somente 2 páginas anteriores e 2 posteriores à página atual.
   function getPageNumbers(totalPages, currentPage) {
@@ -146,7 +188,7 @@ document.addEventListener("DOMContentLoaded", () => {
     currentPage = 1;
     renderTable(currentPage);
   }
-  
+
   // Função debounce para otimizar o filtro enquanto o usuário digita
   function debounce(func, delay) {
     let timeoutId;
@@ -157,12 +199,12 @@ document.addEventListener("DOMContentLoaded", () => {
       }, delay);
     };
   }
-  
+
   // Exibe ou oculta o elemento de loading
   function showLoading(show) {
     loadingDiv.style.display = show ? "block" : "none";
   }
-  
+
   // Navegação entre páginas
   function goToPreviousPage() {
     if (currentPage > 1) {
@@ -170,7 +212,7 @@ document.addEventListener("DOMContentLoaded", () => {
       renderTable(currentPage);
     }
   }
-  
+
   function goToNextPage() {
     const totalPages = Math.ceil(filteredData.length / rowsPerPage);
     if (currentPage < totalPages) {
@@ -178,33 +220,31 @@ document.addEventListener("DOMContentLoaded", () => {
       renderTable(currentPage);
     }
   }
-  
+
   // Atribui os eventos aos botões e ao campo de filtro
   prevBtn.addEventListener("click", goToPreviousPage);
   nextBtn.addEventListener("click", goToNextPage);
   filterInput.addEventListener("input", debounce((e) => {
     applyFilter(e.target.value.trim().toLowerCase());
   }, 300));
-  
-  // Inicializa a tabela com os dados do LocalStorage
-  function init() {
+
+  // Inicializa a tabela com os dados do IndexedDB
+  async function init() {
     showLoading(true);
-    setTimeout(() => {
-      data = loadFromLocalStorage(planilhaNome);
-      if (data.length === 0) {
-        showLoading(false);
-        return;
-      }
-      // Separa a primeira linha (cabeçalho) dos dados
-      headerData = data[0];
-      tableData = data.slice(1);
-      // Inicialmente, o filtro utiliza todos os dados do corpo
-      filteredData = tableData;
-      renderTableHeader();
-      renderTable(currentPage);
+    data = await loadFromIndexedDB(planilhaNome);
+    if (data.length === 0) {
       showLoading(false);
-    }, 1000);
+      return;
+    }
+    // Separa a primeira linha (cabeçalho) dos dados
+    headerData = data[0];
+    tableData = data.slice(1);
+    // Inicialmente, o filtro utiliza todos os dados do corpo
+    filteredData = tableData;
+    renderTableHeader();
+    renderTable(currentPage);
+    showLoading(false);
   }
-  
+
   init();
 });
