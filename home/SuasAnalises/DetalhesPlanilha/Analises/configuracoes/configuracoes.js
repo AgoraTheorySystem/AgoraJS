@@ -48,6 +48,18 @@ window.alterarNome = async function () {
         return;
     }
 
+    const confirmacao = await Swal.fire({
+        title: 'Alterar nome da planilha?',
+        text: `Deseja realmente alterar o nome para "${novoNome}"?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sim, alterar',
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (!confirmacao.isConfirmed) return;
+
+
     loadingContainer.style.display = "block";
     botao.disabled = true;
     botao.innerText = "Alterando...";
@@ -123,8 +135,8 @@ window.alterarNome = async function () {
 // 🔹 FUNÇÃO PARA EXCLUIR A PLANILHA
 window.excluirAnalise = async function () {
     Swal.fire({
-        title: "Tem certeza?",
-        text: `Deseja excluir permanentemente a planilha "${planilhaNome}"? Esta ação não pode ser desfeita.`,
+        title: "Excluir análise?",
+        text: `Você está prestes a excluir permanentemente a planilha "${planilhaNome}". Esta ação não poderá ser desfeita. Deseja continuar?`,
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#d33",
@@ -132,6 +144,7 @@ window.excluirAnalise = async function () {
         confirmButtonText: "Sim, excluir",
         cancelButtonText: "Cancelar"
     }).then(async (result) => {
+
         if (result.isConfirmed) {
             loadingContainer.style.display = "block";
 
@@ -187,10 +200,8 @@ window.excluirAnalise = async function () {
 };
 
 const menuAnalisesBtn = document.querySelector(".btn_menu_analises");
-    if (menuAnalisesBtn) {
-      menuAnalisesBtn.addEventListener("click", () => {
-        // Ajuste o caminho abaixo conforme a estrutura do seu projeto
-        const targetUrl = `/home/SuasAnalises/DetalhesPlanilha/menu_da_analise.html?planilha=${encodeURIComponent(planilhaNome)}`;
-        window.location.href = targetUrl;
-      });
-    }
+if (menuAnalisesBtn) {
+  menuAnalisesBtn.addEventListener("click", () => {
+    window.location.href = "../../../suas_analises.html";
+  });
+}

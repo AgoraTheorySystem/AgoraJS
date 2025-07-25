@@ -15,6 +15,43 @@ body {
     background-position: center;
 }
 
+.button-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.button-container button {
+    padding: 12px 24px;
+    font-size: 18px;
+    font-family: 'Ubuntu', sans-serif;
+    background-color: #2b6f69;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.button-container button:hover {
+    background-color: #1f4f4b;
+}
+
+.logo-bottom-right {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 150px;
+}
+
+.logo-bottom-right img {
+    width: 100%;
+    height: auto;
+}
+
+
 @media (max-width: 600px) {
     body {
         background:

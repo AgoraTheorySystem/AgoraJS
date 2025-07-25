@@ -13,9 +13,7 @@ const apiBaseUrl = 'https://nodejsteste.vercel.app';
 
 function createUserCard(data, userId) {
     const card = document.createElement("div");
-    const cardClass = `card-${(data.tipo || data.displayName || "default")
-        .toLowerCase()
-        .replace(/[\s/]/g, "-")}`;
+    const cardClass = `card-${(data.tipo || data.displayName || "default").toLowerCase().replace(/[\s/]/g, "-")}`;
     card.classList.add("card", cardClass);
     card.setAttribute("data-id", userId);
 
@@ -79,21 +77,45 @@ function createUserCard(data, userId) {
 }
 
 async function deleteUser(userId, cardElement) {
-    if (confirm("Tem certeza que deseja excluir este usuário?")) {
-        try {
-            await remove(ref(database, `users/${userId}`));
-            const response = await fetch(`${apiBaseUrl}/users/${userId}`, { method: 'DELETE' });
-            const data = await response.json();
-            if (response.ok) {
-                alert("Usuário excluído com sucesso!");
-                cardElement.remove();
-            } else {
-                alert("Erro: " + data.error);
-            }
-        } catch (error) {
-            console.error("Erro ao excluir o usuário:", error);
-            alert("Erro ao excluir o usuário. Verifique o console.");
+    const confirmacao = await Swal.fire({
+        title: 'Excluir usuário?',
+        text: 'Você deseja realmente excluir este usuário? Esta ação não poderá ser desfeita.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sim, excluir',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6'
+    });
+
+    if (!confirmacao.isConfirmed) return;
+
+    try {
+        await remove(ref(database, `users/${userId}`));
+        const response = await fetch(`${apiBaseUrl}/users/${userId}`, { method: 'DELETE' });
+        const data = await response.json();
+
+        if (response.ok) {
+            await Swal.fire({
+                icon: 'success',
+                title: 'Usuário excluído',
+                text: 'O usuário foi removido com sucesso.'
+            });
+            cardElement.remove();
+        } else {
+            await Swal.fire({
+                icon: 'error',
+                title: 'Erro ao excluir',
+                text: data.error || 'Erro desconhecido.'
+            });
         }
+    } catch (error) {
+        console.error("Erro ao excluir o usuário:", error);
+        await Swal.fire({
+            icon: 'error',
+            title: 'Erro inesperado',
+            text: 'Não foi possível excluir o usuário. Verifique o console.'
+        });
     }
 }
 
@@ -218,11 +240,9 @@ function showExpandedCard(data, cardClass) {
     const expandedContainer = document.createElement("div");
     expandedContainer.classList.add("expanded-card", cardClass);
 
-    // Remove qualquer botão "Voltar" anterior
     const previousBtn = document.querySelector(".btn-voltar");
     if (previousBtn) previousBtn.remove();
 
-    // Botão Voltar
     const voltarBtn = document.createElement("button");
     voltarBtn.classList.add("btn-voltar");
     voltarBtn.textContent = "Voltar";
@@ -233,7 +253,6 @@ function showExpandedCard(data, cardClass) {
         document.getElementById("pagination-controls").style.display = "flex";
     });
 
-    // Título (tipo) e Email
     const title = document.createElement("h1");
     title.textContent = data.tipo || "Usuário";
 
@@ -290,14 +309,14 @@ function showExpandedCard(data, cardClass) {
     document.querySelector(".dashboard-wrapper").appendChild(voltarBtn);
 }
 
-function capitalizeFirstLetter(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1);
-}
-
-async function fetchData() {
+function fetchData() {
     const dbRef = ref(database, "users");
+    const loadingElement = document.getElementById("loading");
+    if (loadingElement) loadingElement.style.display = "flex";
 
     onValue(dbRef, (snapshot) => {
+        if (loadingElement) loadingElement.style.display = "none";
+
         if (snapshot.exists()) {
             const users = snapshot.val();
 
@@ -323,6 +342,7 @@ async function fetchData() {
             document.getElementById("pagination-controls").style.display = "none";
         }
     }, (error) => {
+        if (loadingElement) loadingElement.style.display = "none";
         console.error("Erro ao buscar dados do Firebase:", error);
     });
 }

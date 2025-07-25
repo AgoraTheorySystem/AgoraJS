@@ -2,11 +2,9 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.3/firebase
 import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
 import firebaseConfig from '/firebase.js';
 
-// 1. Inicializar o Firebase
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
-// 2. Recuperar o usuário da sessão
 function getUser() {
   const userData = sessionStorage.getItem('user');
   if (!userData) {
@@ -23,7 +21,6 @@ function getUser() {
 }
 const user = getUser();
 
-// 3. Exibir ou ocultar "loading"
 function toggleLoading(show) {
   const loadingElement = document.getElementById('loading');
   if (loadingElement) {
@@ -31,8 +28,6 @@ function toggleLoading(show) {
   }
 }
 
-// 4. Verificar planilhas (originais, auxiliares, última alteração) no LocalStorage
-//    e remover as que não existirem mais no Firebase
 async function verificarPlanilhasLocalStorage() {
   try {
     if (!user || !user.uid) {
@@ -40,10 +35,7 @@ async function verificarPlanilhasLocalStorage() {
       return;
     }
 
-    // Obtém todas as chaves do LocalStorage que começam com "planilha_"
     const planilhasSalvas = Object.keys(localStorage).filter(key => key.startsWith("planilha_"));
-    
-    // Filtra apenas as planilhas principais (exclui auxiliares e metadados)
     const planilhasPrincipais = planilhasSalvas
       .filter(key => !key.startsWith("planilha_auxiliar_") && !key.startsWith("planilha_ultima_alteracao_"));
 
@@ -51,20 +43,12 @@ async function verificarPlanilhasLocalStorage() {
     const snapshot = await get(planilhasRef);
     const planilhasNoFirebase = snapshot.exists() ? Object.keys(snapshot.val()) : [];
 
-    console.log("Planilhas no Firebase:", planilhasNoFirebase);
-
     planilhasPrincipais.forEach(planilhaKey => {
-      const nomePlanilha = planilhaKey.replace("planilha_", ""); 
-
-      console.log(`Verificando: ${nomePlanilha}`);
-
-      // Se a planilha principal não existir no Firebase, remove todas as suas versões do LocalStorage
+      const nomePlanilha = planilhaKey.replace("planilha_", "");
       if (!planilhasNoFirebase.includes(nomePlanilha)) {
         localStorage.removeItem(planilhaKey);
         localStorage.removeItem(`planilha_auxiliar_${nomePlanilha}`);
         localStorage.removeItem(`planilha_ultima_alteracao_${nomePlanilha}`);
-
-        console.log(`Planilha "${nomePlanilha}" e suas versões auxiliares foram removidas do LocalStorage.`);
       }
     });
   } catch (error) {
@@ -72,7 +56,6 @@ async function verificarPlanilhasLocalStorage() {
   }
 }
 
-// 5. Carregar e exibir a lista de planilhas originais
 async function loadPlanilhas() {
   if (!user) return;
   toggleLoading(true);
@@ -105,8 +88,7 @@ async function loadPlanilhas() {
         fetchAndSaveLastModification(planilhaNome);
       }
 
-      // Cria botão com ícones
-      const button = document.createElement('button');
+      const button = document.createElement('div');
       button.classList.add('planilha-button');
 
       button.innerHTML = `
@@ -114,10 +96,28 @@ async function loadPlanilhas() {
           <img class="icon" src="/assets/icone_suas_analises.png" alt="Ícone planilha">
           ${planilhaNome}
         </span>
-        <img class="config-icon" src="/assets/icone_admin.png" alt="Configuração">
+        <img class="config-icon" src="/assets/icone_admin.png" alt="Configuração" style="cursor:pointer;">
       `;
 
-      button.addEventListener('click', () => handlePlanilhaClick(planilhaNome));
+      button.querySelector('.label').addEventListener('click', () => {
+        handlePlanilhaClick(planilhaNome);
+      });
+
+      button.querySelector('.config-icon').addEventListener('click', () => {
+        Swal.fire({
+          title: 'Ir para Configurações?',
+          text: `Você quer mesmo abrir a tela de configurações para "${planilhaNome}"?`,
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonText: 'Sim',
+          cancelButtonText: 'Cancelar',
+        }).then(result => {
+          if (result.isConfirmed) {
+            window.location.href = `./DetalhesPlanilha/Analises/configuracoes/configuracoes.html?planilha=${encodeURIComponent(planilhaNome)}`;
+          }
+        });
+      });
+
       container.appendChild(button);
     });
   } catch (error) {
@@ -127,84 +127,63 @@ async function loadPlanilhas() {
   }
 }
 
-
-// 6. Buscar e salvar planilha original no LocalStorage (juntando chunks)
 async function fetchAndSavePlanilha(planilhaNome) {
   const fileRef = ref(database, `/users/${user.uid}/planilhas/${planilhaNome}`);
   try {
     const snapshot = await get(fileRef);
-    if (!snapshot.exists()) {
-      console.warn(`A planilha "${planilhaNome}" não foi encontrada no Firebase.`);
-      return;
-    }
-    // Ex.: { chunk_0: [...], chunk_1: [...], ... }
+    if (!snapshot.exists()) return;
     const planilhaChunks = snapshot.val();
     let fullPlanilhaData = [];
     Object.keys(planilhaChunks).forEach(chunkKey => {
       const chunkData = planilhaChunks[chunkKey];
       fullPlanilhaData = fullPlanilhaData.concat(chunkData);
     });
-    // Salva a planilha original no LocalStorage com a chave "planilha_{planilhaNome}"
     saveToLocalStorage(`planilha_${planilhaNome}`, fullPlanilhaData);
   } catch (error) {
     console.error("Erro ao buscar a planilha:", error);
   }
 }
 
-// 7. Buscar e salvar tabela auxiliar (juntando chunks)
 async function fetchAndSaveAuxiliaryTable(fileName) {
   const auxiliaryRef = ref(database, `/users/${user.uid}/tabelasAuxiliares/${fileName}`);
   try {
     const snapshot = await get(auxiliaryRef);
-    if (!snapshot.exists()) {
-      console.warn(`Tabela auxiliar "${fileName}" não encontrada no Firebase.`);
-      return;
-    }
+    if (!snapshot.exists()) return;
     const auxiliaryChunks = snapshot.val();
     let fullAuxiliaryData = [];
     Object.keys(auxiliaryChunks).forEach(chunkKey => {
       const chunkData = auxiliaryChunks[chunkKey];
       fullAuxiliaryData = fullAuxiliaryData.concat(chunkData);
     });
-    // Salva a tabela auxiliar no LocalStorage com a chave "planilha_auxiliar_{fileName}"
     saveToLocalStorage(`planilha_auxiliar_${fileName}`, fullAuxiliaryData);
   } catch (error) {
     console.error(`Erro ao buscar a tabela auxiliar "${fileName}":`, error);
   }
 }
 
-// 8. Buscar e salvar data de última alteração
 async function fetchAndSaveLastModification(fileName) {
   const modRef = ref(database, `/users/${user.uid}/UltimasAlteracoes/${fileName}`);
   try {
     const snapshot = await get(modRef);
-    if (!snapshot.exists()) {
-      console.warn(`Data de última alteração para "${fileName}" não encontrada no Firebase.`);
-      return;
-    }
+    if (!snapshot.exists()) return;
     const modifications = snapshot.val();
-    // Se houver mais de uma data, seleciona a mais recente (maior timestamp)
     const modificationsArray = Object.values(modifications);
     modificationsArray.sort((a, b) => b.timestamp - a.timestamp);
     const latestModification = modificationsArray[0];
-    // Salva no LocalStorage com a chave "planilha_ultima_alteracao_{fileName}"
     saveToLocalStorage(`planilha_ultima_alteracao_${fileName}`, latestModification);
   } catch (error) {
     console.error(`Erro ao buscar data de última alteração para "${fileName}":`, error);
   }
 }
 
-// 9. Função genérica para salvar dados no LocalStorage
 function saveToLocalStorage(key, data) {
   try {
     localStorage.setItem(key, JSON.stringify(data));
-    console.log(`Dados salvos no LocalStorage com a chave "${key}".`);
   } catch (error) {
     console.error("Erro ao salvar no LocalStorage:", error);
   }
 }
 
-// 10. Clique em uma planilha
 function handlePlanilhaClick(planilhaNome) {
   Swal.fire({
     title: `Planilha: ${planilhaNome}`,
@@ -215,25 +194,22 @@ function handlePlanilhaClick(planilhaNome) {
     cancelButtonText: 'Cancelar',
   }).then(result => {
     if (result.isConfirmed) {
-      console.log(`Abrindo a planilha: ${planilhaNome}`);
-      window.location.href = `./DetalhesPlanilha/menu_da_analise.html?planilha=${encodeURIComponent(planilhaNome)}`;
+      toggleLoading(true);
+      setTimeout(() => {
+        window.location.href = `./DetalhesPlanilha/menu_da_analise.html?planilha=${encodeURIComponent(planilhaNome)}`;
+      }, 1000);
     }
   });
 }
 
-// 11. (Opcional) Exibir planilha local para debug
 function exibirPlanilhaLocal(fileName) {
   const key = `planilha_${fileName}`;
   const planilha = localStorage.getItem(key);
   if (planilha) {
-    console.log(`Conteúdo da planilha "${fileName}":`);
     console.table(JSON.parse(planilha));
-  } else {
-    console.warn(`Nenhuma planilha com o nome "${fileName}" foi encontrada no LocalStorage.`);
   }
 }
 
-// 12. Função para obter e exibir todas as planilhas do LocalStorage (para teste)
 function obterPlanilhasLocalStorage() {
   const planilhas = {};
   const planilhasAuxiliares = {};
@@ -263,14 +239,10 @@ function obterPlanilhasLocalStorage() {
   return { planilhas, planilhasAuxiliares, planilhasUltimaAlteracao };
 }
 
-// 13. Evento de inicialização
 document.addEventListener('DOMContentLoaded', async () => {
   if (!user) return;
-  // Primeiro, verifica e limpa os itens que não existem mais no Firebase
   await verificarPlanilhasLocalStorage();
-  // Depois, carrega e exibe a lista de planilhas
   await loadPlanilhas();
 });
 
-// Exemplo de uso para debug:
 obterPlanilhasLocalStorage();

@@ -11,20 +11,18 @@ const dbRef = ref(database, "users");
 
 // === Cores fixas por tipo ===
 const tipoCores = {
-  "ONG": "#FFD700", // amarelo
-  "Empresa": "#1E90FF", // azul
-  "Pessoa Física": "#4F8105", // verde escuro
-  "Universidade/Escola": "#6C3483", // roxo
-  "Outros": "#B80355", // vermelho
-  "Desconhecido": "#808080" // cinza
+  "ONG": "#FFD700",
+  "Empresa": "#1E90FF",
+  "Pessoa Física": "#4F8105",
+  "Universidade/Escola": "#6C3483",
+  "Outros": "#B80355",
+  "Desconhecido": "#808080"
 };
-
 
 function getFixedColor(tipo) {
   return tipoCores[tipo] || "#606060";
 }
 
-// === Funções auxiliares ===
 function wrapLabel(text, maxLength) {
   const words = text.split(" ");
   let line = "";
@@ -45,9 +43,13 @@ function getLegendPosition() {
   return window.innerWidth <= 900 ? "bottom" : "right";
 }
 
-// === Lógica principal ===
 window.addEventListener("load", () => {
+  const loadingElement = document.getElementById("loading");
+  if (loadingElement) loadingElement.style.display = "flex";
+
   onValue(dbRef, (snapshot) => {
+    if (loadingElement) loadingElement.style.display = "none";
+
     if (snapshot.exists()) {
       const users = snapshot.val();
 
@@ -97,9 +99,7 @@ window.addEventListener("load", () => {
               font: { weight: "bold", size: 14 },
               anchor: "center",
               align: "center",
-              formatter: (value) => {
-                return ((value / totalUsuarios) * 100).toFixed(1) + "%";
-              }
+              formatter: (value) => ((value / totalUsuarios) * 100).toFixed(1) + "%"
             }
           },
           scales: {
@@ -193,9 +193,11 @@ window.addEventListener("load", () => {
       });
 
     } else {
+      if (loadingElement) loadingElement.style.display = "none";
       console.error("Nenhum dado encontrado no Firebase.");
     }
   }, (error) => {
+    if (loadingElement) loadingElement.style.display = "none";
     console.error("Erro ao buscar dados do Firebase:", error);
   });
 });
