@@ -1,10 +1,11 @@
+import { openDB } from "https://unpkg.com/idb?module";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-app.js";
 import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
-// Adicionada a importação do 'onAuthStateChanged'
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-auth.js";
 import firebaseConfig from '/firebase.js';
 
 const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 const database = getDatabase(app);
 
 // 2. Recuperar o usuário da sessão
