@@ -1,12 +1,31 @@
-import { openDB } from "https://unpkg.com/idb?module";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-app.js";
 import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
+// Adicionada a importação do 'onAuthStateChanged'
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-auth.js";
 import firebaseConfig from '/firebase.js';
 
+// 1. Inicializar o Firebase
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const database = getDatabase(app);
+const auth = getAuth(app); // Inicializa o Auth para usar o observador
+
+const DB_NAME = 'agoraDB';
+const STORE_NAME = 'planilhas';
+
+// Abre ou cria o banco de dados IndexedDB
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, 1);
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: 'key' });
+      }
+    };
+    request.onsuccess = (event) => resolve(event.target.result);
+    request.onerror = (event) => reject(event.target.error);
+  });
+}
 
 // 2. Recuperar o usuário da sessão
 function getUser() {
@@ -25,6 +44,7 @@ function getUser() {
 }
 const user = getUser();
 
+// 3. Exibir ou ocultar "loading"
 function toggleLoading(show) {
   const loadingElement = document.getElementById('loading');
   if (loadingElement) {
@@ -133,7 +153,7 @@ async function loadPlanilhas() {
           <img class="icon" src="/assets/icone_suas_analises.png" alt="Ícone planilha">
           ${planilhaNome}
         </span>
-        <img class="config-icon" src="/assets/icone_admin.png" alt="Configuração" style="cursor:pointer;">
+        <img class="config-icon" src="/assets/icone_admin.png" alt="Configuração">
       `;
       button.addEventListener('click', () => handlePlanilhaClick(planilhaNome));
       container.appendChild(button);
@@ -185,6 +205,7 @@ async function fetchAndSaveAuxiliaryTable(fileName) {
   }
 }
 
+// 8. Buscar e salvar data de última alteração
 async function fetchAndSaveLastModification(fileName) {
   const modRef = ref(database, `/users/${user.uid}/UltimasAlteracoes/${fileName}`);
   try {
@@ -214,6 +235,7 @@ async function saveToIndexedDB(key, data) {
   }
 }
 
+// 10. Clique em uma planilha
 function handlePlanilhaClick(planilhaNome) {
   Swal.fire({
     title: `Planilha: ${planilhaNome}`,
@@ -224,10 +246,8 @@ function handlePlanilhaClick(planilhaNome) {
     cancelButtonText: 'Cancelar',
   }).then(result => {
     if (result.isConfirmed) {
-      toggleLoading(true);
-      setTimeout(() => {
-        window.location.href = `./DetalhesPlanilha/menu_da_analise.html?planilha=${encodeURIComponent(planilhaNome)}`;
-      }, 1000);
+      console.log(`Abrindo a planilha: ${planilhaNome}`);
+      window.location.href = `./DetalhesPlanilha/menu_da_analise.html?planilha=${encodeURIComponent(planilhaNome)}`;
     }
   });
 }

@@ -300,48 +300,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const uploadBtn = document.getElementById('uploadButton');
   if (uploadBtn) {
     uploadBtn.addEventListener('click', async () => {
-      const fileInput = document.getElementById('fileInput');
-      const file = fileInput.files[0];
-
-      if (!file) {
-        await Swal.fire({
-          icon: 'warning',
-          title: 'Nenhum arquivo selecionado',
-          text: 'Por favor, selecione um arquivo antes de continuar.'
-        });
-        return;
-      }
-
-      const fileName = extractFileName(file.name);
-      const fileExists = await checkIfFileExists(user, fileName);
-
-      if (fileExists) {
-        const result = await Swal.fire({
-          icon: 'warning',
-          title: 'Arquivo já existe',
-          text: `Uma planilha com o nome "${fileName}" já existe. Deseja substituí-la?`,
-          showCancelButton: true,
-          confirmButtonText: 'Sim, substituir',
-          cancelButtonText: 'Cancelar'
-        });
-        if (!result.isConfirmed) return;
-      } else {
-        const confirm = await Swal.fire({
-          title: 'Criar nova planilha?',
-          text: `Você deseja importar a planilha "${fileName}" e criar uma nova análise?`,
-          icon: 'question',
-          showCancelButton: true,
-          confirmButtonText: 'Sim, criar',
-          cancelButtonText: 'Cancelar'
-        });
-        if (!confirm.isConfirmed) return;
-      }
-
       try {
         await handleFileUpload(user);
       } catch (error) {
         console.error("Erro inesperado na operação de upload:", error);
-       }
+      }
     });
   }
 });

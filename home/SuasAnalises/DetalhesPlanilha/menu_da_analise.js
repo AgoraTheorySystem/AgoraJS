@@ -16,17 +16,11 @@ if (planilhaNome) {
 
 // Função genérica para tratar o clique em uma planilha
 function handlePlanilhaClick(planilhaNome, categoria) {
-  if (planilhaNome) {
-    const loadingElement = document.getElementById('loading');
-    if (loadingElement) {
-      loadingElement.style.display = 'flex';
+    if (planilhaNome) {
+        window.location.href = `./Analises/${categoria}/${categoria}.html?planilha=${encodeURIComponent(planilhaNome)}`;
+    } else {
+        console.log("Nenhuma planilha foi encontrada.");
     }
-    setTimeout(() => {
-      window.location.href = `./Analises/${categoria}/${categoria}.html?planilha=${encodeURIComponent(planilhaNome)}`;
-    }, 1000);
-  } else {
-    console.log("Nenhuma planilha foi encontrada.");
-  }
 }
 
 // Mapeamento das categorias para as classes de botões

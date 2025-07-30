@@ -21,19 +21,22 @@
 
 <body class="dashboard">
   <header class="barra-externa">
+      <img src="/assets/logo_agora.png" alt="Logo Ágora" class="icon-esquerda" />
+
     <nav class="menu">
       <a href="./dashboard.html?planilha=">Dashboard</a>
       <a href="./agora.html?planilha=">Socioeconômico</a>
       <a href="./evocacoes.html?planilha=">Evocações</a>
       <a href="./formaragora.html?planilha=">Metodologia Ágora</a>
     </nav>
+
+    <div class="menu-search">
+      <input type="text" placeholder="Pesquisar..." id="campoBusca" />
+      <button id="botaoBusca"><i class="fas fa-search"></i></button>
+    </div>
   </header>
 
-  <div id="selected-cards-display" class="cards-container">
-    <p id="no-favorites-message" class="text-center" style="width: 100%; color: var(--color-subtext); font-weight: bold;">
-      Você não tem cards favoritos
-    </p>
-  </div>
+  <div id="selected-cards-display" class="cards-container"></div> 
 
   <main class="container" id="dashboard-content">
     <section class="group" id="favorites">
