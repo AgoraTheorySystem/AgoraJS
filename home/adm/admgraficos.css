@@ -1,0 +1,229 @@
+/* Reset básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Montserrat', sans-serif;
+  background-color: #f9f9f9;
+  color: #333;
+  line-height: 1.6;
+  padding: 10px;
+}
+
+/* Título dos gráficos */
+.titulo_graficos {
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #2b6f69;
+  color: white;
+  border: 2px solid #333;
+  border-radius: 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-size: 1.5rem;
+}
+
+/* Container para os gráficos */
+.grafico-container {
+  max-width: 1200px;
+  width: 100%;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #2b6f69;
+  border: 2px solid #333;
+  border-radius: 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow-y: auto;
+  /* Permite rolagem vertical quando necessário */
+  height: 600px;
+  /* Altura fixa para manter a área de visualização */
+}
+
+/* Estilo para os canvas dos gráficos */
+#graficoTiposContas,
+#graficoTamanhoUsuarios {
+  width: 90%;
+  height: 90%;
+  max-width: 800px;
+  max-height: 500px;
+}
+
+.topbar {
+  background-color: #002e3f;
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 12px 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.nav-button {
+  background-color: transparent;
+  color: white;
+  text-decoration: none;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 10px 16px;
+  border-radius: 8px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.nav-button:hover {
+  background-color: #fdd200;
+  color: #002e3f;
+}
+
+.card-empresa {
+  background-color: #0386A7;
+}
+.card-ong {
+  background-color: #c0a314;
+}
+.card-outros {
+  background-color: #B80355;
+}
+.card-pessoafisica {
+  background-color: #4F8105;
+}
+.card-universidade-escola {
+  background-color: #6C3483;
+}
+
+#loading {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+}
+
+.loader {
+  position: absolute;
+  margin: auto;
+  top: 0; bottom: 0; left: 0; right: 0;
+  width: 6.250em;
+  height: 6.250em;
+  animation: rotate5123 2.4s linear infinite;
+}
+
+.white {
+  top: 0; bottom: 0; left: 0; right: 0;
+  background: white;
+  animation: flash 2.4s linear infinite;
+  opacity: 0;
+}
+
+.dot {
+  position: absolute;
+  margin: auto;
+  width: 2.4em;
+  height: 2.4em;
+  border-radius: 100%;
+  transition: all 1s ease;
+}
+.dot:nth-child(2) { top: 0; bottom: 0; left: 0; background: #FF4444; animation: dotsY 2.4s linear infinite; }
+.dot:nth-child(3) { left: 0; right: 0; top: 0; background: #FFBB33; animation: dotsX 2.4s linear infinite; }
+.dot:nth-child(4) { top: 0; bottom: 0; right: 0; background: #99CC00; animation: dotsY 2.4s linear infinite; }
+.dot:nth-child(5) { left: 0; right: 0; bottom: 0; background: #33B5E5; animation: dotsX 2.4s linear infinite; }
+
+@keyframes rotate5123 {
+  0% { transform: rotate(0); }
+  10% { width: 6.250em; height: 6.250em; }
+  66% { width: 2.4em; height: 2.4em; }
+  100% { transform: rotate(360deg); width: 6.250em; height: 6.250em; }
+}
+@keyframes dotsY {
+  66% { opacity: .1; width: 2.4em; }
+  77% { opacity: 1; width: 0; }
+}
+@keyframes dotsX {
+  66% { opacity: .1; height: 2.4em; }
+  77% { opacity: 1; height: 0; }
+}
+@keyframes flash {
+  33% { opacity: 0; border-radius: 0%; }
+  55% { opacity: .6; border-radius: 100%; }
+  66% { opacity: 0; }
+}
+
+/* Responsividade para telas menores */
+@media (max-width: 768px) {
+  .titulo_graficos {
+    max-width: 90%;
+    padding: 15px;
+    font-size: 1.3rem;
+  }
+
+  .grafico-container {
+    max-width: 90%;
+    height: 400px;
+    padding: 15px;
+  }
+
+  #graficoTiposContas,
+  #graficoTamanhoUsuarios {
+    max-width: 100%;
+    max-height: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .titulo_graficos {
+    padding: 10px;
+    font-size: 1.1rem;
+  }
+
+  .grafico-container {
+    height: 300px;
+    padding: 10px;
+  }
+
+  #graficoTiposContas,
+  #graficoTamanhoUsuarios {
+    max-height: 200px;
+  }
+}
+
+/* CSS para o botão de gerar relatório PDF */
+#gerarRelatorio {
+  background: linear-gradient(45deg, #2b6f69);
+  border: none;
+  color: #fff;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-family: 'Montserrat', sans-serif;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+#gerarRelatorio:hover {
+  background: linear-gradient(45deg, #388e3c, #66bb6a);
+  transform: translateY(-2px);
+}
+
+#gerarRelatorio:active {
+  transform: translateY(0);
+}

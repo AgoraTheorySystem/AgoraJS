@@ -1,0 +1,366 @@
+/* Estilos gerais */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #a9a9aa;
+  margin: 0;
+  padding: 20px;
+}
+
+header h1 {
+  margin-bottom: 20px;
+}
+
+/* Container geral para a tabela (permite rolagem horizontal e limita largura) */
+.table-container {
+  overflow-x: auto;         /* Rolagem horizontal, se necessário */
+  max-width: 90%;         /* Largura máxima menor para compactar */
+  margin: 20px auto;        /* Centraliza o container na tela */
+}
+
+/* Estilos da tabela */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #fff;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.1); /* Reduz a sombra */
+  border-radius: 8px;                    /* Ajusta o raio do canto */
+  overflow: hidden;
+  margin: 0;                             /* Remove margens extras */
+  font-size: 14px;                       /* Diminui a fonte para compactar */
+}
+
+thead {
+  background-color: #007bff;
+  color: #fff;
+}
+
+th, td {
+  padding: 8px;             /* Reduz o padding das células */
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  text-transform: uppercase;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+/* Ajuste específico para a borda do #data-table */
+#data-table {
+  border: 1px solid #ccc; 
+  min-width: 600px;        /* Define uma largura mínima menor */
+}
+
+/* Ajuste para as células do #data-table */
+#data-table th,
+#data-table td {
+  border: 1px solid #ccc;
+}
+
+/* Estilos da paginação */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.pagination button,
+.page-btn {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  font-size: 14px;
+  border-radius: 4px;
+  transition: background 0.3s, transform 0.3s, border 0.3s;
+  cursor: pointer;
+  margin-left: 5px;
+}
+
+.pagination button:disabled,
+.page-btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.pagination button:hover:not(:disabled),
+.page-btn:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+/* Destaque para a página ativa */
+.page-btn.active {
+  background-color: #0056b3; /* tom mais escuro */
+  border: 4px solid #109fff; /* borda amarela para destaque */
+  font-weight: bold;
+  transform: scale(1.1);
+}
+#page-info {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+
+#page-info {
+  font-size: 14px;   /* Reduz a fonte */
+  font-weight: bold;
+}
+
+/* Estilos do loading */
+#loading {
+  display: none;
+  position: absolute;
+  margin: auto;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+/* Animação do loader - mantida conforme exemplo original */
+.loader {
+  position: absolute;
+  margin: auto;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 6.250em;
+  height: 6.250em;
+  animation: rotate5123 2.4s linear infinite;
+}
+
+.white {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  animation: flash 2.4s linear infinite;
+  opacity: 0;
+}
+
+.dot {
+  position: absolute;
+  margin: auto;
+  width: 2.4em;
+  height: 2.4em;
+  border-radius: 100%;
+  transition: all 1s ease;
+}
+
+.dot:nth-child(2) {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  background: #FF4444;
+  animation: dotsY 2.4s linear infinite;
+}
+
+.dot:nth-child(3) {
+  left: 0;
+  right: 0;
+  top: 0;
+  background: #FFBB33;
+  animation: dotsX 2.4s linear infinite;
+}
+
+.dot:nth-child(4) {
+  top: 0;
+  bottom: 0;
+  right: 0;
+  background: #99CC00;
+  animation: dotsY 2.4s linear infinite;
+}
+
+.dot:nth-child(5) {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #33B5E5;
+  animation: dotsX 2.4s linear infinite;
+}
+
+@keyframes rotate5123 {
+  0% {
+    transform: rotate(0);
+  }
+  10% {
+    width: 6.250em;
+    height: 6.250em;
+  }
+  66% {
+    width: 2.4em;
+    height: 2.4em;
+  }
+  100% {
+    transform: rotate(360deg);
+    width: 6.250em;
+    height: 6.250em;
+  }
+}
+
+@keyframes dotsY {
+  66% {
+    opacity: .1;
+    width: 2.4em;
+  }
+  77% {
+    opacity: 1;
+    width: 0;
+  }
+}
+
+@keyframes dotsX {
+  66% {
+    opacity: .1;
+    height: 2.4em;
+  }
+  77% {
+    opacity: 1;
+    height: 0;
+  }
+}
+
+@keyframes flash {
+  33% {
+    opacity: 0;
+    border-radius: 0%;
+  }
+  55% {
+    opacity: .6;
+    border-radius: 100%;
+  }
+  66% {
+    opacity: 0;
+  }
+}
+
+/* Estilos do filtro */
+.filter-container {
+  max-width: 800px;         /* Ajuste para ficar mais compacto */
+  width: 100%;
+  padding: 0 15px;          /* Espaçamento interno lateral */
+  text-align: right;
+  margin: 20px;
+}
+
+.filter-container input {
+  width: 100%;
+  max-width: 250px;         /* Limita a largura do input em telas maiores */
+  padding: 6px 10px;        /* Reduz o padding */
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;          /* Reduz a fonte */
+  transition: border-color 0.3s ease;
+}
+
+/* Efeito de foco no input */
+.filter-container input:focus {
+  outline: none;
+  border-color: #17426C;
+}
+
+.page-btn {
+  margin-left: 5px;
+  font-size: 14px;
+  padding: 6px 10px;
+}
+
+/* Estilos para dispositivos móveis */
+@media (max-width: 768px) {
+  .filter-container {
+    text-align: center;     /* Centraliza o filtro em telas menores */
+  }
+
+  .filter-container input {
+    max-width: none;       /* Permite que o input ocupe toda a largura */
+  }
+}
+
+/* Responsividade adicional para telas muito pequenas */
+@media screen and (max-width: 600px) {
+  table {
+    font-size: 13px;       /* Reduz ainda mais a fonte */
+  }
+  th, td {
+    padding: 6px;
+  }
+  .pagination {
+    flex-direction: column;
+    gap: 5px;
+  }
+  .pagination button {
+    width: 100px;
+  }
+}
+
+/* Container geral da página */
+.container {
+  margin-top: 30px;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 1620px;
+}
+
+/* Menu principal */
+.container .menu {
+  background-color: #17426C;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  border-radius: 25px;
+  box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.5);
+  margin-top: 20px;
+}
+
+.container .menu a {
+  padding: 20px 0;
+  text-decoration: none;
+  color: white;
+  font-family: "Montserrat", sans-serif;
+  font-size: 18px;
+  font-weight: bold;
+  text-transform: uppercase;
+  transition: color 0.3s;
+  cursor: pointer;
+}
+
+.container .menu a:hover {
+  color: #fdd200;
+}
+
+/* Menu em dispositivos móveis */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 15px;
+  }
+
+  .container .menu {
+    flex-direction: column; 
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    padding: 10px;
+  }
+
+  .container .menu a {
+    padding: 10px 0;
+    font-size: 16px;
+    width: 100%;
+    text-align: center;
+  }
+}
+
+.destaque {
+  color: #0d47a1;
+  font-weight: bold;
+  background-color: #e3f2fd;
+  padding: 0 2px;
+  border-radius: 3px;
+}

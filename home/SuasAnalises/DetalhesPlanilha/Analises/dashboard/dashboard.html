@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Ágora - Dashboard</title>
+  <link rel="icon" href="/assets/icon.png" type="image/png" />
+  
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+  <link href="/assets/hamburguer.css" rel="stylesheet" />
+  <link href="menu.css" rel="stylesheet" />
+  <link href="dashboard.css" rel="stylesheet" />
+
+  <script src="/MenuLateral.js" type="module" defer></script>
+  <script src="menu.js" type="module" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+  <script src="/home/SuasAnalises/DetalhesPlanilha/Analises/dashboard/atualizacao.js" type="module" defer></script>
+  <script src="dashboard.js" type="module" defer></script>
+</head>
+
+<body class="dashboard">
+  <header class="barra-externa">
+    <nav class="menu">
+      <a href="./dashboard.html?planilha=">Dashboard</a>
+      <a href="./agora.html?planilha=">Socioeconômico</a>
+      <a href="./evocacoes.html?planilha=">Evocações</a>
+      <a href="./formaragora.html?planilha=">Metodologia Ágora</a>
+    </nav>
+  </header>
+
+  <div id="selected-cards-display" class="cards-container">
+    <p id="no-favorites-message" class="text-center" style="width: 100%; color: var(--color-subtext); font-weight: bold;">
+      Você não tem cards favoritos
+    </p>
+  </div>
+
+  <main class="container" id="dashboard-content">
+    <section class="group" id="favorites">
+      <div id="othersCards" class="cards-container"></div>
+    </section>
+  </main>
+</body>
+</html>

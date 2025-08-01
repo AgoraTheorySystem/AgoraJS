@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="/assets/icon.png">
+  <link href="/assets/hamburguer.css" rel="stylesheet">
+  <script src="/MenuLateral.js" type="module" defer></script>
+  <script src="/home/SuasAnalises/DetalhesPlanilha/Analises/dashboard/atualizacao.js" type="module" defer></script>
+  <link href="socioeconomico.css" rel="stylesheet">
+  <script src="socioeconomico.js" type="module" defer></script>
+  <script src="menu.js" type="module" defer></script>
+  <link href="menu.css" rel="stylesheet">
+  <title>Ágora</title>
+</head>
+
+<body class="socioeconomico">
+  <main>
+    <div class="container">
+      <div class="menu">
+        <a class="menu_analises">Menu Das Analises</a>
+        <a href="./dashboard.html?planilha=">Dashboard</a>
+        <a href="./agora.html?planilha=">Socioeconômico</a>
+        <a href="./evocacoes.html?planilha=">Evocações</a>
+        <a href="./formaragora.html?planilha=">Formar Ágoras</a>
+      </div>
+    </div>
+
+    <!-- Loading (com aria-live para informar mudanças dinâmicas) -->
+    <div id="loading" aria-live="polite" aria-busy="true">
+      <figure class="loader">
+        <div class="dot white"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </figure>
+    </div>
+
+    <!-- Área do filtro -->
+    <div class="filter-container">
+      <input type="text" id="filter-input" placeholder="Buscar na tabela">
+    </div>
+
+    <!-- Tabela de dados -->
+    <div class="table-container">
+      <table id="data-table">
+        <thead></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- Controles de paginação -->
+    <div class="pagination">
+      <button id="prev-btn">Anterior</button>
+      <div id="page-numbers"></div>
+      <button id="next-btn">Próximo</button>
+      <span id="page-info"></span>
+    </div>
+    
+  </main>
+
+</html>

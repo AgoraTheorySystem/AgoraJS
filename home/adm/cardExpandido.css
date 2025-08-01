@@ -1,0 +1,127 @@
+.expanded-card {
+    background-color: #003645;
+    border-radius: 20px;
+    max-width: 750px;
+    margin: 50px auto;
+    padding: 30px 40px 60px 40px;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    position: relative;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+    text-align: left;
+}
+
+.expanded-card h1 {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+}
+
+.expanded-card p {
+    font-size: 16px;
+    margin-bottom: 8px;
+    word-break: break-word;
+}
+
+.expanded-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 40px;
+    font-size: 13px;
+    color: #ccc;
+}
+
+.btn-voltar {
+    display: block;
+    margin: 20px auto 0;
+    padding: 10px 24px;
+    background-color: #f4791f;
+    color: white;
+    font-weight: bold;
+    border: none;
+    border-radius: 14px;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.btn-voltar:hover {
+    background-color: #d55c00;
+}
+
+.expanded-card .corner-icon {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: auto;
+}
+
+.expanded-card .corner-logo {
+    position: absolute;
+    bottom: 16px;
+    right: 20px;
+    width: 70px;
+    height: auto;
+}
+
+
+/* Responsividade */
+
+/* Telas grandes */
+@media (min-width: 1200px) {
+    .expanded-card {
+        max-width: 900px;
+    }
+}
+
+/* Tablets */
+@media (max-width: 1199px) {
+    .expanded-card {
+        max-width: 90%;
+        padding: 20px 30px;
+    }
+
+    .expanded-card h1 {
+        font-size: 18px;
+    }
+
+    .expanded-card p {
+        font-size: 15px;
+    }
+
+    .btn-voltar {
+        font-size: 15px;
+        padding: 10px 20px;
+    }
+}
+
+/* Smartphones */
+@media (max-width: 767px) {
+    .expanded-card {
+        max-width: 95%;
+        padding: 15px 20px;
+    }
+
+    .expanded-card h1 {
+        font-size: 16px;
+    }
+
+    .expanded-card p {
+        font-size: 14px;
+    }
+
+    .btn-voltar {
+        font-size: 14px;
+        padding: 8px 16px;
+    }
+
+    .corner-icon {
+        width: 30px;
+    }
+
+    .corner-logo {
+        width: 50px;
+    }
+}

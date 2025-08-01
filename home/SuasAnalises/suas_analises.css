@@ -1,0 +1,219 @@
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap');
+
+/* Estilos gerais */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Ubuntu', sans-serif;
+  background: url('/assets/fundo_cadastro.jpg') no-repeat center center fixed;
+  background-size: cover;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+}
+
+/* Sobreposição escura translúcida */
+.overlay {
+  background-color: rgba(0, 0, 0, 0.6);
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+}
+
+/* Título da página */
+h1 {
+  color: #fff;
+  margin: 80px 0 20px 0;
+  font-size: 2rem;
+  z-index: 1;
+}
+
+/* Container dos botões */
+#planilhasContainer {
+  width: 90%;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 1;
+}
+
+#planilhasContainer p {
+  color: white;
+  text-align: center;
+  font-size: 1.4rem;
+  background-color: rgba(0, 0, 0, 0.4);
+  padding: 16px 24px;
+  border-radius: 8px;
+  margin-top: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  font-weight: bold;
+  max-width: 90%;
+}
+
+/* Botão principal */
+.planilha-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 25px;
+  margin: 14px 0;
+  font-size: 1.8rem;
+  color: #ffffff;
+  background-color: #2a716e;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+  transition: background-color 0.3s, transform 0.2s;
+  overflow: hidden; /* Esconde o texto que ultrapassar o limite do botão */
+  text-overflow: ellipsis; /* Adiciona as reticências se o texto for muito longo */
+  white-space: nowrap; /* Impede o texto de quebrar em múltiplas linhas */
+}
+
+/* Botão amarelo em destaque */
+.planilha-button.destacado {
+  background-color: #f2c94c;
+  color: #000;
+}
+
+/* Hover para todos */
+.planilha-button:hover {
+  background-color: #fdc200 !important;
+  color: #000;
+  transform: translateY(-1px);
+}
+
+/* Área de texto com ícone à esquerda */
+.planilha-button .label {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+/* Ícone da planilha */
+.planilha-button .icon {
+  width: 40px;
+  height: 45px;
+  margin-right: 16px;
+}
+
+/* Engrenagem */
+.planilha-button .config-icon {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+#loading {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+}
+
+.loader {
+  position: absolute;
+  margin: auto;
+  top: 0; bottom: 0; left: 0; right: 0;
+  width: 6.250em;
+  height: 6.250em;
+  animation: rotate5123 2.4s linear infinite;
+}
+
+.white {
+  top: 0; bottom: 0; left: 0; right: 0;
+  background: white;
+  animation: flash 2.4s linear infinite;
+  opacity: 0;
+}
+
+.dot {
+  position: absolute;
+  margin: auto;
+  width: 2.4em;
+  height: 2.4em;
+  border-radius: 100%;
+  transition: all 1s ease;
+}
+.dot:nth-child(2) { top: 0; bottom: 0; left: 0; background: #FF4444; animation: dotsY 2.4s linear infinite; }
+.dot:nth-child(3) { left: 0; right: 0; top: 0; background: #FFBB33; animation: dotsX 2.4s linear infinite; }
+.dot:nth-child(4) { top: 0; bottom: 0; right: 0; background: #99CC00; animation: dotsY 2.4s linear infinite; }
+.dot:nth-child(5) { left: 0; right: 0; bottom: 0; background: #33B5E5; animation: dotsX 2.4s linear infinite; }
+
+@keyframes rotate5123 {
+  0% { transform: rotate(0); }
+  10% { width: 6.250em; height: 6.250em; }
+  66% { width: 2.4em; height: 2.4em; }
+  100% { transform: rotate(360deg); width: 6.250em; height: 6.250em; }
+}
+@keyframes dotsY {
+  66% { opacity: .1; width: 2.4em; }
+  77% { opacity: 1; width: 0; }
+}
+@keyframes dotsX {
+  66% { opacity: .1; height: 2.4em; }
+  77% { opacity: 1; height: 0; }
+}
+@keyframes flash {
+  33% { opacity: 0; border-radius: 0%; }
+  55% { opacity: .6; border-radius: 100%; }
+  66% { opacity: 0; }
+}
+
+
+/* Responsivo para tablets e celulares */
+@media (max-width: 768px) {
+  .planilha-button {
+    padding: 24px 28px;
+    font-size: 1.2rem;
+    max-width: 90%;
+  }
+
+  .icon {
+    width: 26px;
+    height: 26px;
+  }
+
+  .config-icon {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+@media (max-width: 480px) {
+  .planilha-button {
+    padding: 20px 20px;
+    font-size: 1rem;
+  }
+
+  .icon {
+    width: 22px;
+    height: 22px;
+  }
+
+  .config-icon {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .planilha-button {
+    padding: 24px 28px;
+    font-size: 1.2rem;
+    max-width: 90%;
+    word-wrap: break-word; /* Permite a quebra de palavras longas em diferentes linhas */
+  }
+}

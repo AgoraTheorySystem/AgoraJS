@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="/assets/icon.png">
+  <link href="/assets/hamburguer.css" rel="stylesheet">
+  <script src="/MenuLateral.js" type="module" defer></script>
+  <script src="/home/SuasAnalises/DetalhesPlanilha/Analises/dashboard/atualizacao.js" type="module" defer></script>
+  <link href="evocacoes.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <script type="module" src="./menuLateral_evocacoes.js"></script>
+  <script src="evocacoes.js" type="module" defer></script>
+  <script src="menu.js" type="module" defer></script>
+  <link href="menu.css" rel="stylesheet">
+  <title>Ágora</title>
+</head>
+
+<body>
+  <main>
+    <div class="container">
+      <div class="menu">
+        <a class="menu_analises">Menu Das Análises</a>
+        <a href="./dashboard.html?planilha=">Dashboard</a>
+        <a href="./agora.html?planilha=">Socioeconômico</a>
+        <a href="./evocacoes.html?planilha=">Evocações</a>
+        <a href="./formaragora.html?planilha=">Formar Ágoras</a>
+      </div>
+    </div>
+
+    <div class="filter-container">
+      <input type="text" id="busca-palavra" placeholder="Buscar palavra...">
+    </div>
+
+    <!-- PAINEL DE SELECIONADOS -->
+    <div id="selected-evocacoes">
+      <h3>Selecionados (<span id="selected-count">0</span>):</h3>
+      <ul id="selected-list"></ul>
+      <button id="clear-selected">Limpar Selecionados</button>
+    </div>
+
+    <!-- TABELA ORIGINAL -->
+    <div id="tabela-evocacoes" class="table-container"></div>
+
+    <div id="loading" aria-live="polite" aria-busy="true">
+      <figure class="loader">
+        <div class="dot white"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </figure>
+    </div>
+  </main>
+</body>
+
+</html>

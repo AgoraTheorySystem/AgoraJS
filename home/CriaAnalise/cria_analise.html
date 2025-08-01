@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js" defer></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
+  <link rel="icon" type="image/png" href="/assets/icon.png">
+  <link href="/assets/hamburguer.css" rel="stylesheet">
+  <link href="cria_analise.css" rel="stylesheet">
+  <script src="/MenuLateral.js" type="module" defer></script>
+  <script src="cria_analise.js" type="module" defer></script>
+  <title>Ágora</title>
+</head>
+
+<body>
+  <h1>Importar Planilhas</h1>
+  <input type="file" id="fileInput" accept=".xlsx, .xls, .csv" />
+  <button id="uploadButton">Enviar Planilha</button>
+  <div id="loading">
+    <figure class="loader">
+      <div class="dot white"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </figure>
+  </div>
+</body>
+
+</html>

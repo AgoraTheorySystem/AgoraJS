@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="icon" type="image/png" href="/assets/icon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/hamburguer.css">
+    <script src="/MenuLateral.js" type="module" defer></script>
+    <link rel="stylesheet" href="adm.css">
+    <link rel="stylesheet" href="card.css">
+    <link rel="stylesheet" href="cardExpandido.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="adm.js" type="module" defer></script>
+    <title>Adm</title>
+</head>
+<body>
+  <div id="loading" style="display: flex;">
+    <figure class="loader">
+      <div class="dot white"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </figure>
+  </div>
+
+  <!-- BARRA SUPERIOR -->
+  <header class="topbar">
+    <nav class="navbar">
+      <a href="../home.html" class="nav-button">Página Inicial</a>
+      <a href="adm.html" class="nav-button active">Gestão de Usuários</a>
+      <a href="admgraficos.html" class="nav-button">Gráficos</a>
+    </nav>
+  </header>
+  <div class="dashboard-wrapper">
+    <div class="filter-bar">
+    </div>
+
+    <div class="container containerCards" id="containerCards">
+    </div>
+
+    <div id="pagination-controls" class="pagination-controls"></div>
+  </div>
+</body>
+
+</html>

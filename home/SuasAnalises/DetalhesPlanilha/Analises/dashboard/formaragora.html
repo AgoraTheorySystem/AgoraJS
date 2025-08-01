@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="/assets/icon.png" />
+  <link href="/assets/hamburguer.css" rel="stylesheet" />
+  <script src="/MenuLateral.js" type="module" defer></script>
+  <script src="/home/SuasAnalises/DetalhesPlanilha/Analises/dashboard/atualizacao.js" type="module" defer></script>
+  <link href="formaragora.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+  <link href="https://unpkg.com/vis-network/styles/vis-network.css" rel="stylesheet" />
+  <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="formaragora.js" type="module" defer></script>
+  <script src="bolha_conectividade.js" type="module" defer></script>
+  <script src="bolha_socioeconomica.js" type="module" defer></script>
+  <script src="bolhas.js" type="module" defer></script>
+  <script src="menu.js" type="module" defer></script>
+  <link href="menu.css" rel="stylesheet" />
+  <link href="bolhas.css" rel="stylesheet" />
+  <title>Ágora</title>
+</head>
+
+<body class="formaragora">
+  <main>
+    <!-- MENU -->
+    <div class="container">
+      <div class="menu">
+        <a class="menu_analises">Menu Das Analises</a>
+        <a href="./dashboard.html?planilha=">Dashboard</a>
+        <a href="./agora.html?planilha=">Socioeconômico</a>
+        <a href="./evocacoes.html?planilha=">Evocações</a>
+        <a href="./formaragora.html?planilha=">Formar Ágoras</a>
+      </div>
+    </div>
+
+    <!-- ÁREA DA ÁGORA -->
+    <div id="menu_agoras">
+      <div class="niveis">
+        <label class="niveis-label"><strong>NÍVEL DA ÁGORA</strong></label>
+        <div id="niveisContainer" class="niveis-buttons"></div>
+      </div>
+
+      <div class="analise">
+        <label><strong>ANÁLISE</strong></label>
+        <label>
+          <input type="radio" name="analise" value="Socioeconômica" checked>
+          Socioeconômica
+        </label>
+        <label>
+          <input type="radio" name="analise" value="Conectividade">
+          Conectividade
+        </label>
+      </div>
+
+      <div class="extra-opcao" id="extraOpcao">
+        <label><strong>QTD. DE PALAVRAS / NÍVEL</strong></label>
+        <input type="number" id="valorConectividade" placeholder="Digite um número">
+      </div>
+
+      <div class="aspecto">
+        <label><strong>ASPECTO ANALISADO</strong></label>
+        <label>
+          <input type="radio" name="aspecto" value="Ego" checked> Ego
+        </label>
+        <label>
+          <input type="radio" name="aspecto" value="Alter"> Alter
+        </label>
+      </div>
+
+      <div class="rodar">
+        <button onclick="rodarAnalise()">FORMAR ÁGORAS 💡</button>
+      </div>
+    </div>
+
+    <!-- ÁREA DAS PLANILHAS -->
+    <!-- Esse container ficará vazio inicialmente e será preenchido dinamicamente -->
+    <div id="planilhasContainer"></div>
+
+    <!-- LOADING (opcional, caso seja utilizado globalmente) -->
+    <div id="loading" aria-live="polite" aria-busy="true" style="display: none;">
+      <figure class="loader">
+        <div class="dot white"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </figure>
+    </div>
+  </main>
+</body>
+
+</html>

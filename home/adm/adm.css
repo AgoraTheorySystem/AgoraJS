@@ -1,0 +1,274 @@
+body {
+    background-image: url('/assets/fundo_home.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    color: #ffffff;
+    font-family: 'Montserrat', sans-serif;
+}
+
+/* Topo de navegação */
+.topbar {
+    background-color: #002e3f;
+    max-width: 1200px;   
+    margin: 20px auto;   
+    padding: 12px 24px;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+}
+
+.navbar {
+    max-width: 700px;
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.nav-button {
+    background-color: transparent;
+    color: #ffffff;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px;
+    font-weight: bold;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.nav-button:hover {
+    background-color: #fdd200;
+    color: #002e3f;
+}
+
+/* Filtros */
+.filter-container {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.filter-button {
+    padding: 10px 16px;
+    border-radius: 10px;
+    background-color: #260e0a;
+    color: white;
+    font-size: 13px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.filter-button:hover,
+.filter-button.active {
+    background-color: #00ecfd;
+    color: #0A2622;
+}
+
+/* Container dos cards */
+.containerCards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+/* Estilo base dos cards */
+.card {
+    width: 280px;
+    padding: 20px;
+    background-color: #002e3f;
+    color: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: scale(1.02);
+    box-shadow: 6px 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* Timestamps */
+.timestamps p {
+    color: #000 !important;
+}
+
+/* Botões no card */
+.btn-container {
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+    border-radius: 0;
+    cursor: pointer;
+}
+
+.icon-btn img {
+    width: 28px;
+    height: 28px;
+    display: block;
+    transition: transform 0.2s, filter 0.2s;
+}
+
+.icon-btn:hover img {
+    transform: scale(1.1);
+    filter: brightness(1.2);
+}
+
+/* Paginação */
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin: 20px;
+}
+
+.pagination-controls button {
+    background-color: #fdd200;
+    color: #0A2622;
+    border: none;
+    padding: 6px 10px;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.pagination-controls button:hover,
+.pagination-controls button.active {
+    background-color: #0A2622;
+    color: white;
+}
+
+/* Container externo */
+.dashboard-wrapper {
+    background-color: #2b6f69;
+    border-radius: 20px;
+    padding: 30px 20px;
+    margin: 40px auto;
+    max-width: 1200px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.4);
+}
+
+.dashboard-wrapper .filter-container,
+.dashboard-wrapper .containerCards,
+.dashboard-wrapper .pagination-controls {
+    justify-content: center;
+}
+
+/* Filtro por tabs */
+.filter-bar {
+    background-color: #0A2622;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 20px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.filter-tab {
+    background: none;
+    border: none;
+    color: white;
+    font-weight: bold;
+    padding: 10px 15px;
+    font-size: 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.filter-tab.active,
+.filter-tab:hover {
+    background-color: #fdd200;
+    color: #0A2622;
+}
+
+/* Estilo por tipo de card (cor específica) */
+[class^="card-"] {
+    background-color: #fdd200 !important;
+    color: #000 !important;
+}
+
+#loading {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+}
+
+.loader {
+  position: absolute;
+  margin: auto;
+  top: 0; bottom: 0; left: 0; right: 0;
+  width: 6.250em;
+  height: 6.250em;
+  animation: rotate5123 2.4s linear infinite;
+}
+
+.white {
+  top: 0; bottom: 0; left: 0; right: 0;
+  background: white;
+  animation: flash 2.4s linear infinite;
+  opacity: 0;
+}
+
+.dot {
+  position: absolute;
+  margin: auto;
+  width: 2.4em;
+  height: 2.4em;
+  border-radius: 100%;
+  transition: all 1s ease;
+}
+.dot:nth-child(2) { top: 0; bottom: 0; left: 0; background: #FF4444; animation: dotsY 2.4s linear infinite; }
+.dot:nth-child(3) { left: 0; right: 0; top: 0; background: #FFBB33; animation: dotsX 2.4s linear infinite; }
+.dot:nth-child(4) { top: 0; bottom: 0; right: 0; background: #99CC00; animation: dotsY 2.4s linear infinite; }
+.dot:nth-child(5) { left: 0; right: 0; bottom: 0; background: #33B5E5; animation: dotsX 2.4s linear infinite; }
+
+@keyframes rotate5123 {
+  0% { transform: rotate(0); }
+  10% { width: 6.250em; height: 6.250em; }
+  66% { width: 2.4em; height: 2.4em; }
+  100% { transform: rotate(360deg); width: 6.250em; height: 6.250em; }
+}
+@keyframes dotsY {
+  66% { opacity: .1; width: 2.4em; }
+  77% { opacity: 1; width: 0; }
+}
+@keyframes dotsX {
+  66% { opacity: .1; height: 2.4em; }
+  77% { opacity: 1; height: 0; }
+}
+@keyframes flash {
+  33% { opacity: 0; border-radius: 0%; }
+  55% { opacity: .6; border-radius: 100%; }
+  66% { opacity: 0; }
+}

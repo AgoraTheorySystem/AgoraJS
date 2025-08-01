@@ -1,0 +1,124 @@
+.card {
+    background-color: #eec600dc !important;
+    color: #000 !important;
+    max-width: 480px;
+    width: 100%;
+    padding: 20px;
+    border-radius: 25px;
+    box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    word-wrap: break-word;
+    transition: transform 0.2s ease, box-shadow 0.2s ease; /* efeito hover */
+}
+
+.card:hover {
+    transform: scale(1.02);
+    box-shadow: 6px 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+.card:hover h1,
+.card:hover p {
+    color: #000 !important;
+}
+
+.card h1 {
+    font-size: 36px;
+    color: inherit;
+}
+
+.card p {
+    font-size: 20px;
+    margin: 2px 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    max-width: 100%;
+}
+
+.timestamps p {
+    font-size: 11px;
+    color: #ffffff;
+    margin-top: 4px;
+    word-break: break-word;
+}
+
+/* Contêiner de botões no card */
+.btn-container {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+    margin-top: 15px;
+}
+
+/* Botões com imagem (plus e lixeira) */
+.icon-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+    border-radius: 0;
+    cursor: pointer;
+}
+
+.icon-btn img {
+    width: 28px;
+    height: 28px;
+    display: block;
+    transition: transform 0.2s, filter 0.2s;
+}
+
+.icon-btn:hover img {
+    transform: scale(1.1);
+    filter: brightness(1.2);
+}
+
+/* Responsividade */
+@media (max-width: 900px) {
+    .filter-container {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .filter-button {
+        padding: 40px;
+    }
+
+    .card {
+        box-shadow: none;
+    }
+
+    .container {
+        width: 100%;
+    }
+
+    .container .menu {
+        padding: 30px 0;
+        flex-direction: column;
+        justify-content: space-between;
+        height: auto;
+        border-radius: 0;
+        box-shadow: none;
+    }
+}
+
+@media (max-width: 1919px) {
+    .containerCards {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .card {
+        max-width: 330px;
+        width: 100%;
+    }
+
+    .card h1 {
+        font-size: 30px;
+    }
+
+    .card p {
+        font-size: 18px;
+    }
+}

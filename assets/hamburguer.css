@@ -1,0 +1,219 @@
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap');
+
+/* Reset */
+#menu-sidebar *, #menu-burger-label *, #menu-logout * {
+  box-sizing: border-box;
+  font-family: 'Ubuntu', sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+/* Botão Hamburguer */
+#menu-burger-label {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  width: 40px;
+  height: 30px;
+  cursor: pointer;
+  z-index: 1001;
+}
+#menu-burger {
+  display: none;
+}
+#menu-burger-label span {
+  display: block;
+  position: absolute;
+  height: 4px;
+  width: 100%;
+  background: #ffffff;
+  border-radius: 5px;
+  transition: 0.25s ease-in-out;
+}
+#menu-burger-label span:nth-child(2) { top: 12px; }
+#menu-burger-label span:nth-child(3) { top: 24px; }
+
+#menu-burger:checked ~ #menu-burger-label span:nth-child(1) {
+  transform: rotate(45deg);
+  top: 12px;
+}
+#menu-burger:checked ~ #menu-burger-label span:nth-child(2) {
+  opacity: 0;
+}
+#menu-burger:checked ~ #menu-burger-label span:nth-child(3) {
+  transform: rotate(-45deg);
+  top: 12px;
+}
+
+/* Sidebar */
+#menu-sidebar {
+  position: fixed;
+  top: 0;
+  left: -100%;  
+  width: 360px;
+  height: 100%;
+  background: #2b6f69;
+  transition: left 0.3s ease;
+  z-index: 1000;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  box-sizing: border-box;
+  padding-top: 60px; 
+}
+
+
+#menu-burger:checked ~ #menu-sidebar {
+  left: 0; 
+}
+
+/* Usuário */
+#menu-box {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 50px;
+  padding-left: 0;
+  margin-left: 0;
+  width: fit-content;
+  margin-top: 10px; 
+}
+
+#menu-user-picture {
+  width: 100px;
+  height: 100px;
+  background: #fff;
+  border-radius: 50%;
+  border: 10px solid #003d4c;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  margin: 0;
+  transform: translateY(4px);
+}
+
+#menu-user-picture img {
+  width: 55px;
+  height: 55px;
+  fill: #003d4c;
+}
+
+#menu-user-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: left;
+  margin-left: 0;
+  padding-left: 0;
+  white-space: nowrap;
+  padding-top: 20px;
+}
+
+#menu-user-info h2 {
+  font-size: 28px;
+  color: #fff;
+  margin-bottom: 2px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+#menu-user-info p {
+  font-size: 17px;
+  color: #d0f0e8;
+  margin-bottom: 10px;
+  word-break: break-word;
+  line-height: 1.0;
+}
+
+#menu-user-info a {
+  color: #fff; /* branco padrão */
+  text-decoration: underline;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.3s ease; /* transição suave */
+}
+
+#menu-user-info a:hover {
+  color: #fdd200; /* amarelo ao passar o mouse */
+}
+
+/* Itens do Menu */
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 8px 40px 0;
+  margin-left: 10px !important;
+  width: 100%;
+  box-sizing: border-box;
+  cursor: pointer;
+  color: #fff;
+  font-size: 25px;
+  font-weight: 600;
+  user-select: none;
+  transition: color 0.3s ease;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.menu-item:hover {
+  color: #fdd200;
+  transform: scale(1.05); 
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.menu-icon-circle {
+  width: 75px;
+  height: 75px;
+  background: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+  transition: background-color 0.3s ease;
+}
+
+.menu-item:hover .menu-icon-circle {
+  background-color: #e6f0f1;
+}
+
+.menu-icon-circle img{
+  width: 45px;
+  height: 45px;
+  fill: #003d4c;
+  object-fit: contain;
+}
+
+/* Espaçamento entre botões */
+#menu-sidebar ul > li.menu-item {
+  margin-bottom: 18px;
+}
+
+/* Botão de sair*/
+#menu-logout-icon-container {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#menu-logout-icon-container img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+#menu-logout-text {
+  color: white;
+  font-weight: 600;
+  font-size: 22px;
+  user-select: none;
+}

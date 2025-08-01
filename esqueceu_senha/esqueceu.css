@@ -1,0 +1,192 @@
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap');
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-image: url(../assets/fundo_senha.jpg);
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-attachment: fixed;
+    margin: 0;
+    padding: 0;
+    font-family: 'Ubuntu', sans-serif;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 500px;
+    width: 90%;
+    min-height: 100vh; 
+}
+
+.Left {
+    width: 100%;
+    text-align: center;
+    color: white;
+    font-size: clamp(1.5rem, 2vw, 2.5rem);
+    font-weight: bold;
+}
+
+.highlight {
+    color: #FDD200;
+    text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+.Right {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.Right h2 {
+    color: #f3f3f3;
+    font-size: clamp(1.2rem, 2vw, 1.8rem);
+    text-align: center;
+}
+
+.Right form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    max-width: 400px;
+}
+
+.Right label {
+    color: white;
+    text-align: center;
+    width: 100%;
+}
+
+.Right input[type="email"] {
+    padding: 12px 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.Right input[type="email"]:focus {
+    outline: none;
+    border-color: #007BFF;
+    box-shadow: 0px 4px 8px rgba(0, 123, 255, 0.2);
+}
+
+.Right button {
+    padding: 12px 15px;
+    background-color: #2b6f69;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.Right button:hover {
+    background-color: #24544f;
+    transform: scale(1.03);
+}
+
+.Right button:active {
+    transform: scale(0.98);
+}
+
+#message {
+    margin-top: 10px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-align: center;
+    color: #007BFF;
+    text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+body::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 48, 61, 0.699);
+    z-index: 0;
+}
+
+/* Coloca os elemntos do site na frente do filtro azul */
+body > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Responsividade para telas médias */
+@media (max-width: 1200px) {
+    body {
+        flex-direction: unset;
+    }
+
+    .Left {
+        width: 100%;
+        height: 300px;
+        padding: 10px;
+        font-size: clamp(1.2rem, 2vw, 1.5rem);
+    }
+
+    .Right {
+        width: 100%;
+        padding: 30px;
+    }
+
+    .Right form {
+        gap: 15px;
+    }
+}
+
+/* Responsividade para telas pequenas */
+@media (max-width: 600px) {
+
+    .container {
+        gap: 8px;
+    }
+
+    .Left {
+        height: 250px;
+        font-size: clamp(1rem, 2vw, 1.2rem);
+        padding: 10px;
+        text-align: center;
+    }
+
+    .Right {
+        width: 100%;
+        padding: 20px;
+    }
+
+    .Right h2 {
+        font-size: 1rem;
+    }
+
+    .Right form {
+        gap: 10px;
+    }
+
+    .Right input[type="email"],
+    .Right button {
+        font-size: 0.9rem;
+        padding: 10px;
+    }
+
+    #message {
+        font-size: 0.9rem;
+    }
+}

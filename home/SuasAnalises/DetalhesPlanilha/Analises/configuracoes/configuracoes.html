@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="icon" type="image/png" href="/assets/icon.png">
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <link href="/assets/hamburguer.css" rel="stylesheet">
+        <script src="/MenuLateral.js" type="module" defer></script>
+        <link href="configuracoes.css" rel="stylesheet">
+        <script src="configuracoes.js" type="module" defer></script>
+        <title>Ágora</title>
+      </head>
+
+<body>
+  <div class="menu-bar">
+    <a class="btn_menu_analises">Voltar</a>
+    <a class="Title_Menu_da_análise">Menu da análise</a>
+</div>
+
+<div class="container">
+    <div class="config-box">
+        <h2>Alterar Nome:</h2>
+        <input type="text" id="nome" placeholder="Digite o novo nome">
+        <button onclick="alterarNome()">Enviar</button>
+    </div>
+
+    <div class="config-box">
+        <h2>Excluir Essa Análise</h2>
+        <button class="delete-button" onclick="excluirAnalise()">EXCLUIR ESSA ANÁLISE</button>
+    </div>
+</div>
+</body>
+
+</html>
