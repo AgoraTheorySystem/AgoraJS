@@ -154,6 +154,13 @@ function generateSidebarMenu() {
                 <span class="menu-text">Suas análises</span>
             </li>
 
+            <li class="menu-item" id="menu-btn-manual">
+                <div class="menu-icon-circle">
+                    <img src="/assets/icon_manual_usuario.png" alt="Manual do Usuário" />
+                </div>
+                <span class="menu-text">Manual do Usuário</span>
+            </li>
+
             <li class="menu-item" id="menu-btn3" style="display: none;">
                 <div class="menu-icon-circle">
                     <img src="/assets/icone_admin.png" alt="Admin" />
@@ -265,7 +272,8 @@ function addNavigationListeners() {
         'menu-btn0': '/home/home.html',
         'menu-btn1': '/home/CriaAnalise/cria_analise.html',
         'menu-btn2': '/home/SuasAnalises/suas_analises.html',
-        'menu-btn3': '/home/adm/adm.html'
+        'menu-btn3': '/home/adm/adm.html',
+        'menu-btn-manual': 'https://docs.google.com/document/d/1GRTPK-FSrdIToDhhsmitcQHkWB7nVn3r/edit?usp=drive_link&ouid=111418885411734694225&rtpof=true&sd=true'
     };
 
     Object.entries(nav).forEach(([id, url]) => {
@@ -279,6 +287,8 @@ function addNavigationListeners() {
             setTimeout(() => {
                 window.location.href = url;
             }, 800); 
+        } else if (id === 'menu-btn-manual') {
+            window.open(url, '_blank');
         } else {
             window.location.href = url;
         }
