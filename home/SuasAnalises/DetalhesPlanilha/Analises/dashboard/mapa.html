@@ -19,6 +19,9 @@
     <script src="https://unpkg.com/@popperjs/core@2"></script>
     <!-- Tippy.js (para o novo popup) -->
     <script src="https://unpkg.com/tippy.js@6"></script>
+    <!-- jsPDF and html2canvas for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <!-- Menu JS -->
     <script src="menu.js" type="module" defer></script>
     <link href="menu.css" rel="stylesheet" />
@@ -334,6 +337,7 @@
         <p class="description" id="description-text">
             Visualização das cidades da planilha. O mapa está sendo gerado...
         </p>
+        <button id="download-pdf-btn" style="margin-bottom: 20px; padding: 10px 20px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">Baixar Mapa como PDF</button>
 
         <div id="message-area" class="info">
             <svg class="message-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -595,6 +599,50 @@
                 showLoading(false);
             }
         }
+        
+        document.getElementById('download-pdf-btn').addEventListener('click', async () => {
+            const mapElement = document.getElementById('map');
+            
+            showLoading(true, 0, 'Gerando PDF...');
+
+            try {
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({
+                    orientation: 'landscape',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+
+                const mapCanvas = await html2canvas(mapElement, { scale: 2, useCORS: true });
+                const mapImgData = mapCanvas.toDataURL('image/png');
+                const mapImgProps = pdf.getImageProperties(mapImgData);
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                const mapPdfWidth = pdfWidth;
+                const mapPdfHeight = (mapImgProps.height * mapPdfWidth) / mapImgProps.width;
+
+                let y = 0;
+                if (mapPdfHeight < pdfHeight) {
+                    y = (pdfHeight - mapPdfHeight) / 2;
+                }
+                
+                pdf.addImage(mapImgData, 'PNG', 0, y, mapPdfWidth, mapPdfHeight);
+                
+                const urlParams = new URLSearchParams(window.location.search);
+                const planilhaNome = urlParams.get("planilha") || "Analise";
+                const dataStr = new Date().toISOString().split("T")[0];
+                const nomeArquivo = `${planilhaNome}_MapaGeoespacial_${dataStr}.pdf`;
+
+                pdf.save(nomeArquivo);
+
+            } catch (error) {
+                console.error("Erro ao gerar PDF:", error);
+                displayMessage('Ocorreu um erro ao gerar o PDF.', 'error');
+            } finally {
+                showLoading(false);
+            }
+        });
+
 
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
