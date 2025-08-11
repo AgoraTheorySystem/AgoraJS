@@ -21,6 +21,16 @@
 
 <body>
   <main>
+    <div class="top-barra-planilha">
+      <div class="barra-conteudo card-banner">
+        <div class="barra-logo">
+          <img src="/assets/tipo_de_analise_agora.png" alt="Logo Ágora">
+          <div class="titulo-site">METODOLOGIAS DAS<br>ÁGORAS COGNITIVAS</div>
+        </div>
+        <div class="barra-planilha" id="nome-da-planilha"></div>
+      </div>
+    </div>
+    
     <!-- MENU -->
     <div class="container">
       <div class="menu">
@@ -37,15 +47,21 @@
       <input type="text" id="busca-palavra" placeholder="Buscar palavra...">
     </div>
 
-    <!-- PAINEL DE SELECIONADOS -->
-    <div id="selected-evocacoes">
-      <h3>Selecionados (<span id="selected-count">0</span>):</h3>
-      <ul id="selected-list"></ul>
-      <button id="clear-selected">Limpar Selecionados</button>
-    </div>
+    <!-- CONTEÚDO EM VERDE -->
+    <div class="conteudo-verde">
 
-    <!-- TABELA ORIGINAL -->
-    <div id="tabela-evocacoes" class="table-container"></div>
+      <!-- PAINEL DE SELECIONADOS -->
+      <div id="selected-evocacoes">
+        <h3>Selecionados (<span id="selected-count">0</span>):</h3>
+        <ul id="selected-list"></ul>
+        <button id="clear-selected">Limpar Selecionados</button>
+      </div>
+
+      <!-- TABELA ORIGINAL  -->
+      <div id="tabela-evocacoes" class="table-container"></div>
+
+      <div id="pagination" class="pagination"></div>
+    </div>
 
     <div id="loading" aria-live="polite" aria-busy="true">
       <figure class="loader">

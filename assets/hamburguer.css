@@ -149,8 +149,10 @@
   width: 100%;
   box-sizing: border-box;
   cursor: pointer;
+  --color-subtext: #ffffff;
   color: #fff;
   font-size: 25px;
+  font-size: var(--font-size-base) !important; /* Aplica o novo tamanho de fonte */
   font-weight: 600;
   user-select: none;
   transition: color 0.3s ease;

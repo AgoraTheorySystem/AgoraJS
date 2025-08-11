@@ -1,11 +1,98 @@
 /* === Estilo global === */
 body {
   font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #a9a9aa;
+  background-image: url('/assets/fundo_home.jpg');
+  background-size: cover;         
+  background-position: center;   
+  background-repeat: no-repeat;   
+  background-attachment: fixed;   
   margin: 0;
   padding: 20px;
   color: #333;
 }
+
+/* ===== Barras verdes do topo (mesmo visual da tela Socioeconômico) ===== */
+.top-barra-planilha {
+  padding: 20px 0;
+  display: flex;
+  justify-content: center;
+  background: transparent;
+  width: 100%;
+}
+
+.barra-conteudo.card-banner {
+  background-color: #2b6f69;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 30px;
+  border-radius: 36px;
+  width: 100%;
+  max-width: 1000px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.barra-logo {
+  display: flex;
+  align-items: center;
+  background: transparent;
+  padding: 12px 20px;
+  border-radius: 20px;
+  gap: 15px;
+}
+.barra-logo img {
+  height: 85px;
+  width: 85px;
+  object-fit: contain;
+  border-radius: 14px;
+}
+.titulo-site {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: white;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.barra-planilha {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: white;
+  background: transparent;
+  padding: 0;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+header.barra-externa nav.menu {
+  background-color: #2b6f69;
+  border-radius: 36px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2.5rem;
+  padding: 20px 40px;
+  margin: 2rem auto;
+  max-width: 1000px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+header.barra-externa nav.menu a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  padding: 0 18px;
+  color: #FFFFFF;
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-radius: 20px;
+  line-height: 1;
+  white-space: nowrap;
+  transition: color 0.2s;
+}
+header.barra-externa nav.menu a:hover { background: none; color: #FFD600; }
+header.barra-externa nav.menu a.active { background: none !important; color: #FFD600 !important; }
 
 /* === MENU LATERAL === */
 .menu-lateral {
@@ -13,9 +100,9 @@ body {
   top: 0;
   left: 0;
   height: 100%;
-  margin-top: 100px;
+  margin-top: 375px;
   width: 80px;
-  background-color: #3f51b5;
+  background-color: #0e6f66;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -26,6 +113,7 @@ body {
   transition: width 0.3s ease;
 }
 
+/* Botões com círculo e texto abaixo */
 .menu-botao {
   display: flex;
   flex-direction: column;
@@ -45,20 +133,20 @@ body {
   transform: scale(1.1);
 }
 
-.icone-circulo {
-  background-color: white;
+.menu-botao .icone-circulo {
+  background-color: white; /* círculo branco */
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 5px;
 }
 
-.icone-circulo i {
+.menu-botao .icone-circulo i {
   font-size: 18px;
-  color: #00334f;
+  color: #2e7d32; /* ícone verde */
 }
 
 /* === TABELA === */
@@ -351,3 +439,40 @@ th.sortable.active-desc::after {
   color: #fff;
 }
 
+.conteudo-verde {
+  max-width: calc(100% - 120px);   
+  margin: 20px auto 40px 100px;    
+  background: #0e6f66;            
+  border-radius: 14px;
+  padding: 14px 16px 18px;
+  box-shadow: 0 6px 22px rgba(0,0,0,.15);
+}
+
+.conteudo-verde #selected-evocacoes {
+  background: rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: #fff;
+}
+.conteudo-verde #selected-evocacoes h3 { color: #fff; }
+.conteudo-verde #clear-selected {
+  background-color: #e53935;
+}
+
+.conteudo-verde .table-container {
+  margin: 10px 0 0 0;             
+  max-width: 100%;
+}
+
+.conteudo-verde .pagination {
+  margin: 18px 0 0 0;
+}
+
+.menu-lateral { z-index: 1000; }
+
+.conteudo-verde #selected-evocacoes {
+  margin: 0;               
+  max-width: 100%;         
+  width: 100%;
+  box-sizing: border-box;  
+}

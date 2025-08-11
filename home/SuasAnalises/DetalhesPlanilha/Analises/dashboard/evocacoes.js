@@ -345,3 +345,32 @@ document.getElementById("busca-palavra")?.addEventListener("input", (e) => {
 window.addEventListener("atualizarTabelaEvocacoes", () => {
   renderTabela();
 });
+
+(() => {
+  const params = new URLSearchParams(window.location.search);
+  const planilha = params.get("planilha") || "";
+
+  const nomeEl = document.getElementById("nome-da-planilha");
+  if (nomeEl && planilha) nomeEl.textContent = planilha.toUpperCase();
+
+  const withPlanilha = (href) => {
+    const url = new URL(href, window.location.origin);
+    if (planilha) url.searchParams.set("planilha", planilha);
+    return url.pathname + url.search;
+  };
+
+  const map = {
+    "link-dashboard": "./dashboard.html",
+    "link-agora": "./agora.html",
+    "link-evocacoes": "./evocacoes.html",
+    "link-formar": "./formaragora.html",
+    "link-mapa": "./mapa.html",
+  };
+  Object.entries(map).forEach(([id, base]) => {
+    const a = document.getElementById(id);
+    if (a) a.setAttribute("href", withPlanilha(base));
+  });
+
+  const ev = document.getElementById("link-evocacoes");
+  if (ev) ev.classList.add("active");
+})();

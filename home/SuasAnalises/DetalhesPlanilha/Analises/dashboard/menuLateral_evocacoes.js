@@ -231,39 +231,51 @@ function criarMenuLateral() {
   const menu = document.createElement("div");
   menu.classList.add("menu-lateral");
 
-  const botaoRemover = document.createElement("button");
-  botaoRemover.innerText = "Remover";
-  botaoRemover.classList.add("menu-botao");
-  botaoRemover.onclick = removerPalavrasSelecionadas;
+  const makeBtn = (label, iconClass, onClick) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "menu-botao";
+    
+    const circle = document.createElement("div");
+    circle.className = "icone-circulo";
+    
+    const icon = document.createElement("i");
+    icon.className = iconClass;
+    circle.appendChild(icon);
+    
+    const text = document.createElement("span");
+    text.textContent = label;
+    
+    btn.appendChild(circle);
+    btn.appendChild(text);
+    btn.onclick = onClick;
+    return btn;
+  };
 
-  const botaoFundir = document.createElement("button");
-  botaoFundir.innerText = "Fundir";
-  botaoFundir.classList.add("menu-botao");
-  botaoFundir.onclick = fundirPalavrasSelecionadas;
-
-  const botaoFusoes = document.createElement("button");
-  botaoFusoes.innerText = "Fusões";
-  botaoFusoes.classList.add("menu-botao");
-  botaoFusoes.onclick = () => {
+  const botaoRemover = makeBtn("Remover", "fas fa-trash", removerPalavrasSelecionadas);
+  const botaoFundir  = makeBtn("Fundir",  "fas fa-compress", fundirPalavrasSelecionadas);
+  const botaoFusoes  = makeBtn("Fusões",  "fas fa-random", () => {
     window.filtroFusoes = true;
     window.dispatchEvent(new CustomEvent("atualizarTabelaEvocacoes"));
-  };
-
-  const botaoExibirTodas = document.createElement("button");
-  botaoExibirTodas.innerText = "Exibir todas";
-  botaoExibirTodas.classList.add("menu-botao");
-  botaoExibirTodas.onclick = () => {
+  });
+  const botaoExibir  = makeBtn("Exibir todas", "fas fa-eye", () => {
     window.filtroFusoes = false;
     window.dispatchEvent(new CustomEvent("atualizarTabelaEvocacoes"));
-  };
+  });
+
+  // Botão fusão
+  const botaoFusao = makeBtn("Fusão", "fas fa-object-group", () => {
+  });
 
   menu.appendChild(botaoRemover);
   menu.appendChild(botaoFundir);
   menu.appendChild(botaoFusoes);
-  menu.appendChild(botaoExibirTodas);
+  menu.appendChild(botaoExibir);
+  menu.appendChild(botaoFusao);
 
   document.body.appendChild(menu);
 }
+
 
 window.addEventListener("DOMContentLoaded", () => {
   criarMenuLateral();

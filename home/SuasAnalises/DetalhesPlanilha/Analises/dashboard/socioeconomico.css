@@ -32,7 +32,7 @@ table {
 }
 
 thead {
-  background-color: #007bff;
+  background-color: #2b6f69;
   color: #fff;
 }
 
@@ -59,8 +59,9 @@ tbody tr:nth-child(even) {
 /* Ajuste para as células do #data-table */
 #data-table th,
 #data-table td {
-  border: 1px solid #ccc;
+  border: 1px solid #2b6f69;
 }
+
 
 /* Estilos da paginação */
 .pagination {
