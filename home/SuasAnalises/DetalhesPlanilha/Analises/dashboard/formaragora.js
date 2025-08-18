@@ -6,7 +6,8 @@ document.addEventListener("DOMContentLoaded", () => {
     alert("Parâmetro 'planilha' ausente na URL.");
     return;
   }
-
+  const planilha = new URLSearchParams(location.search).get('planilha');
+  document.querySelector(".barra-planilha").textContent = planilha;
   const DB_NAME = 'agoraDB';
   const STORE_NAME = 'planilhas';
 
