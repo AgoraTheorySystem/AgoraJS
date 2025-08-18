@@ -4,319 +4,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Análise Geoespacial de Cidades - OpenLayers</title>
+    <title>Análise Geoespacial por Evocações - OpenLayers</title>
     <!-- OpenLayers CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v7.1.0/ol.css">
-    <!-- Tippy.js CSS (para o novo popup) -->
+    <!-- Tippy.js CSS -->
     <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css" />
     <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/themes/light-border.css" />
+
+    <!-- Hamburguer JS -->
+    <script src="/MenuLateral.js" type="module" defer></script>
+    <link href="/assets/hamburguer.css" rel="stylesheet">
 
     <!-- OpenLayers JS -->
     <script src="https://cdn.jsdelivr.net/npm/ol@v7.1.0/dist/ol.js"></script>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Popper.js (necessário para o Tippy.js) -->
+    <!-- Popper.js & Tippy.js -->
     <script src="https://unpkg.com/@popperjs/core@2"></script>
-    <!-- Tippy.js (para o novo popup) -->
     <script src="https://unpkg.com/tippy.js@6"></script>
-    <!-- jsPDF and html2canvas for PDF generation -->
+    <!-- jsPDF and html2canvas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <!-- Menu JS -->
     <script src="menu.js" type="module" defer></script>
     <link href="menu.css" rel="stylesheet" />
+    <!-- Mapa JS -->
+    <script src="mapa.js" type="module" defer></script>
+    <link href="mapa.css" rel="stylesheet" />
 
-
-    <style>
-        /* Estilos Globais */
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #F0F2F5;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            min-height: 100vh;
-            margin: 0;
-            padding: 32px;
-            box-sizing: border-box;
-            color: #334155;
-        }
-
-        /* Contêiner do Cartão Principal */
-        .main-card {
-            background-color: #FFFFFF;
-            border-radius: 20px;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
-            padding: 48px;
-            width: 100%;
-            max-width: 1000px;
-            text-align: center;
-            margin-bottom: 32px;
-            position: relative;
-            overflow: hidden;
-            border: 1px solid #E2E8F0;
-        }
-
-        /* Título */
-        h1 {
-            color: #1A202C;
-            margin-bottom: 12px;
-            font-size: 3rem;
-            font-weight: 800;
-            letter-spacing: -0.06em;
-        }
-
-        /* Descrição */
-        .description {
-            color: #6B7280;
-            margin-bottom: 40px;
-            font-size: 1.15rem;
-            line-height: 1.7;
-        }
-
-        /* Área de Mensagens */
-        #message-area {
-            min-height: 90px;
-            padding: 20px 30px;
-            border-radius: 15px;
-            font-size: 1rem;
-            text-align: left;
-            margin-top: 32px;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            line-height: 1.6;
-            box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.05);
-        }
-
-        #message-area.info {
-            background-color: #E0F2F7;
-            color: #0891B2;
-            border: 1px solid #A7D9EB;
-        }
-
-        #message-area.success {
-            background-color: #D1FAE5;
-            color: #059669;
-            border: 1px solid #6EE7B7;
-        }
-
-        #message-area.error {
-            background-color: #FFE0E0;
-            color: #DC2626;
-            border: 1px solid #FCA5A5;
-        }
-
-        #message-area.warning {
-            background-color: #FEF3C7;
-            color: #D97706;
-            border: 1px solid #FDE68A;
-        }
-
-        .message-icon {
-            flex-shrink: 0;
-            width: 28px;
-            height: 28px;
-        }
-
-        /* Mapa */
-        #map {
-            height: 700px;
-            width: 100%;
-            max-width: 1000px;
-            border-radius: 20px;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
-            background-color: #E2E8F0;
-            border: 1px solid #CBD5E1;
-        }
-
-        /* Overlay de Carregamento */
-        .loading-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(255, 255, 255, 0.98);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            border-radius: 20px;
-            z-index: 100;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.5s ease, visibility 0.5s ease;
-        }
-
-        .loading-overlay.visible {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .spinner {
-            border: 8px solid #E2E8F0;
-            border-top: 8px solid #EF4444;
-            border-radius: 50%;
-            width: 70px;
-            height: 70px;
-            animation: spin 1s linear infinite;
-            margin-bottom: 25px;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .loading-text {
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: #4A5568;
-            margin-bottom: 20px;
-        }
-
-        .progress-bar-container {
-            width: 70%;
-            height: 10px;
-            background-color: #E2E8F0;
-            border-radius: 5px;
-            overflow: hidden;
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-
-        .progress-bar {
-            height: 100%;
-            width: 0%;
-            background-color: #EF4444;
-            border-radius: 5px;
-            transition: width 0.4s ease-out;
-        }
-
-        /* Seção de Cidades Não Localizadas */
-        #unlocatedCitiesSection {
-            margin-top: 32px;
-            padding: 20px;
-            background-color: #F8F8F8;
-            border-radius: 15px;
-            text-align: left;
-            box-shadow: inset 0 1px 5px rgba(0, 0, 0, 0.08);
-            border: 1px solid #E2E8F0;
-        }
-
-        .unlocated-cities-toggle {
-            cursor: pointer;
-            color: #EF4444;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            user-select: none;
-            font-size: 1.05rem;
-        }
-
-        .unlocated-cities-toggle svg {
-            width: 22px;
-            height: 22px;
-            transition: transform 0.3s ease;
-        }
-
-        .unlocated-cities-list.expanded+.unlocated-cities-toggle svg {
-            transform: rotate(90deg);
-        }
-
-        .unlocated-cities-list {
-            margin-top: 15px;
-            padding-left: 30px;
-            list-style-type: disc;
-            color: #4A5568;
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.6s ease-out;
-            font-size: 0.95rem;
-        }
-
-        .unlocated-cities-list.expanded {
-            max-height: 400px;
-            transition: max-height 0.6s ease-in;
-        }
-
-        .unlocated-cities-list li {
-            margin-bottom: 6px;
-        }
-
-        /* Ajustes Responsivos */
-        @media (max-width: 768px) {
-            body {
-                padding: 16px;
-            }
-
-            .main-card {
-                padding: 24px;
-                margin-bottom: 24px;
-            }
-
-            h1 {
-                font-size: 2.2rem;
-            }
-
-            .description {
-                font-size: 1rem;
-                margin-bottom: 24px;
-            }
-
-            #message-area {
-                font-size: 0.9rem;
-                min-height: 70px;
-                padding: 14px 20px;
-            }
-
-            .message-icon {
-                width: 22px;
-                height: 22px;
-            }
-
-            #map {
-                height: 480px;
-            }
-
-            .spinner {
-                width: 50px;
-                height: 50px;
-                border-width: 6px;
-            }
-
-            .loading-text {
-                font-size: 1.1rem;
-            }
-
-            .progress-bar-container {
-                width: 80%;
-                height: 8px;
-            }
-
-            .unlocated-cities-toggle {
-                font-size: 1rem;
-            }
-
-            .unlocated-cities-toggle svg {
-                width: 18px;
-                height: 18px;
-            }
-
-            .unlocated-cities-list {
-                font-size: 0.85rem;
-                padding-left: 20px;
-            }
-        }
-    </style>
 </head>
 
 <body>
@@ -333,33 +48,29 @@
     </div>
 
     <div class="main-card">
-        <h1>Análise Geoespacial de Cidades</h1>
+        <h1>Análise Geoespacial por Evocações</h1>
         <p class="description" id="description-text">
-            Visualização das cidades da planilha. O mapa está sendo gerado...
+            Filtre os participantes pela combinação de palavras que eles evocaram. O mapa mostrará a localização apenas daqueles que mencionaram <strong>todas</strong> as palavras selecionadas.
         </p>
-        <button id="download-pdf-btn" style="margin-bottom: 20px; padding: 10px 20px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">Baixar Mapa como PDF</button>
 
-        <div id="message-area" class="info">
-            <svg class="message-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                <path fill-rule="evenodd"
-                    d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12ZM12 8.25a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V9a.75.75 0 0 1 .75-.75ZM12 15a.75.75 0 0 0-.75.75.75.75 0 0 0 1.5 0 .75.75 0 0 0-.75-.75Z"
-                    clip-rule="evenodd" />
-            </svg>
-            <span id="message-text">Carregando dados da planilha...</span>
+        <!-- Seção de Filtro -->
+        <div id="filter-section">
+            <h2>Filtro de Evocações</h2>
+            
+            <div id="selected-words-panel" class="hidden">
+                <h3>Selecionados (<span id="selected-count">0</span>):</h3>
+                <ul id="selected-list"></ul>
+                <button id="clear-selected-btn">Limpar Selecionados</button>
+            </div>
+            
+            <input type="text" id="word-search-input" class="filter-input" placeholder="Buscar palavra para filtrar...">
+            <div id="word-list-container">
+                <p>Carregando palavras da planilha...</p>
+            </div>
+            <div id="pagination-controls"></div>
+            <button id="map-button">Mapear por Filtro</button>
         </div>
-
-        <div id="unlocatedCitiesSection" class="hidden">
-            <span class="unlocated-cities-toggle" onclick="toggleUnlocatedCities()">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                    <path fill-rule="evenodd"
-                        d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.561 0 3.273L7.28 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653Z"
-                        clip-rule="evenodd" />
-                </svg>
-                Cidades Não Encontradas (<span id="unlocatedCount">0</span>)
-            </span>
-            <ul id="unlocatedCitiesList" class="unlocated-cities-list"></ul>
-        </div>
-
+        
         <div class="loading-overlay" id="loadingOverlay">
             <div class="spinner"></div>
             <div class="loading-text" id="loadingProgressText">Preparando...</div>
@@ -368,293 +79,23 @@
             </div>
         </div>
     </div>
-    <div id="map"></div>
-
-    <script>
-        // --- Dicionários de Normalização ---
-        const stateAcronyms = { 'AC': 'Acre', 'AL': 'Alagoas', 'AP': 'Amapá', 'AM': 'Amazonas', 'BA': 'Bahia', 'CE': 'Ceará', 'DF': 'Distrito Federal', 'ES': 'Espírito Santo', 'GO': 'Goiás', 'MA': 'Maranhão', 'MT': 'Mato Grosso', 'MS': 'Mato Grosso do Sul', 'MG': 'Minas Gerais', 'PA': 'Pará', 'PB': 'Paraíba', 'PR': 'Paraná', 'PE': 'Pernambuco', 'PI': 'Piauí', 'RJ': 'Rio de Janeiro', 'RN': 'Rio Grande do Norte', 'RS': 'Rio Grande do Sul', 'RO': 'Rondônia', 'RR': 'Roraima', 'SC': 'Santa Catarina', 'SP': 'São Paulo', 'SE': 'Sergipe', 'TO': 'Tocantins' };
-        const cityAcronyms = { 'BH': 'Belo Horizonte', 'POA': 'Porto Alegre', 'SSA': 'Salvador' };
-
-        // --- INICIALIZAÇÃO DO MAPA E COMPONENTES GLOBAIS ---
-        const map = new ol.Map({
-            target: 'map',
-            layers: [new ol.layer.Tile({ source: new ol.source.OSM() })],
-            view: new ol.View({ center: ol.proj.fromLonLat([-51.9253, -14.235]), zoom: 4 }),
-            pixelRatio: window.devicePixelRatio || 1
-        });
-
-        let clusterLayer = null;
-
-        const messageArea = document.getElementById('message-area');
-        const messageText = document.getElementById('message-text');
-        const messageIcon = messageArea.querySelector('.message-icon');
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        const loadingProgressText = document.getElementById('loadingProgressText');
-        const progressBar = document.getElementById('progressBar');
-        const unlocatedCitiesSection = document.getElementById('unlocatedCitiesSection');
-        const unlocatedCountSpan = document.getElementById('unlocatedCount');
-        const unlocatedCitiesList = document.getElementById('unlocatedCitiesList');
-        const descriptionText = document.getElementById('description-text');
-
-        const infoIcon = `<svg class="message-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12ZM12 8.25a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V9a.75.75 0 0 1 .75-.75ZM12 15a.75.75 0 0 0-.75.75.75.75 0 0 0 1.5 0 .75.75 0 0 0-.75-.75Z" clip-rule="evenodd" /></svg>`;
-        const successIcon = `<svg class="message-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" clip-rule="evenodd" /></svg>`;
-        const errorIcon = `<svg class="message-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M9.401 3.003c1.155-2.001 4.045-2.001 5.199 0l3.597 6.235c1.155 2.001-.29 4.5-2.599 4.5H8.404c-2.31 0-3.754-2.499-2.599-4.5l3.597-6.235ZM12 9.75a.75.75 0 0 0-.75.75v2.25c0 .414.336.75.75.75h.008a.75.75 0 0 0 .75-.75V10.5a.75.75 0 0 0-.75-.75ZM12 15a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z" clip-rule="evenodd" /></svg>`;
-
-        // --- LÓGICA DE POPUP COM TIPPY.JS ---
-        let tippyInstance = null;
-        map.on('pointermove', function (evt) {
-            if (evt.dragging) { if (tippyInstance) tippyInstance.destroy(); return; }
-            const feature = map.forEachFeatureAtPixel(evt.pixel, f => f);
-            const mapElement = map.getTargetElement();
-
-            if (feature) {
-                mapElement.style.cursor = 'pointer';
-                if (tippyInstance) tippyInstance.destroy();
-                const clusteredFeatures = feature.get('features');
-                let content = '';
-                if (clusteredFeatures.length > 1) {
-                    const total = clusteredFeatures.reduce((sum, f) => sum + f.get('cityCount'), 0);
-                    let listItems = clusteredFeatures.map(f => `<div class="flex justify-between items-center text-sm py-1"><span class="text-gray-600">${f.get('cityName')}</span><span class="font-semibold text-gray-800">${f.get('cityCount')}</span></div>`).join('');
-                    content = `<div class="p-1 font-sans"><h3 class="font-bold text-base mb-2 text-gray-800">Cidades Agrupadas</h3><div class="space-y-1">${listItems}</div><hr class="my-2"><div class="flex justify-between items-center font-bold text-base"><span class="text-gray-900">Total</span><span class="text-red-600">${total}</span></div></div>`;
-                } else {
-                    const singleFeature = clusteredFeatures[0];
-                    const cityName = singleFeature.get('cityName');
-                    const cityCount = singleFeature.get('cityCount');
-                    content = `<div class="p-1 font-sans"><strong class="text-base">${cityName}</strong><br>${cityCount} ocorrência${cityCount > 1 ? 's' : ''}</div>`;
-                }
-                const virtualEl = { getBoundingClientRect: () => ({ width: 0, height: 0, top: evt.pixel[1] + mapElement.getBoundingClientRect().top, right: evt.pixel[0] + mapElement.getBoundingClientRect().left, bottom: evt.pixel[1] + mapElement.getBoundingClientRect().top, left: evt.pixel[0] + mapElement.getBoundingClientRect().left }) };
-                tippyInstance = tippy(document.body, { getReferenceClientRect: virtualEl.getBoundingClientRect, content: content, allowHTML: true, placement: 'top', arrow: true, animation: 'fade', theme: 'light-border', trigger: 'manual', appendTo: () => document.body });
-                tippyInstance.show();
-            } else {
-                mapElement.style.cursor = '';
-                if (tippyInstance) tippyInstance.destroy();
-            }
-        });
-        map.getViewport().addEventListener('mouseout', () => { if (tippyInstance) tippyInstance.destroy(); });
-
-        // --- Funções de Controle da UI ---
-        function displayMessage(msg, type = 'info') { const icons = { info: infoIcon, success: successIcon, error: errorIcon }; messageText.innerHTML = msg; messageArea.className = `message-area ${type}`; messageIcon.innerHTML = icons[type]; }
-        function showLoading(show, progress = 0, text = 'Processando...') { if (show) { loadingOverlay.classList.add('visible'); loadingProgressText.textContent = text; progressBar.style.width = `${progress}%`; } else { loadingOverlay.classList.remove('visible'); progressBar.style.width = '0%'; } }
-        function toggleUnlocatedCities() { unlocatedCitiesList.classList.toggle('expanded'); const isExpanded = unlocatedCitiesList.classList.contains('expanded'); const arrowIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="transform: rotate(${isExpanded ? '90deg' : '0deg'}); transition: transform 0.3s ease;"><path fill-rule="evenodd" d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.561 0 3.273L7.28 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653Z" clip-rule="evenodd" /></svg>`; unlocatedCitiesSection.querySelector('.unlocated-cities-toggle').innerHTML = `${arrowIcon} Cidades Não Encontradas (<span>${unlocatedCountSpan.textContent}</span>)`; }
-
-        // --- Funções de Geocodificação e Processamento ---
-        async function geocodeCity(cityName, stateName) {
-            const query = stateName ? `${cityName}, ${stateName}, Brasil` : `${cityName}, Brasil`;
-            const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=3&addressdetails=1`;
-            try {
-                await new Promise(resolve => setTimeout(resolve, 500)); // Rate limiting
-                const response = await fetch(url);
-                if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
-                const data = await response.json();
-                if (data && data.length > 0) {
-                    const preferredResult = data.find(r => r.addresstype === 'city' || r.addresstype === 'town' || r.addresstype === 'village');
-                    const result = preferredResult || data[0];
-                    return [parseFloat(result.lat), parseFloat(result.lon)];
-                }
-                return null;
-            } catch (error) {
-                console.error(`Erro ao geocodificar "${query}":`, error);
-                return null;
-            }
-        }
-
-        async function processDataFromDB(planilhaNome) {
-            showLoading(true, 0, `Carregando dados da planilha...`);
-            unlocatedCitiesSection.classList.add('hidden');
-            unlocatedCitiesList.innerHTML = '';
-            unlocatedCitiesList.classList.remove('expanded');
-            if (tippyInstance) tippyInstance.destroy();
-
-            try {
-                const db = await new Promise((resolve, reject) => {
-                    const request = indexedDB.open('agoraDB', 1);
-                    request.onsuccess = event => resolve(event.target.result);
-                    request.onerror = event => reject(event.target.error);
-                });
-
-                const transaction = db.transaction('planilhas', 'readonly');
-                const store = transaction.objectStore('planilhas');
-                const request = store.get(`planilha_${planilhaNome}`);
-
-                const storedData = await new Promise((resolve, reject) => {
-                    request.onsuccess = event => resolve(event.target.result ? event.target.result.value : null);
-                    request.onerror = event => reject(event.target.error);
-                });
-
-                if (!storedData || storedData.length < 2) {
-                    displayMessage('Dados não encontrados ou planilha vazia no armazenamento local.', 'error');
-                    showLoading(false);
-                    return;
-                }
-
-                const header = storedData[0].map(h => h.toString().toLowerCase().trim());
-                const cityColumnIndex = header.indexOf('cidades') !== -1 ? header.indexOf('cidades') : header.indexOf('cidade');
-                const stateColumnIndex = header.indexOf('estado') !== -1 ? header.indexOf('estado') : header.indexOf('estados');
-
-                if (cityColumnIndex === -1) {
-                    displayMessage('Coluna "CIDADES" ou "CIDADE" não encontrada na planilha.', 'error');
-                    showLoading(false);
-                    return;
-                }
-
-                descriptionText.textContent = `Visualização das cidades da planilha "${planilhaNome}".`;
-                displayMessage(`Processando dados de "${planilhaNome}"...`, 'info');
-
-                const cityCounts = {};
-                for (let i = 1; i < storedData.length; i++) {
-                    const row = storedData[i];
-                    if (row[cityColumnIndex]) {
-                        const cityUpper = row[cityColumnIndex].toString().trim().toUpperCase();
-                        let finalIdentifier = cityAcronyms[cityUpper] || row[cityColumnIndex].toString().trim();
-                        if (stateColumnIndex !== -1 && row[stateColumnIndex]) {
-                            const stateUpper = row[stateColumnIndex].toString().trim().toUpperCase();
-                            finalIdentifier += `, ${stateAcronyms[stateUpper] || row[stateColumnIndex].toString().trim()}`;
-                        }
-                        cityCounts[finalIdentifier] = (cityCounts[finalIdentifier] || 0) + 1;
-                    }
-                }
-
-                const unlocatedCitiesDetails = [];
-                const uniqueCities = Object.keys(cityCounts);
-                let locatedCount = 0;
-                const geocodedCache = {};
-                const features = [];
-
-                for (let i = 0; i < uniqueCities.length; i++) {
-                    const cityIdentifier = uniqueCities[i];
-                    let [cityName, stateName] = cityIdentifier.includes(', ') ? cityIdentifier.split(', ') : [cityIdentifier, ''];
-                    const progressText = `Geocodificando: ${cityName}... (${i + 1}/${uniqueCities.length})`;
-                    showLoading(true, Math.round(((i + 1) / uniqueCities.length) * 100), progressText);
-
-                    let coords = geocodedCache[cityIdentifier] || await geocodeCity(cityName, stateName);
-                    if (coords) {
-                        geocodedCache[cityIdentifier] = coords;
-                        locatedCount++;
-                        const feature = new ol.Feature({ geometry: new ol.geom.Point(ol.proj.fromLonLat([coords[1], coords[0]])) });
-                        feature.setProperties({ cityName: cityIdentifier, cityCount: cityCounts[cityIdentifier] });
-                        features.push(feature);
-                    } else {
-                        unlocatedCitiesDetails.push({ name: cityIdentifier, count: cityCounts[cityIdentifier] });
-                    }
-                }
-
-                if (locatedCount === 0) { displayMessage('Nenhuma cidade foi geocodificada com sucesso.', 'error'); showLoading(false); return; }
-
-                const vectorSource = new ol.source.Vector({ features: features });
-                const clusterSource = new ol.source.Cluster({ distance: 40, minDistance: 20, source: vectorSource });
-
-                if (clusterLayer) map.removeLayer(clusterLayer);
-
-                clusterLayer = new ol.layer.Vector({
-                    source: clusterSource,
-                    style: function (feature) {
-                        const featuresInCluster = feature.get('features');
-                        const totalCount = featuresInCluster.reduce((sum, f) => sum + f.get('cityCount'), 0);
-                        const radius = 12 + Math.log(totalCount) * 4;
-                        const startColor = [255, 255, 0], endColor = [255, 0, 0];
-                        const allCounts = Object.values(cityCounts);
-                        const maxTotalCount = allCounts.reduce((sum, count) => sum + count, 0);
-                        let ratio = (maxTotalCount > 1) ? (Math.log(totalCount) / Math.log(maxTotalCount)) : 0;
-                        const r = Math.round(startColor[0] + ratio * (endColor[0] - startColor[0]));
-                        const g = Math.round(startColor[1] + ratio * (endColor[1] - startColor[1]));
-                        const color = `rgba(${r}, ${g}, 0, 0.7)`;
-
-                        return new ol.style.Style({
-                            image: new ol.style.Circle({
-                                radius: radius,
-                                fill: new ol.style.Fill({ color: color }),
-                                stroke: new ol.style.Stroke({ color: '#6B211E', width: 1.5 })
-                            }),
-                            text: new ol.style.Text({
-                                text: totalCount.toString(),
-                                fill: new ol.style.Fill({ color: '#fff' }),
-                                stroke: new ol.style.Stroke({ color: 'rgba(0,0,0,0.6)', width: 2.5 }),
-                                font: 'bold 12px sans-serif'
-                            }),
-                        });
-                    },
-                });
-                map.addLayer(clusterLayer);
-
-                if (!ol.extent.isEmpty(vectorSource.getExtent())) { map.getView().fit(vectorSource.getExtent(), { padding: [50, 50, 50, 50], duration: 1000 }); }
-
-                let finalMessage = `Dados de "${planilhaNome}" processados! <br>Cidades únicas mapeadas: ${locatedCount}.`;
-                if (unlocatedCitiesDetails.length > 0) {
-                    finalMessage += `<br>Cidades não encontradas: ${unlocatedCitiesDetails.length}.`;
-                    unlocatedCitiesSection.classList.remove('hidden');
-                    unlocatedCountSpan.textContent = unlocatedCitiesDetails.length;
-                    unlocatedCitiesList.innerHTML = '';
-                    unlocatedCitiesDetails.forEach(item => {
-                        const li = document.createElement('li');
-                        li.textContent = `${item.name} (${item.count} ocorrência${item.count > 1 ? 's' : ''})`;
-                        unlocatedCitiesList.appendChild(li);
-                    });
-                }
-                displayMessage(finalMessage, 'success');
-                showLoading(false);
-
-            } catch (error) {
-                console.error("Erro ao processar dados do IndexedDB:", error);
-                displayMessage(`Erro: ${error.message}.`, 'error');
-                showLoading(false);
-            }
-        }
-        
-        document.getElementById('download-pdf-btn').addEventListener('click', async () => {
-            const mapElement = document.getElementById('map');
-            
-            showLoading(true, 0, 'Gerando PDF...');
-
-            try {
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF({
-                    orientation: 'landscape',
-                    unit: 'mm',
-                    format: 'a4'
-                });
-
-                const mapCanvas = await html2canvas(mapElement, { scale: 2, useCORS: true });
-                const mapImgData = mapCanvas.toDataURL('image/png');
-                const mapImgProps = pdf.getImageProperties(mapImgData);
-                const pdfWidth = pdf.internal.pageSize.getWidth();
-                const pdfHeight = pdf.internal.pageSize.getHeight();
-                const mapPdfWidth = pdfWidth;
-                const mapPdfHeight = (mapImgProps.height * mapPdfWidth) / mapImgProps.width;
-
-                let y = 0;
-                if (mapPdfHeight < pdfHeight) {
-                    y = (pdfHeight - mapPdfHeight) / 2;
-                }
-                
-                pdf.addImage(mapImgData, 'PNG', 0, y, mapPdfWidth, mapPdfHeight);
-                
-                const urlParams = new URLSearchParams(window.location.search);
-                const planilhaNome = urlParams.get("planilha") || "Analise";
-                const dataStr = new Date().toISOString().split("T")[0];
-                const nomeArquivo = `${planilhaNome}_MapaGeoespacial_${dataStr}.pdf`;
-
-                pdf.save(nomeArquivo);
-
-            } catch (error) {
-                console.error("Erro ao gerar PDF:", error);
-                displayMessage('Ocorreu um erro ao gerar o PDF.', 'error');
-            } finally {
-                showLoading(false);
-            }
-        });
-
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const planilhaNome = urlParams.get("planilha");
-
-            if (planilhaNome) {
-                processDataFromDB(planilhaNome);
-            } else {
-                displayMessage('Nome da planilha não fornecido na URL.', 'error');
-            }
-        });
-    </script>
+    
+    <!-- Contêiner do Mapa e Resultados -->
+    <div id="map-container" class="hidden">
+        <div id="map"></div>
+        <div id="message-area" class="info">
+            <svg class="message-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12ZM12 8.25a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V9a.75.75 0 0 1 .75-.75ZM12 15a.75.75 0 0 0-.75.75.75.75 0 0 0 1.5 0 .75.75 0 0 0-.75-.75Z" clip-rule="evenodd" /></svg>
+            <span id="message-text">Carregando dados da planilha...</span>
+        </div>
+        <div id="unlocatedCitiesSection" class="hidden">
+            <span class="unlocated-cities-toggle" onclick="toggleUnlocatedCities()">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.561 0 3.273L7.28 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653Z" clip-rule="evenodd" /></svg>
+                Cidades Não Encontradas (<span id="unlocatedCount">0</span>)
+            </span>
+            <ul id="unlocatedCitiesList" class="unlocated-cities-list"></ul>
+        </div>
+        <button id="download-pdf-btn" class="hidden">Baixar Mapa como PDF</button>
+    </div>
 </body>
 
 </html>
