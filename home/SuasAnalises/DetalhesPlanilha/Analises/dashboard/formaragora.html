@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,12 +7,18 @@
   <link href="/assets/hamburguer.css" rel="stylesheet" />
   <script src="/MenuLateral.js" type="module" defer></script>
   <script src="/home/SuasAnalises/DetalhesPlanilha/Analises/dashboard/atualizacao.js" type="module" defer></script>
+
+  <!-- Estilos -->
   <link href="formaragora.css" rel="stylesheet" />
+
+  <!-- Bibliotecas -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
   <link href="https://unpkg.com/vis-network/styles/vis-network.css" rel="stylesheet" />
   <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+  <!-- Scripts -->
   <script src="formaragora.js" type="module" defer></script>
   <script src="bolha_conectividade.js" type="module" defer></script>
   <script src="bolha_socioeconomica.js" type="module" defer></script>
@@ -21,67 +26,88 @@
   <script src="menu.js" type="module" defer></script>
   <link href="menu.css" rel="stylesheet" />
   <link href="bolhas.css" rel="stylesheet" />
+
   <title>Ágora</title>
 </head>
-
 <body class="formaragora">
   <main>
-    <!-- MENU -->
+    <div class="top-barra-planilha">
+      <div class="barra-conteudo card-banner">
+        <div class="barra-logo">
+          <img src="/assets/tipo_de_analise_agora.png" alt="Logo Ágora">
+          <div class="titulo-site">METODOLOGIAS DAS<br>ÁGORAS COGNITIVAS</div>
+        </div>
+        <div class="barra-planilha" id="nome-da-planilha"></div>
+      </div>
+    </div>
+
     <div class="container">
       <div class="menu">
-        <a class="menu_analises">Menu Das Análises</a>
-        <a href="./dashboard.html?planilha=">Dashboard</a>
-        <a href="./agora.html?planilha=">Socioeconômico</a>
-        <a href="./evocacoes.html?planilha=">Evocações</a>
-        <a href="./formaragora.html?planilha=">Formar Ágoras</a>
-        <a href="./mapa.html?planilha=">Mapa</a>
+        <a class="menu_analises" id="link-analises">Menu Das Análises</a>
+        <a id="link-dashboard"  href="./dashboard.html?planilha=">Dashboard</a>
+        <a id="link-agora"      href="./agora.html?planilha=">Socioeconômico</a>
+        <a id="link-evocacoes"  href="./evocacoes.html?planilha=">Evocações</a>
+        <a id="link-formar"     href="./formaragora.html?planilha=">Formar Ágoras</a>
+        <a id="link-mapa"       href="./mapa.html?planilha=">Mapa</a>
       </div>
     </div>
 
-    <!-- ÁREA DA ÁGORA -->
-    <div id="menu_agoras">
-      <div class="niveis">
-        <label class="niveis-label"><strong>NÍVEL DA ÁGORA</strong></label>
-        <div id="niveisContainer" class="niveis-buttons"></div>
+    <!-- PRIMEIRO CARD (planilha) AGORA INCLUI OS CONTROLES -->
+    <div class="planilha">
+      <!-- CONTROLES DA ÁGORA -->
+      <div id="menu_agoras">
+        <div class="niveis">
+          <label class="niveis-label"><strong>NÍVEL DA ÁGORA</strong></label>
+          <div id="niveisContainer" class="niveis-buttons"></div>
+        </div>
+
+        <div class="analise">
+          <label><strong>ANÁLISE</strong></label>
+          <label>
+            <input type="radio" name="analise" value="Socioeconômica" checked>
+            Socioeconômica
+          </label>
+          <label>
+            <input type="radio" name="analise" value="Conectividade">
+            Conectividade
+          </label>
+        </div>
+
+        <div class="extra-opcao" id="extraOpcao">
+          <label><strong>QTD. DE PALAVRAS / NÍVEL</strong></label>
+          <input type="number" id="valorConectividade" placeholder="Digite um número">
+        </div>
+
+        <div class="aspecto">
+          <label><strong>ASPECTO ANALISADO</strong></label>
+          <label>
+            <input type="radio" name="aspecto" value="Ego" checked> Ego
+          </label>
+          <label>
+            <input type="radio" name="aspecto" value="Alter"> Alter
+          </label>
+        </div>
+
+        <div class="rodar">
+          <button class="btn-agora" onclick="rodarAnalise()">
+            <span class="btn-ico" aria-hidden="true">
+              <!-- Ícone de “documento” -->
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zm0 0v6h6"/>
+                <rect x="8" y="13" width="8" height="1.6" rx=".8"></rect>
+                <rect x="8" y="16.5" width="8" height="1.6" rx=".8"></rect>
+              </svg>
+            </span>
+            <span class="btn-text">FORMAR ÁGORA</span>
+          </button>
+        </div>
       </div>
 
-      <div class="analise">
-        <label><strong>ANÁLISE</strong></label>
-        <label>
-          <input type="radio" name="analise" value="Socioeconômica" checked>
-          Socioeconômica
-        </label>
-        <label>
-          <input type="radio" name="analise" value="Conectividade">
-          Conectividade
-        </label>
-      </div>
-
-      <div class="extra-opcao" id="extraOpcao">
-        <label><strong>QTD. DE PALAVRAS / NÍVEL</strong></label>
-        <input type="number" id="valorConectividade" placeholder="Digite um número">
-      </div>
-
-      <div class="aspecto">
-        <label><strong>ASPECTO ANALISADO</strong></label>
-        <label>
-          <input type="radio" name="aspecto" value="Ego" checked> Ego
-        </label>
-        <label>
-          <input type="radio" name="aspecto" value="Alter"> Alter
-        </label>
-      </div>
-
-      <div class="rodar">
-        <button onclick="rodarAnalise()">FORMAR ÁGORAS 💡</button>
-      </div>
+      <!-- PLANILHAS SERÃO INSERIDAS AQUI -->
+      <div id="planilhasContainer"></div>
     </div>
 
-    <!-- ÁREA DAS PLANILHAS -->
-    <!-- Esse container ficará vazio inicialmente e será preenchido dinamicamente -->
-    <div id="planilhasContainer"></div>
-
-    <!-- LOADING (opcional, caso seja utilizado globalmente) -->
+    <!-- LOADING GLOBAL -->
     <div id="loading" aria-live="polite" aria-busy="true" style="display: none;">
       <figure class="loader">
         <div class="dot white"></div>
@@ -93,5 +119,4 @@
     </div>
   </main>
 </body>
-
 </html>
