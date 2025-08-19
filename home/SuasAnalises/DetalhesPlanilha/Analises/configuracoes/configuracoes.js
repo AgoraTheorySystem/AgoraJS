@@ -144,73 +144,86 @@ window.alterarNome = async function () {
         return;
     }
 
-    toggleLoading(true);
+    const result = await Swal.fire({
+        title: "Você tem certeza?",
+        text: `Deseja realmente alterar o nome da análise de "${nomeAntigo}" para "${novoNome}"?`,
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Sim, alterar!",
+        cancelButtonText: "Cancelar"
+    });
 
-    try {
-        // --- 1. Renomear no Firebase ---
-        const pathsToProcess = ["planilhas", "UltimasAlteracoes", "tabelasAuxiliares", "lematizacoes"];
-        
-        const firebasePromises = pathsToProcess.map(async (path) => {
-            const oldRef = ref(db, `users/${user.uid}/${path}/${nomeAntigo}`);
-            const snapshot = await get(oldRef);
+    if (result.isConfirmed) {
+        toggleLoading(true);
 
-            if (snapshot.exists()) {
-                // Para 'planilhas', copia em chunks para evitar erro de "Write too large".
-                // Para outros paths, copia o nó inteiro.
-                if (path === 'planilhas') {
-                    const chunkPromises = [];
-                    snapshot.forEach((chunkSnapshot) => {
-                        const chunkKey = chunkSnapshot.key;
-                        const chunkData = chunkSnapshot.val();
-                        const newChunkRef = ref(db, `users/${user.uid}/${path}/${novoNome}/${chunkKey}`);
-                        chunkPromises.push(set(newChunkRef, chunkData));
-                    });
-                    await Promise.all(chunkPromises);
-                } else {
-                    const data = snapshot.val();
-                    const newRef = ref(db, `users/${user.uid}/${path}/${novoNome}`);
-                    await set(newRef, data);
+        try {
+            // --- 1. Renomear no Firebase ---
+            const pathsToProcess = ["planilhas", "UltimasAlteracoes", "tabelasAuxiliares", "lematizacoes"];
+
+            const firebasePromises = pathsToProcess.map(async (path) => {
+                const oldRef = ref(db, `users/${user.uid}/${path}/${nomeAntigo}`);
+                const snapshot = await get(oldRef);
+
+                if (snapshot.exists()) {
+                    // Para 'planilhas', copia em chunks para evitar erro de "Write too large".
+                    // Para outros paths, copia o nó inteiro.
+                    if (path === 'planilhas') {
+                        const chunkPromises = [];
+                        snapshot.forEach((chunkSnapshot) => {
+                            const chunkKey = chunkSnapshot.key;
+                            const chunkData = chunkSnapshot.val();
+                            const newChunkRef = ref(db, `users/${user.uid}/${path}/${novoNome}/${chunkKey}`);
+                            chunkPromises.push(set(newChunkRef, chunkData));
+                        });
+                        await Promise.all(chunkPromises);
+                    } else {
+                        const data = snapshot.val();
+                        const newRef = ref(db, `users/${user.uid}/${path}/${novoNome}`);
+                        await set(newRef, data);
+                    }
+
+                    // Após a cópia bem-sucedida, remove os dados antigos.
+                    await remove(oldRef);
+                    console.log(`Firebase: '${path}/${nomeAntigo}' renomeado para '${path}/${novoNome}'.`);
                 }
-                
-                // Após a cópia bem-sucedida, remove os dados antigos.
-                await remove(oldRef);
-                console.log(`Firebase: '${path}/${nomeAntigo}' renomeado para '${path}/${novoNome}'.`);
-            }
-        });
+            });
 
-        // --- 2. Renomear no IndexedDB ---
-        const indexedDBKeys = {
-            main: `planilha_${nomeAntigo}`,
-            modificacao: `planilha_ultima_alteracao_${nomeAntigo}`,
-            // auxiliar: `planilha_auxiliar_${nomeAntigo}` // Descomente se usar
-        };
-        const indexedDBPromises = Object.entries(indexedDBKeys).map(async ([, oldKey]) => {
-            const data = await getItem(oldKey);
-            if (data !== null) {
-                const newKey = oldKey.replace(nomeAntigo, novoNome);
-                await setItem(newKey, data);
-                await removeItem(oldKey);
-                console.log(`IndexedDB: '${oldKey}' renomeado para '${newKey}'.`);
-            }
-        });
+            // --- 2. Renomear no IndexedDB ---
+            const indexedDBKeys = {
+                main: `planilha_${nomeAntigo}`,
+                modificacao: `planilha_ultima_alteracao_${nomeAntigo}`,
+                // auxiliar: `planilha_auxiliar_${nomeAntigo}` // Descomente se usar
+            };
+            const indexedDBPromises = Object.entries(indexedDBKeys).map(async ([, oldKey]) => {
+                const data = await getItem(oldKey);
+                if (data !== null) {
+                    const newKey = oldKey.replace(nomeAntigo, novoNome);
+                    await setItem(newKey, data);
+                    await removeItem(oldKey);
+                    console.log(`IndexedDB: '${oldKey}' renomeado para '${newKey}'.`);
+                }
+            });
 
-        // Aguarda a conclusão de todas as operações
-        await Promise.all([...firebasePromises, ...indexedDBPromises]);
+            // Aguarda a conclusão de todas as operações
+            await Promise.all([...firebasePromises, ...indexedDBPromises]);
 
-        Swal.fire({
-            icon: "success",
-            title: "Sucesso!",
-            text: "A análise foi renomeada.",
-        }).then(() => {
-            // Redireciona para a página de listagem de análises
-            window.location.href = "/home/SuasAnalises/suas_analises.html";
-        });
+            Swal.fire({
+                icon: "success",
+                title: "Sucesso!",
+                text: "A análise foi renomeada.",
+            }).then(() => {
+                // Redireciona para a página de listagem de análises
+                window.location.href = `/home/SuasAnalises/DetalhesPlanilha/menu_da_analise.html?planilha=${encodeURIComponent(novoNome)}`;
+            });
 
-    } catch (error) {
-        console.error("Erro ao renomear a análise:", error);
-        Swal.fire("Erro", `Não foi possível renomear a análise. Verifique sua conexão e tente novamente. Detalhes: ${error.message}`, "error");
-    } finally {
-        toggleLoading(false);
+        } catch (error) {
+            console.error("Erro ao renomear a análise:", error);
+            Swal.fire("Erro", `Não foi possível renomear a análise. Verifique sua conexão e tente novamente. Detalhes: ${error.message}`, "error");
+        } finally {
+            toggleLoading(false);
+        }
     }
 };
 
@@ -287,7 +300,7 @@ document.addEventListener("DOMContentLoaded", () => {
             titleElement.textContent = `Menu da análise: ${planilhaNome}`;
         }
     }
-    
+
     // Configura o botão de voltar
     const menuAnalisesBtn = document.querySelector(".btn_menu_analises");
     if (menuAnalisesBtn) {

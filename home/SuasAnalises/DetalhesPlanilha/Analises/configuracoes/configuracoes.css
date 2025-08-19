@@ -1,26 +1,27 @@
 /* Estilos Gerais */
+/* Estilos Gerais */
 body {
   font-family: 'Arial', sans-serif;
-  margin-top: 100px;
+  margin: 0;
   padding: 0;
-  background-color: #fff;
-  /* Fundo branco */
+  background-image: url(/assets/fundo_home.jpg); /* Substitua pelo caminho da sua imagem */
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
   color: White;
-  /* Texto escuro para contraste */
+  /* Ajuste a cor do texto para ser legível no fundo */
   display: flex;
   align-items: flex-start;
-  /* Alinhamento à parte superior */
-  height: 100vh;
-  overflow: hidden;
-  font-size: 16px;
   flex-direction: column;
-  /* Itens em uma coluna */
   align-items: center;
+  min-height: 100vh; /* Garante que o body ocupa a altura total da viewport */
+  font-size: 16px;
 }
 
 /* Barra do Menu */
 .menu-bar {
-  background-color: #0d2b3c;
+  background-color: #002e3f;
   padding: 15px;
   text-align: center;
   font-weight: bold;
@@ -44,7 +45,7 @@ body {
 
 /* Blocos de Configuração */
 .config-box {
-  background-color: #2b3e50;
+  background-color: #002e3f;
   padding: 20px;
   border-radius: 15px;
   box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.4);
@@ -73,12 +74,12 @@ input {
 
 input:focus {
   outline: none;
-  border: 2px solid #666666;
+  border: 2px solid #ffffff;
 }
 
 /* Botão Principal */
 button {
-  background-color: #007db8;
+  background-color: #2b6f69;
   color: white;
   border: none;
   padding: 12px 20px;
@@ -92,13 +93,13 @@ button {
 }
 
 button:hover {
-  background-color: #ff3245;
+  background-color: #fdd200;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 /* Botão de Exclusão */
 .delete-button {
-  background-color: #ff3b30;
+  background-color: #2b6f69;
   color: white;
   font-size: 18px;
   font-weight: bold;
@@ -109,7 +110,7 @@ button:hover {
 }
 
 .delete-button:hover {
-  background-color: #ff2a1d;
+  background-color: #fdd200;
   transform: scale(1.05);
 }
 
@@ -251,7 +252,7 @@ button:hover {
 .btn_menu_analises {
   display: inline-block; /* Para o link se comportar como um botão */
   padding: 12px 25px;
-  background-color: #5c6bc0; /* Cor de fundo azul moderno */
+  background-color: #2b6f69; /* Cor de fundo azul moderno */
   color: white;
   text-align: center;
   text-decoration: none; /* Remover sublinhado do link */
@@ -264,7 +265,7 @@ button:hover {
 }
 
 .btn_menu_analises:hover {
-  background-color: #3f51b5; /* Cor mais escura ao passar o mouse */
+  background-color: #fdd200; /* Cor mais escura ao passar o mouse */
   transform: translateY(-3px); /* Levanta o botão */
   box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.3);
 }
