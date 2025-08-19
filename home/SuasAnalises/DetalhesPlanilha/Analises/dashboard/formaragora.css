@@ -1,4 +1,4 @@
-/* Fonte e cores (mesmo do anterior) */
+/* Fonte e cores */
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
 
 :root {
@@ -24,7 +24,7 @@ html {
 body, html {
   margin: 0;
   padding: 0;
- background-image: url('/assets/fundo_senha.jpg');
+  background-image: url('/assets/fundo_senha.jpg');
   background-size: cover; 
   color: var(--color-text);
   font-family: 'Montserrat', sans-serif;
@@ -34,7 +34,6 @@ body, html {
   line-height: 1.5;
 }
 
-
 main {
   padding: 0 1rem 3rem;
   display: flex;
@@ -43,25 +42,100 @@ main {
   box-sizing: border-box;
 }
 
-/* MENU */
-.container .menu {
+/* --- Banner verde do topo --- */
+.top-barra-planilha {
+  padding: 30px 0;
   display: flex;
-  flex-wrap: wrap;
-  gap: 1.25rem;
-  font-weight: 600;
-  font-size: 1rem;
-  margin: 0 auto !important;
-  user-select: none;
   justify-content: center;
+  background: transparent;
+  width: 100%;
 }
 
-.container .menu a {
-  color: var(--color-subtext);
-  text-decoration: none;
-  padding: 0.375rem 0.75rem;
-  border-radius: var(--radius);
-  transition: background-color var(--transition), color var(--transition);
+.barra-conteudo.card-banner {
+  background-color: #2b6f69;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 30px;
+  border-radius: 36px;
+  width: 100%;
+  max-width: 1000px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.barra-logo {
+  display: flex;
+  align-items: center;
+  background: transparent;
+  padding: 12px 20px;
+  border-radius: 20px;
+  gap: 15px;
+}
+
+.barra-logo img {
+  height: 85px;
+  width: 85px;
+  object-fit: contain;
+  border-radius: 14px;
+}
+
+.titulo-site {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #fff;
+  text-transform: uppercase;
   white-space: nowrap;
+}
+
+.barra-planilha {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #fff;
+  background: transparent;
+  padding: 0;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* --- Menu de Navegação --- */
+main > .container > .menu {
+  background-color: #2b6f69;
+  border-radius: 36px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 2rem !important; /* Mantém o espaçamento entre os itens */
+  width: 100%;
+  max-width: 1280px !important;
+  padding: 18px 32px !important;
+  margin: 0.2rem auto 0 !important; /* Ajuste para diminuir a distância */
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+main > .container > .menu a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  padding: 0 20px;
+  color: #FFFFFF;
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-radius: 20px;
+  line-height: 1;
+  white-space: nowrap;
+  transition: color 0.2s;
+}
+
+main > .container > .menu a:hover {
+  color: #FFD600;
+}
+
+main > .container > .menu a.active {
+  color: #FFD600 !important;
 }
 
 /* CONTROLES DE NÍVEIS, ANÁLISE E ASPECTO */
@@ -69,19 +143,12 @@ main {
   display: flex;
   flex-wrap: wrap;
   gap: 2.5rem;
-  align-items: flex-start;      /* cada coluna começa no topo */
+  align-items: stretch;
   padding: 1.25rem;
   background: var(--color-muted);
   border-radius: var(--radius);
   justify-content: space-between;
 }
-
-/* Alinha o botão no centro vertical */
-#menu_agoras .rodar {
-  display: flex;
-  align-items: center;          /* centraliza o botão na altura */
-}
-
 
 .niveis,
 .analise,
@@ -103,6 +170,12 @@ main {
   font-size: 1rem;
   color: var(--color-white);
   margin-bottom: 0.35rem;
+}
+
+.rodar .btn-agora img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
 }
 
 .niveis button {
@@ -155,6 +228,60 @@ main {
   box-shadow: 0 0 12px var(--color-primary);
 }
 
+#extraOpcao {
+  display: none;
+}
+
+/* --- Botão "FORMAR ÁGORA" --- */
+.rodar {
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.rodar .btn-agora {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  border-radius: 999px;
+  color: #ffffff;
+  background-color: var(--color-primary);
+  user-select: none;
+  transition: transform 0.25s ease;
+  transform: translateY(30px);
+}
+
+.rodar .btn-agora:hover {
+  transform: translateY(30px) scale(1.07);
+}
+
+.rodar .btn-agora:focus-visible {
+  outline: 2px solid rgba(223, 209, 209, 0.35);
+  outline-offset: 2px;
+  border-radius: 999px;
+}
+
+.rodar .btn-ico {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 34px;
+  color: #0f2f3a;
+}
+
+.rodar .btn-text {
+  font-weight: 700;
+  letter-spacing: .02em;
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+
 /* CONTAINER DAS PLANILHAS */
 #planilhasContainer {
   display: grid;
@@ -173,7 +300,24 @@ main {
   display: flex;
   flex-direction: column;
   transition: transform var(--transition), box-shadow var(--transition);
-  min-width: 0px; /* para evitar overflow em flex/grid */
+  min-width: 0px;
+}
+
+.planilha.planilha--flat {
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+  border-radius: 0;
+}
+
+.planilha.planilha--flat:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.planilha.planilha--flat + .planilha.planilha--flat {
+  margin-top: 1.25rem;
 }
 
 /* Input de pesquisa */
@@ -201,12 +345,11 @@ main {
   border-collapse: separate;
   border-spacing: 0 0.4rem;
   color: var(--color-text);
-  font-size: 1rem !important; /* fonte reduzida */
+  font-size: 1rem !important;
   table-layout: fixed;
   word-wrap: break-word;
 }
 
-/* Aqui está a parte corrigida para evitar quebra de palavras no meio */
 .planilha table.data-table th,
 .planilha table.data-table td {
   padding: 0.75rem 1rem;
@@ -216,9 +359,7 @@ main {
   border: none;
   user-select: none;
   transition: background-color var(--transition);
-  font-size: 0.8rem !important; /* fonte reduzida */
-
-  /* Evitar quebra no meio da palavra */
+  font-size: 0.8rem !important;
   overflow-wrap: normal;
   word-break: keep-all;
   white-space: normal;
@@ -245,6 +386,7 @@ main {
   border-top-left-radius: var(--radius);
   border-bottom-left-radius: var(--radius);
 }
+
 .planilha table.data-table tr.selected-word td:last-child {
   border-top-right-radius: var(--radius);
   border-bottom-right-radius: var(--radius);
@@ -365,17 +507,14 @@ main {
 }
 
 /* RESPONSIVIDADE */
-
 @media (max-width: 1024px) {
   main {
     max-width: 95vw;
     padding: 0 1rem 2rem;
   }
-
   #planilhasContainer {
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   }
-
   .pagination .page-numbers {
     max-width: 80vw;
   }
@@ -386,7 +525,6 @@ main {
     flex-direction: column;
     align-items: stretch;
   }
-
   .niveis,
   .analise,
   .aspecto,
@@ -395,144 +533,17 @@ main {
     max-width: 100%;
     flex-basis: auto;
   }
-
   .rodar button {
     max-width: 100%;
   }
-
   #planilhasContainer {
     grid-template-columns: 1fr;
   }
-
-  /* Permitir scroll horizontal na tabela */
   .planilha table.data-table {
     display: block;
     width: 100%;
     overflow-x: auto;
   }
-}
-
-@media (max-width: 420px) {
-  html {
-    font-size: 14px;
-  }
-
-  .niveis button {
-    width: 2.5rem;
-    height: 2.5rem;
-    font-size: 1rem;
-  }
-
-  .rodar button {
-    font-size: 1rem;
-    padding: 0.75rem 1.5rem;
-  }
-}
-
-#bar1,#bar2,#bar3{
-  background-color: white !important;
-}
-
-#extraOpcao {
-  display: none;
-}
-
-.planilha.planilha--flat {
-  background: transparent;
-  box-shadow: none;
-  padding: 0;
-  margin: 0;           
-  border-radius: 0;
-}
-.planilha.planilha--flat:hover {
-  transform: none;
-  box-shadow: none;
-}
-
-.planilha.planilha--flat + .planilha.planilha--flat {
-  margin-top: 1.25rem;
-}
-
-/* --- Botão "FORMAR ÁGORA" no estilo da referência --- */
-.rodar {
-  align-self: flex-start;
-}
-
-.rodar .btn-agora {
-  all: unset;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.75rem;
-  cursor: pointer;
-  padding: 0.5rem 0.75rem;
-  border-radius: 999px;
-  color: #ffffff;
-  background-color: var(--color-primary);
-  user-select: none;
-  transition: transform 0.25s ease;
-}
-
-.rodar .btn-agora:hover {
-  transform: scale(1.07); /* expande suavemente */
-}
-
-
-.rodar .btn-agora:focus-visible {
-  outline: 2px solid rgba(223, 209, 209, 0.35);
-  outline-offset: 2px;
-  border-radius: 999px;
-}
-
-/* Círculo branco com o ícone dentro */
-.rodar .btn-ico {
-  width: 34px;
-  height: 34px;
-  border-radius: 999px;
-  background: #ffffff;
-  display: grid;
-  place-items: center;
-  flex: 0 0 34px;
-  color: #0f2f3a; /* cor do ícone (azul-petróleo escuro) */
-}
-
-/* Texto do botão */
-.rodar .btn-text {
-  font-weight: 700;
-  letter-spacing: .02em;
-  font-size: 0.95rem;
-  white-space: nowrap;
-}
-
-/* Caso exista o bloco antigo para .rodar button, neutraliza-o para não conflitar */
-.rodar button:not(.btn-agora) {
-  all: unset;
-}
-
-/* força os blocos do menu a ocuparem a mesma altura */
-#menu_agoras {
-  align-items: stretch; /* em vez de flex-start */
-}
-
-/* deixa o botão centralizado verticalmente dentro da sua coluna */
-#menu_agoras .rodar {
-  display: flex;
-  align-items: center;   /* centraliza na altura */
-  justify-content: flex-end; /* mantém à direita */
-}
-
-/* Desce apenas o botão "FORMAR ÁGORA" */
-#menu_agoras .rodar .btn-agora {
-  transform: translateY(30px);            /* ajuste fino da altura */
-  transition: transform 0.25s ease;
-}
-
-/* Mantém o efeito de expandir no hover + o deslocamento */
-#menu_agoras .rodar .btn-agora:hover {
-  transform: translateY(30px) scale(1.07);
-}
-
-/* Opcional: em telas pequenas, não deslocar para baixo */
-@media (max-width: 768px) {
   #menu_agoras .rodar .btn-agora {
     transform: none;
   }
@@ -541,168 +552,25 @@ main {
   }
 }
 
-/* ===== Banner verde do topo (igual Evocações) ===== */
-.top-barra-planilha {
-  padding: 20px 0;
-  display: flex;
-  justify-content: center;
-  background: transparent;
-  width: 100%;
-  
+@media (max-width: 420px) {
+  html {
+    font-size: 14px;
+  }
+  .niveis button {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1rem;
+  }
+  .rodar button {
+    font-size: 1rem;
+    padding: 0.75rem 1.5rem;
+  }
 }
 
-.barra-conteudo.card-banner {
-  background-color: #2b6f69;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 30px;
-  border-radius: 36px;
-  width: 100%;
-  max-width: 1000px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+#bar1, #bar2, #bar3 {
+  background-color: white !important;
 }
 
-.barra-logo {
-  display: flex;
-  align-items: center;
-  background: transparent;
-  padding: 12px 20px;
-  border-radius: 20px;
-  gap: 15px;
-}
-.barra-logo img {
-  height: 85px;
-  width: 85px;
-  object-fit: contain;
-  border-radius: 14px;
-}
-.titulo-site {
-  font-size: 1.4rem;
-  font-weight: bold;
-  color: #fff;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-.barra-planilha {
-  font-size: 1.4rem;
-  font-weight: bold;
-  color: #fff;
-  background: transparent;
-  padding: 0;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.container .menu {
-    background-color: #2b6f69;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-radius: 48px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-    padding: 20px 32px;
-    width: 100%;
-    max-width: 1600px;
-    gap: 1.5rem;
-    flex-wrap: nowrap;
-    box-sizing: border-box;
-    overflow: hidden;
-}
-
-.container .menu a {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 48px;
-  padding: 0 18px;
-  color: #FFFFFF;
-  font-size: 1rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  text-decoration: none;
-  border-radius: 20px;
-  line-height: 1;
-  white-space: nowrap;
-  transition: color 0.2s;
-}
-
-.container .menu a:hover { color: #FFD600; }
-.container .menu a.active { color: #FFD600 !important; }
-
-/* === Mesmas dimensões do topo e do menu de Evocações === */
-
-/* largura do banner verde */
-.top-barra-planilha .barra-conteudo.card-banner {
-  width: 100%;
-  max-width: 1000px;                 /* igual Evocações */
-  border-radius: 36px;
-}
-
-/* barra de navegação arredondada */
-.container .menu {
-  background-color: #2b6f69;
-  border-radius: 36px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 2.5rem;
-  padding: 20px 40px;                /* altura do “pill” */
-  width: 100%;
-  max-width: 1000px;                 /* mesma largura do banner */
-  margin: 1rem auto 0;               /* centralizado e colado no banner */
-  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-}
-
-/* tamanho dos links dentro do menu (altura do item) */
-.container .menu a {
-  height: 48px;
-  padding: 0 18px;
-  font-weight: 700;
-  text-transform: uppercase;
-  border-radius: 20px;
-}
-
-/* hover/ativo como Evocações */
-.container .menu a:hover { background: none; color: #FFD600; }
-.container .menu a.active { background: none !important; color: #FFD600 !important; }
-
-main > .container > .menu{
-  /* dimensões do pill */
-  max-width: 2000px !important;   /* largura desejada */
-  width: 100% !important;
-  padding: 30px 40px !important;  /* altura (vertical) e respiro lateral */
-  border-radius: 36px !important;
-  gap: 3rem !important;           /* espaço entre os itens */
-  margin: 0.8rem auto 0 !important;
-  justify-content: center !important;
-  align-items: center !important;
-  flex-wrap: nowrap !important;   /* tudo em 1 linha */
-}
-
-/* links dentro do menu (altura clicável constante) */
-main > .container > .menu a{
-  height: 48px !important;
-  padding: 0 20px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-/* --- STOP cortes no menu + ajuste de largura --- */
-main > .container > .menu{
-  /* aumenta um pouco a largura útil e remove o corte */
-  max-width: 1280px !important;   /* ajuste fino: 1240–1360 se precisar */
-  padding: 18px 32px !important;  /* menos padding lateral para caber melhor */
-  gap: 2rem !important;           /* reduz o espaço entre itens */
-  overflow: visible !important;   /* anula o overflow: hidden de cima */
-  justify-content: center !important;
-  align-items: center !important;
-  flex-wrap: nowrap !important;
-}
-
-/* mantém a área clicável dos links */
-main > .container > .menu a{
-  height: 48px !important;
-  padding: 0 20px !important;
+.rodar button:not(.btn-agora) {
+  all: unset;
 }
