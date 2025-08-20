@@ -11,10 +11,6 @@ let tippyInstance = null;
 let currentPage = 1;
 const WORDS_PER_PAGE = 15;
 
-// Pega o nome da planilha
-const planilha = new URLSearchParams(location.search).get('planilha');
-document.querySelector(".barra-planilha").textContent = planilha;
-
 // --- ESTADO DOS FILTROS ---
 const filtersState = {
     evocations: {
@@ -103,7 +99,7 @@ async function loadWords(planilhaNome) {
 
         const header = storedData[0].map(h => h.toString().toLowerCase().trim());
         const evocColumnIndices = header.map((h, i) => h.startsWith('evoc') ? i : -1).filter(i => i !== -1);
-
+        
         const wordCounts = {};
         for (const row of storedData.slice(1)) {
             for (const index of evocColumnIndices) {
@@ -140,7 +136,7 @@ function renderWordListInModal(tempSelectedWords) {
     const wordListContainer = document.getElementById('word-list-container');
     const paginationControls = document.getElementById('pagination-controls');
     const searchTerm = document.getElementById('word-search-input').value.trim().toUpperCase();
-
+    
     const filteredWords = searchTerm
         ? allWordsWithCount.filter(([word]) => word.includes(searchTerm))
         : allWordsWithCount;
@@ -189,7 +185,7 @@ function renderPaginationInModal(totalItems, tempSelectedWords) {
 
     if (startPage > 1) paginationControls.appendChild(createButton('1', 1));
     if (startPage > 2) paginationControls.insertAdjacentHTML('beforeend', `<span>...</span>`);
-
+    
     for (let i = startPage; i <= endPage; i++) {
         paginationControls.appendChild(createButton(i, i, false, i === currentPage));
     }
@@ -291,13 +287,27 @@ function setupMapInteractions() {
             let content = '';
             if (clusteredFeatures.length > 1) {
                 const total = clusteredFeatures.reduce((sum, f) => sum + f.get('cityCount'), 0);
-                let listItems = clusteredFeatures.map(f => `<div class="flex justify-between items-center text-sm py-1"><span class="text-gray-600">${f.get('cityName')}</span><span class="font-semibold text-gray-800">${f.get('cityCount')}</span></div>`).join('');
-                content = `<div class="p-1 font-sans"><h3 class="font-bold text-base mb-2 text-gray-800">Cidades Agrupadas</h3><div class="space-y-1">${listItems}</div><hr class="my-2"><div class="flex justify-between items-center font-bold text-base"><span class="text-gray-900">Total</span><span class="text-red-600">${total}</span></div></div>`;
+                let listItems = clusteredFeatures.map(f => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 14px; padding: 4px 0;">
+                        <span style="color: #4A5568;">${f.get('cityName')}</span>
+                        <span style="font-weight: 600; color: #1A202C; background-color: #EDF2F7; padding: 2px 6px; border-radius: 8px;">${f.get('cityCount')}</span>
+                    </div>
+                `).join('');
+                content = `
+                    <div style="padding: 4px; font-family: 'Inter', sans-serif;">
+                        <h3 style="font-weight: 700; font-size: 16px; margin-bottom: 8px; color: #1A202C; border-bottom: 1px solid #E2E8F0; padding-bottom: 4px;">Cidades Agrupadas</h3>
+                        <div style="display: flex; flex-direction: column; gap: 4px;">${listItems}</div>
+                        <hr style="margin: 8px 0; border: none; border-top: 1px solid #E2E8F0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 16px;">
+                            <span style="color: #1A202C;">Total</span>
+                            <span style="color: #C53030;">${total}</span>
+                        </div>
+                    </div>`;
             } else {
                 const singleFeature = clusteredFeatures[0];
                 const cityName = singleFeature.get('cityName');
                 const cityCount = singleFeature.get('cityCount');
-                content = `<div class="p-1 font-sans"><strong class="text-base">${cityName}</strong><br>${cityCount} ocorrência${cityCount > 1 ? 's' : ''}</div>`;
+                content = `<div style="padding: 4px 8px; font-family: 'Inter', sans-serif; font-size: 14px;"><strong style="font-size: 15px; color: #1A202C;">${cityName}</strong><br>${cityCount} ocorrência${cityCount > 1 ? 's' : ''}</div>`;
             }
             const virtualEl = { getBoundingClientRect: () => ({ width: 0, height: 0, top: evt.pixel[1] + mapElement.getBoundingClientRect().top, right: evt.pixel[0] + mapElement.getBoundingClientRect().left, bottom: evt.pixel[1] + mapElement.getBoundingClientRect().top, left: evt.pixel[0] + mapElement.getBoundingClientRect().left }) };
             tippyInstance = tippy(document.body, { getReferenceClientRect: virtualEl.getBoundingClientRect, content: content, allowHTML: true, placement: 'top', arrow: true, animation: 'fade', theme: 'light-border', trigger: 'manual', appendTo: () => document.body });
@@ -309,6 +319,7 @@ function setupMapInteractions() {
     });
     map.getViewport().addEventListener('mouseout', () => { if (tippyInstance) tippyInstance.destroy(); });
 }
+
 
 // --- Geocodificação e Processamento de Dados ---
 async function geocodeCity(cityName, stateName) {
@@ -396,12 +407,12 @@ async function processDataFromDB(planilhaNome) {
                     const targetAge = filtersState.age.value;
                     switch (filtersState.age.condition) {
                         case 'gte': if (userAge < targetAge) passesFilters = false; break;
-                        case 'eq': if (userAge !== targetAge) passesFilters = false; break;
+                        case 'eq':  if (userAge !== targetAge) passesFilters = false; break;
                         case 'lte': if (userAge > targetAge) passesFilters = false; break;
                     }
                 }
             }
-
+            
             if (passesFilters && row[cityColumnIndex]) {
                 const cityUpper = row[cityColumnIndex].toString().trim().toUpperCase();
                 let finalIdentifier = cityAcronyms[cityUpper] || row[cityColumnIndex].toString().trim();
@@ -416,7 +427,7 @@ async function processDataFromDB(planilhaNome) {
         if (Object.keys(cityCounts).length === 0) {
             displayMessage('Nenhum participante encontrado com os filtros aplicados.', 'warning');
             showLoading(false);
-            if (clusterLayer) map.removeLayer(clusterLayer);
+            if(clusterLayer) map.removeLayer(clusterLayer);
             return;
         }
 
@@ -491,20 +502,20 @@ function iniciarMapeamento() {
     if (filtersState.evocations.isActive && filtersState.evocations.selectedWords.length === 0) {
         ui.resultsPanel.classList.remove('hidden');
         displayMessage('Por favor, selecione pelo menos uma evocação para filtrar.', 'warning');
-        if (clusterLayer) map.removeLayer(clusterLayer);
+        if(clusterLayer) map.removeLayer(clusterLayer);
         ui.downloadPdfBtn.classList.add('hidden');
         return;
     }
     if (filtersState.age.isActive && (filtersState.age.value === null || filtersState.age.value === '')) {
         ui.resultsPanel.classList.remove('hidden');
         displayMessage('Por favor, digite um valor válido para a idade.', 'warning');
-        if (clusterLayer) map.removeLayer(clusterLayer);
+        if(clusterLayer) map.removeLayer(clusterLayer);
         ui.downloadPdfBtn.classList.add('hidden');
         return;
     }
-
+    
     ui.resultsPanel.classList.remove('hidden');
-
+    
     const urlParams = new URLSearchParams(window.location.search);
     const planilhaNome = urlParams.get("planilha");
 
@@ -517,7 +528,7 @@ function iniciarMapeamento() {
 
 // --- Event Listeners ---
 document.addEventListener('DOMContentLoaded', () => {
-    initializeMap();
+    initializeMap(); 
 
     const urlParams = new URLSearchParams(window.location.search);
     const planilhaNome = urlParams.get("planilha");
@@ -545,7 +556,7 @@ document.addEventListener('DOMContentLoaded', () => {
             denyButtonText: 'Limpar Filtro',
             didOpen: async () => {
                 const modalContent = document.getElementById('evocations-modal-content');
-
+                
                 await loadWords(planilhaNome);
                 currentPage = 1;
                 renderWordListInModal(tempSelectedWords);
@@ -572,7 +583,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const selectedPanel = document.getElementById('selected-words-panel');
                 selectedPanel.addEventListener('click', (e) => {
-                    if (e.target.classList.contains('remove-word-btn')) {
+                     if (e.target.classList.contains('remove-word-btn')) {
                         const wordToRemove = e.target.dataset.word;
                         tempSelectedWords = tempSelectedWords.filter(w => w !== wordToRemove);
                         updateSelectedWordsPanelInModal(tempSelectedWords);
@@ -636,24 +647,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     ui.downloadPdfBtn.addEventListener('click', async () => {
         showLoading(true, 5, 'Renderizando mapa para PDF...');
-        await new Promise(resolve => setTimeout(resolve, 500));
-
+        await new Promise(resolve => setTimeout(resolve, 500)); 
+        
         try {
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-
+            
             const mapElement = document.getElementById('map');
-
+            
             showLoading(true, 30, 'Capturando imagem do mapa...');
-            const mapCanvas = await html2canvas(mapElement, {
-                scale: 2,
+            const mapCanvas = await html2canvas(mapElement, { 
+                scale: 2, 
                 useCORS: true,
                 logging: false,
                 onclone: (clonedDoc) => {
                     clonedDoc.querySelectorAll('[data-tippy-root]').forEach(el => el.style.visibility = 'hidden');
                 }
             });
-
+            
             showLoading(true, 70, 'Adicionando imagem ao PDF...');
             const mapImgData = mapCanvas.toDataURL('image/png');
             const mapImgProps = pdf.getImageProperties(mapImgData);
@@ -663,7 +674,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const mapPdfHeight = (mapImgProps.height * mapPdfWidth) / mapImgProps.width;
             let y = (mapPdfHeight < pdfHeight) ? (pdfHeight - mapPdfHeight) / 2 : 0;
             pdf.addImage(mapImgData, 'PNG', 0, y, mapPdfWidth, mapPdfHeight);
-
+            
             showLoading(true, 95, 'Finalizando...');
             const fileName = `MapaFiltrado_${new Date().toISOString().split("T")[0]}.pdf`;
             pdf.save(fileName);
