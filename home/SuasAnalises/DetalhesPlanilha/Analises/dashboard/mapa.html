@@ -4,39 +4,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Análise Geoespacial por Evocações - OpenLayers</title>
+    <title>Análise Geoespacial Avançada - OpenLayers</title>
     <!-- OpenLayers CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v7.1.0/ol.css">
     <!-- Tippy.js CSS -->
     <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css" />
     <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/themes/light-border.css" />
-
-    <!-- Hamburguer JS -->
-    <script src="/MenuLateral.js" type="module" defer></script>
-    <link href="/assets/hamburguer.css" rel="stylesheet">
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
     <!-- OpenLayers JS -->
     <script src="https://cdn.jsdelivr.net/npm/ol@v7.1.0/dist/ol.js"></script>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
     <!-- Popper.js & Tippy.js -->
     <script src="https://unpkg.com/@popperjs/core@2"></script>
     <script src="https://unpkg.com/tippy.js@6"></script>
     <!-- jsPDF and html2canvas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <link rel="icon" type="image/png" href="/assets/icon.png" />
+    <!-- Hamburguer JS -->
+    <script src="/MenuLateral.js" type="module" defer></script>
+    <link href="/assets/hamburguer.css" rel="stylesheet">
     <!-- Menu JS -->
     <script src="menu.js" type="module" defer></script>
     <link href="menu.css" rel="stylesheet" />
-    <!-- Mapa JS -->
+    <!-- Mapa JS e CSS -->
     <script src="mapa.js" type="module" defer></script>
     <link href="mapa.css" rel="stylesheet" />
 
 </head>
 
 <body>
-    <!-- MENU -->
+    <div class="top-barra-planilha">
+        <div class="barra-conteudo card-banner">
+            <div class="barra-logo">
+                <img src="/assets/tipo_de_analise_agora.png" alt="Logo Ágora">
+                <div class="titulo-site">METODOLOGIAS DAS<br>ÁGORAS COGNITIVAS</div>
+            </div>
+            <div class="barra-planilha" id="nome-da-planilha"></div>
+        </div>
+    </div>
     <div class="container">
+        <!-- MENU -->
         <div class="menu">
             <a class="menu_analises">Menu Das Análises</a>
             <a href="./dashboard.html?planilha=">Dashboard</a>
@@ -45,56 +57,84 @@
             <a href="./formaragora.html?planilha=">Formar Ágoras</a>
             <a href="./mapa.html?planilha=">Mapa</a>
         </div>
-    </div>
 
-    <div class="main-card">
-        <h1>Análise Geoespacial por Evocações</h1>
-        <p class="description" id="description-text">
-            Filtre os participantes pela combinação de palavras que eles evocaram. O mapa mostrará a localização apenas daqueles que mencionaram <strong>todas</strong> as palavras selecionadas.
-        </p>
+        <div class="page-wrapper">
+            <!-- Sidebar com controles e informações -->
+            <aside id="sidebar">
+                <div class="sidebar-header">
+                    <h1>Análise Geoespacial</h1>
+                    <p class="description" id="description-text">
+                        Utilize os filtros para refinar os dados que serão exibidos no mapa. Clique em uma opção para configurar.
+                    </p>
+                </div>
 
-        <!-- Seção de Filtro -->
-        <div id="filter-section">
-            <h2>Filtro de Evocações</h2>
-            
-            <div id="selected-words-panel" class="hidden">
-                <h3>Selecionados (<span id="selected-count">0</span>):</h3>
-                <ul id="selected-list"></ul>
-                <button id="clear-selected-btn">Limpar Selecionados</button>
-            </div>
-            
-            <input type="text" id="word-search-input" class="filter-input" placeholder="Buscar palavra para filtrar...">
-            <div id="word-list-container">
-                <p>Carregando palavras da planilha...</p>
-            </div>
-            <div id="pagination-controls"></div>
-            <button id="map-button">Mapear por Filtro</button>
+                <div class="sidebar-content">
+                    <!-- Seção de Filtro Principal -->
+                    <div id="filter-section">
+                        <h2>Filtros Avançados</h2>
+
+                        <!-- Botão para Filtro de Evocações -->
+                        <div class="filter-card" id="evocations-filter-card">
+                            <div class="filter-card-header">
+                                <span class="filter-card-title">Evocações</span>
+                                <button id="edit-evocations-filter" class="edit-filter-btn">Configurar</button>
+                            </div>
+                            <p class="filter-card-status" id="evocations-filter-status">Nenhum filtro aplicado.</p>
+                        </div>
+
+                        <!-- Botão para Filtro de Idade -->
+                        <div class="filter-card" id="age-filter-card">
+                            <div class="filter-card-header">
+                                <span class="filter-card-title">Idade</span>
+                                <button id="edit-age-filter" class="edit-filter-btn">Configurar</button>
+                            </div>
+                            <p class="filter-card-status" id="age-filter-status">Nenhum filtro aplicado.</p>
+                        </div>
+
+                        <button id="map-button">Mapear</button>
+                    </div>
+
+                    <!-- Painel de Resultados -->
+                    <div id="results-panel" class="hidden">
+                        <div id="message-area" class="info">
+                            <svg class="message-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12ZM12 8.25a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V9a.75.75 0 0 1 .75-.75ZM12 15a.75.75 0 0 0-.75.75.75.75 0 0 0 1.5 0 .75.75 0 0 0-.75-.75Z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            <span id="message-text">Aguardando mapeamento...</span>
+                        </div>
+                        <div id="unlocatedCitiesSection" class="hidden">
+                            <span class="unlocated-cities-toggle" onclick="toggleUnlocatedCities()">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                    <path fill-rule="evenodd"
+                                        d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.561 0 3.273L7.28 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653Z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                                Cidades Não Encontradas (<span id="unlocatedCount">0</span>)
+                            </span>
+                            <ul id="unlocatedCitiesList" class="unlocated-cities-list"></ul>
+                        </div>
+                        <button id="download-pdf-btn" class="hidden">Baixar Mapa como PDF</button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Conteúdo principal com o mapa -->
+            <main id="main-content">
+                <div id="map-container">
+                    <div id="map"></div>
+                    <div class="loading-overlay" id="loadingOverlay">
+                        <div class="spinner"></div>
+                        <div class="loading-text" id="loadingProgressText">Preparando...</div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="progressBar"></div>
+                        </div>
+                    </div>
+                </div>
+            </main>
         </div>
-        
-        <div class="loading-overlay" id="loadingOverlay">
-            <div class="spinner"></div>
-            <div class="loading-text" id="loadingProgressText">Preparando...</div>
-            <div class="progress-bar-container">
-                <div class="progress-bar" id="progressBar"></div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Contêiner do Mapa e Resultados -->
-    <div id="map-container" class="hidden">
-        <div id="map"></div>
-        <div id="message-area" class="info">
-            <svg class="message-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12ZM12 8.25a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V9a.75.75 0 0 1 .75-.75ZM12 15a.75.75 0 0 0-.75.75.75.75 0 0 0 1.5 0 .75.75 0 0 0-.75-.75Z" clip-rule="evenodd" /></svg>
-            <span id="message-text">Carregando dados da planilha...</span>
-        </div>
-        <div id="unlocatedCitiesSection" class="hidden">
-            <span class="unlocated-cities-toggle" onclick="toggleUnlocatedCities()">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.561 0 3.273L7.28 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653Z" clip-rule="evenodd" /></svg>
-                Cidades Não Encontradas (<span id="unlocatedCount">0</span>)
-            </span>
-            <ul id="unlocatedCitiesList" class="unlocated-cities-list"></ul>
-        </div>
-        <button id="download-pdf-btn" class="hidden">Baixar Mapa como PDF</button>
     </div>
 </body>
 
