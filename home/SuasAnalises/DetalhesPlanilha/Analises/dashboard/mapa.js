@@ -76,6 +76,9 @@ function updateDescription() {
     ui.descriptionText.innerHTML = text;
 }
 
+  const planilha = new URLSearchParams(location.search).get('planilha');
+  document.querySelector(".barra-planilha").textContent = planilha;
+
 // --- Lógica do Filtro de Palavras (Modal) ---
 async function loadWords(planilhaNome) {
     if (areWordsLoaded) return;
