@@ -15,7 +15,7 @@ html, body {
     padding: 0;
     font-family: 'Inter', sans-serif;
     background-color: var(--background-color);
-    background-image: url('/assets/Banner_Entrada.png');
+    background-image: url('/assets/fundo_home.jpg');
     background-size: cover;
     background-position: center;
     color: var(--text-color);
