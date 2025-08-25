@@ -149,9 +149,9 @@ function generateSidebarMenu() {
 
             <li class="menu-item" id="menu-btn2">
                 <div class="menu-icon-circle">
-                    <img src="/assets/icone_suas_analises.png" alt="Suas Análises" />
+                    <img src="/assets/icone_suas_analises.png" alt="Suas Planilhas" />
                 </div>
-                <span class="menu-text">Suas análises</span>
+                <span class="menu-text">Suas Planilhas</span>
             </li>
 
             <li class="menu-item" id="menu-btn-manual">
