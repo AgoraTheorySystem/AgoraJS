@@ -76,7 +76,10 @@ document.addEventListener("DOMContentLoaded", () => {
   radiosAnalise.forEach(radio => {
     radio.addEventListener("change", () => {
       atualizarVisibilidadeExtraOpcao();
-      planilhas.forEach(p => p.container.renderTable(1));
+      planilhas.forEach(p => {
+        // Re-renderiza mas mantendo seleção
+        p.container.renderTable();
+      });
     });
   });
 
@@ -263,7 +266,15 @@ document.addEventListener("DOMContentLoaded", () => {
           const td2 = document.createElement("td");
           td2.textContent = count;
           tr.append(td1, td2);
-
+          const selected = selectedWords[level - 1];
+        if (selected) {
+          container.tbody.querySelectorAll("tr").forEach(r => {
+            const word = r.querySelector("td")?.textContent;
+            if (word === selected) {
+              r.classList.add("selected-word");
+            }
+          });
+}
           // Ao clicar, marca-se como palavra selecionada no nível,
           // limpa-se seleções abaixo e refaz tabelas dos níveis superiores
           tr.addEventListener("click", () => {
