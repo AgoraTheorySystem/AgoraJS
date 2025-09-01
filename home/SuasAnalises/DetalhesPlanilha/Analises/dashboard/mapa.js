@@ -16,6 +16,7 @@ const filtersState = {
     evocations: {
         isActive: false,
         selectedWords: [],
+        matchType: 'all', // 'all' para E, 'any' para OU
     },
     age: {
         isActive: false,
@@ -217,9 +218,11 @@ function updateSelectedWordsPanelInModal(tempSelectedWords) {
 }
 
 function updateEvocationsFilterStatus() {
-    const { isActive, selectedWords } = filtersState.evocations;
+    const { isActive, selectedWords, matchType } = filtersState.evocations;
+    const matchTypeText = matchType === 'all' ? 'todas' : 'qualquer uma';
+
     if (isActive && selectedWords.length > 0) {
-        ui.evocationsFilterStatus.innerHTML = `<strong>${selectedWords.length}</strong> palavra(s) selecionada(s).`;
+        ui.evocationsFilterStatus.innerHTML = `<strong>${selectedWords.length}</strong> palavra(s) selecionada(s). <br>Corresponder a <strong>${matchTypeText}</strong>.`;
         ui.evocationsFilterCard.classList.add('active');
         ui.editEvocationsBtn.textContent = 'Editar';
     } else {
@@ -394,12 +397,23 @@ async function processDataFromDB(planilhaNome) {
 
             // Filtro de Evocações
             if (filtersState.evocations.isActive) {
-                const userEvocations = evocColumnIndices.map(index => (row[index] || '').toString().trim().toUpperCase());
-                const hasAllWords = filtersState.evocations.selectedWords.every(word => userEvocations.includes(word));
-                if (!hasAllWords) {
-                    passesFilters = false;
+                const userEvocations = new Set(evocColumnIndices.map(index => (row[index] || '').toString().trim().toUpperCase()));
+                
+                if (filtersState.evocations.matchType === 'all') {
+                    // Lógica 'E': precisa ter TODAS as palavras
+                    const hasAllWords = filtersState.evocations.selectedWords.every(word => userEvocations.has(word));
+                    if (!hasAllWords) {
+                        passesFilters = false;
+                    }
+                } else {
+                    // Lógica 'OU': precisa ter PELO MENOS UMA das palavras
+                    const hasAnyWord = filtersState.evocations.selectedWords.some(word => userEvocations.has(word));
+                    if (!hasAnyWord) {
+                        passesFilters = false;
+                    }
                 }
             }
+
 
             // Filtro de Idade
             if (passesFilters && filtersState.age.isActive) {
@@ -544,6 +558,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     ui.mapButton.addEventListener('click', iniciarMapeamento);
+
+    // Adiciona listener para o seletor de tipo de match das evocações
+    document.getElementById('evocations-match-type').addEventListener('change', (e) => {
+        filtersState.evocations.matchType = e.target.value;
+        updateEvocationsFilterStatus();
+    });
 
     // Event listener para o modal de Evocações
     ui.editEvocationsBtn.addEventListener('click', async () => {

@@ -263,15 +263,16 @@ function criarMenuLateral() {
     window.dispatchEvent(new CustomEvent("atualizarTabelaEvocacoes"));
   });
 
-  // Botão fusão
-  const botaoFusao = makeBtn("Fusão", "fas fa-object-group", () => {
+  // Botão Salvar
+  const botaoSalvar = makeBtn("Salvar", "fa-solid fa-cloud-arrow-up", () => {
   });
 
+  menu.appendChild(botaoSalvar);
   menu.appendChild(botaoRemover);
   menu.appendChild(botaoFundir);
   menu.appendChild(botaoFusoes);
   menu.appendChild(botaoExibir);
-  menu.appendChild(botaoFusao);
+  
 
   document.body.appendChild(menu);
 }

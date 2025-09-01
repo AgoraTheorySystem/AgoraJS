@@ -245,7 +245,31 @@ h1 {
     font-size: 0.9rem;
     color: #64748b;
     margin: 0;
+    line-height: 1.5;
 }
+
+/* Novo seletor de tipo de correspondência */
+.match-type-selector {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
+}
+
+.match-type-selector label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #475569;
+    margin-right: 10px;
+}
+
+.match-type-selector select {
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    font-size: 0.9rem;
+    background-color: #fff;
+}
+
 
 #map-button {
     background-color: var(--primary-color);

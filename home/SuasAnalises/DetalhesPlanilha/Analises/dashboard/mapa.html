@@ -73,14 +73,23 @@
                     <div id="filter-section">
                         <h2>Filtros Avançados</h2>
 
-                        <!-- Botão para Filtro de Evocações -->
+                        <!-- Card para Filtro de Evocações -->
                         <div class="filter-card" id="evocations-filter-card">
                             <div class="filter-card-header">
                                 <span class="filter-card-title">Evocações</span>
                                 <button id="edit-evocations-filter" class="edit-filter-btn">Configurar</button>
                             </div>
                             <p class="filter-card-status" id="evocations-filter-status">Nenhum filtro aplicado.</p>
+                            <!-- Novo Seletor de Tipo de Correspondência -->
+                            <div class="match-type-selector">
+                                <label for="evocations-match-type">Tipo de filtro:</label>
+                                <select id="evocations-match-type">
+                                    <option value="all" selected>Contém todos (E)</option>
+                                    <option value="any">Contém qualquer um (OU)</option>
+                                </select>
+                            </div>
                         </div>
+
 
                         <!-- Botão para Filtro de Idade -->
                         <div class="filter-card" id="age-filter-card">
