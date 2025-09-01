@@ -100,31 +100,19 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   try {
+    // Carrega a planilha e as lematizações do armazenamento local (IndexedDB)
     const data = await getItem(`planilha_${planilhaNome}`);
     if (!data || data.length === 0) {
-      Swal.fire({ icon: 'error', title: 'Erro!', text: "Nenhum dado encontrado para esta planilha." });
+      Swal.fire({ icon: 'error', title: 'Erro!', text: "Nenhum dado encontrado para esta planilha no armazenamento local." });
       return;
     }
-    currentLematizacoes = await carregarLematizacoes(planilhaNome);
+    currentLematizacoes = await getItem(`lemas_${planilhaNome}`) || {};
     processarTabela(data);
   } catch (error) {
-    console.error("Erro ao carregar a planilha:", error);
+    console.error("Erro ao carregar dados locais:", error);
+    Swal.fire({ icon: 'error', title: 'Erro!', text: "Falha ao carregar dados do armazenamento local." });
   }
 });
-
-async function carregarLematizacoes(planilhaNome) {
-  const userData = sessionStorage.getItem('user');
-  if (!userData) return {};
-  try {
-    const { uid } = JSON.parse(userData);
-    const lematizacoesRef = ref(database, `/users/${uid}/lematizacoes/${planilhaNome}`);
-    const snapshot = await get(lematizacoesRef);
-    return snapshot.exists() ? snapshot.val() : {};
-  } catch (error) {
-    console.error("Erro ao carregar lematizações:", error);
-    return {};
-  }
-}
 
 function processarTabela(data) {
   const header = data[0];
@@ -135,7 +123,6 @@ function processarTabela(data) {
     for (let j = 0; j < header.length; j++) {
       const coluna = header[j].toUpperCase();
       if (/^EVOC[1-9]$|^EVOC10$/.test(coluna)) {
-        // LINHA CORRIGIDA AQUI
         const palavra = String(row[j] || "").trim().toUpperCase();
         if (!palavra || palavra === "VAZIO") continue;
         if (!palavraContagem[palavra]) {
@@ -221,7 +208,6 @@ function renderTabela() {
   `;
   container.appendChild(table);
 
-  // Checkbox "Selecionar todas"
   const selectAllCheckbox = table.querySelector('#select-all-checkbox');
   if (selectAllCheckbox) {
     const todasPalavrasVisiveis = pageWords.map(([palavra]) => palavra);
@@ -246,7 +232,6 @@ function renderTabela() {
     });
   }
 
-  // Ordenação
   table.querySelectorAll(".sortable").forEach(th => {
     const col = th.getAttribute("data-col");
     th.style.cursor = "pointer";
@@ -265,7 +250,6 @@ function renderTabela() {
     });
   });
 
-  // Checkboxes individuais
   table.querySelectorAll('tbody tr').forEach((tr, idx) => {
     const checkbox = tr.querySelector('input[type="checkbox"]');
     const palavra = pageWords[idx][0];

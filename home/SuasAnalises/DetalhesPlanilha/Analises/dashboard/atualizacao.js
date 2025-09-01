@@ -1,196 +1,159 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-app.js";
-import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
+import { getDatabase, ref, get, query, orderByChild, startAt } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
 import firebaseConfig from '/firebase.js';
 
-// Inicializa o Firebase
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
 const DB_NAME = 'agoraDB';
 const STORE_NAME = 'planilhas';
 
-// Abre ou cria o banco de dados IndexedDB
+// --- Funções do IndexedDB (Banco de Dados Local) ---
 function openDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, 1);
-
     request.onupgradeneeded = (event) => {
       const db = event.target.result;
       if (!db.objectStoreNames.contains(STORE_NAME)) {
         db.createObjectStore(STORE_NAME, { keyPath: 'key' });
       }
     };
-
-    request.onsuccess = (event) => {
-      resolve(event.target.result);
-    };
-
-    request.onerror = (event) => {
-      reject(event.target.error);
-    };
+    request.onsuccess = (event) => resolve(event.target.result);
+    request.onerror = (event) => reject(event.target.error);
   });
 }
 
-// Pega um item do IndexedDB
 async function getItem(key) {
     const db = await openDB();
     const transaction = db.transaction(STORE_NAME, 'readonly');
     const store = transaction.objectStore(STORE_NAME);
     const request = store.get(key);
-
     return new Promise((resolve, reject) => {
-        request.onsuccess = (event) => {
-            resolve(event.target.result ? event.target.result.value : null);
-        };
-        request.onerror = (event) => {
-            reject(event.target.error);
-        };
+        request.onsuccess = (event) => resolve(event.target.result ? event.target.result.value : null);
+        request.onerror = (event) => reject(event.target.error);
     });
 }
 
-// Adiciona ou atualiza um item no IndexedDB
 async function setItem(key, value) {
     const db = await openDB();
     const transaction = db.transaction(STORE_NAME, 'readwrite');
-    const store = transaction.objectStore(STORE_NAME);
-    const request = store.put({ key, value });
-
-    return new Promise((resolve, reject) => {
-        transaction.oncomplete = () => {
-            resolve();
-        };
-        transaction.onerror = (event) => {
-            reject(event.target.error);
-        };
+    transaction.objectStore(STORE_NAME).put({ key, value });
+    return new Promise((resolve) => {
+        transaction.oncomplete = () => resolve();
     });
 }
 
-// Pega o nome da planilha a partir da URL
-const urlParams = new URLSearchParams(window.location.search);
-const planilhaNome = urlParams.get("planilha");
+// --- Lógica Principal de Sincronização ---
 
-// Recupera o usuário da sessão
 function getUserFromSession() {
-    try {
-        const userData = sessionStorage.getItem('user');
-        if (!userData) throw new Error("Dados do usuário não encontrados.");
-
-        const parsedData = JSON.parse(userData);
-        if (!parsedData.uid) throw new Error("Usuário inválido.");
-
-        return { uid: parsedData.uid };
-    } catch (error) {
-        console.error("Erro ao recuperar usuário:", error);
-        Swal.fire({ icon: 'error', title: 'Erro', text: 'Faça login novamente.' });
-        return null;
-    }
+    const userData = sessionStorage.getItem('user');
+    return userData ? JSON.parse(userData) : null;
 }
 
-// --- NOVA FUNÇÃO ---
-// Compara o timestamp da última alteração local com o do servidor
-// para determinar se há alterações não salvas.
-async function verificarAlteracoesPendentes(user, fileName) {
+/**
+ * Função principal que compara timestamps e inicia a sincronização de diferenças.
+ */
+async function sincronizarDados(user, planilhaNome) {
     try {
-        // 1. Pega o timestamp da última alteração local. Este timestamp é salvo
-        //    pelas funções de 'fundir' ou 'remover' no arquivo do menu lateral.
-        const localChangeTimestampKey = `timestamp_local_change_${fileName}`;
-        const localChangeTimestamp = await getItem(localChangeTimestampKey);
-
-        // Se não houver timestamp de alteração local, não há alterações pendentes.
-        if (!localChangeTimestamp) {
-            console.log("Nenhum timestamp de alteração local encontrado. Nada a fazer.");
-            return;
-        }
-
-        // 2. Pega o timestamp da última sincronização bem-sucedida do Firebase.
-        const firebaseRef = ref(database, `/users/${user.uid}/UltimasAlteracoes/${fileName}`);
-        const snapshot = await get(firebaseRef);
+        const localTimestamp = await getItem(`timestamp_local_change_${planilhaNome}`) || 0;
+        const remoteTimestampRef = ref(database, `/users/${user.uid}/UltimasAlteracoes/${planilhaNome}`);
+        const snapshot = await get(remoteTimestampRef);
 
         if (!snapshot.exists()) {
-            console.warn("Nenhum timestamp encontrado no Firebase. Assumindo que há alterações a salvar.");
-            // Se não há timestamp no servidor, qualquer alteração local é considerada nova e pendente.
-            window.dispatchEvent(new CustomEvent('alteracoesPendentesDetectadas'));
+            console.log("Nenhum timestamp remoto encontrado. Sem necessidade de sincronizar.");
             return;
         }
 
-        const firebaseData = snapshot.val();
-        const serverSyncTimestamp = Object.keys(firebaseData)[0]; // O timestamp é a chave do objeto.
+        const remoteData = snapshot.val();
+        const remoteTimestamp = parseInt(Object.keys(remoteData)[0]);
 
-        console.log(`Timestamp Local...: ${new Date(localChangeTimestamp).toLocaleString()}`);
-        console.log(`Timestamp Servidor: ${new Date(parseInt(serverSyncTimestamp, 10)).toLocaleString()}`);
-
-        // 3. Compara os timestamps.
-        // Se o timestamp da alteração local for mais recente que o do servidor,
-        // significa que fizemos modificações que ainda não foram enviadas.
-        if (localChangeTimestamp > parseInt(serverSyncTimestamp, 10)) {
-            console.log("Alterações locais pendentes detectadas. Habilitando o botão Salvar.");
-            // Dispara um evento global que o menu lateral irá escutar para ativar o botão.
-            window.dispatchEvent(new CustomEvent('alteracoesPendentesDetectadas'));
+        if (remoteTimestamp > localTimestamp) {
+            console.log("Dados remotos mais recentes. Sincronizando diferenças...");
+            await aplicarAlteracoesRemotas(user, planilhaNome, localTimestamp, remoteTimestamp);
         } else {
-            console.log("Dados estão em sincronia com o servidor.");
+            console.log("Dados locais estão atualizados.");
+            // Dispara evento para checar se existem alterações locais não salvas
+            window.dispatchEvent(new Event('checarAlteracoesLocais'));
         }
 
     } catch (error) {
-        console.error("Erro ao verificar alterações pendentes:", error);
+        console.error("Erro ao sincronizar dados:", error);
+        Swal.fire("Erro de Sincronização", "Não foi possível verificar as atualizações do servidor.", "error");
+    }
+}
+
+/**
+ * Busca apenas as alterações no histórico do Firebase e as aplica localmente.
+ */
+async function aplicarAlteracoesRemotas(user, planilhaNome, localTimestamp, remoteTimestamp) {
+    const historyRef = ref(database, `users/${user.uid}/historico_alteracoes/${planilhaNome}`);
+    const q = query(historyRef, orderByChild('timestamp'), startAt(localTimestamp + 1));
+    
+    const snapshot = await get(q);
+    if (!snapshot.exists()) {
+        console.warn("Timestamp remoto é mais novo, mas não foram encontradas alterações no histórico. Pode ser um erro de sincronia.");
+        return;
+    }
+
+    // Pega os dados locais atuais para aplicar as mudanças
+    let localSheet = await getItem(`planilha_${planilhaNome}`);
+    let localLemas = await getItem(`lemas_${planilhaNome}`) || {};
+
+    let changesApplied = false;
+    const CHUNK_SIZE = 500; // O mesmo usado no upload
+
+    snapshot.forEach(childSnapshot => {
+        const entry = childSnapshot.val();
+        const changes = entry.changes;
+
+        for (const path in changes) {
+            changesApplied = true;
+            const value = changes[path];
+            const pathParts = path.split('/'); // Ex: 'planilhas/NOME/chunk_0/10/5' ou 'lematizacoes/NOME/LEMA'
+            
+            const type = pathParts[0];
+            const name = pathParts[1]; // O nome da planilha
+
+            if (type === 'planilhas' && localSheet) {
+                const [chunkName, rowIndexInChunk, cellIndex] = pathParts.slice(2);
+                const chunkIndex = parseInt(chunkName.split('_')[1]);
+                const overallRowIndex = chunkIndex * CHUNK_SIZE + parseInt(rowIndexInChunk);
+                if (localSheet[overallRowIndex]) {
+                    localSheet[overallRowIndex][parseInt(cellIndex)] = value;
+                }
+            } else if (type === 'lematizacoes') {
+                const lemaKey = pathParts.slice(2).join('/');
+                localLemas[lemaKey] = value;
+            }
+        }
+    });
+
+    if (changesApplied) {
+        // Salva os dados atualizados localmente
+        await setItem(`planilha_${planilhaNome}`, localSheet);
+        await setItem(`lemas_${planilhaNome}`, localLemas);
+        await setItem(`timestamp_local_change_${planilhaNome}`, remoteTimestamp);
+
+        Swal.fire({
+            title: "Planilha Atualizada!",
+            text: "Novas alterações do servidor foram aplicadas. A página será recarregada.",
+            icon: "info",
+            confirmButtonText: "Ok"
+        }).then(() => location.reload());
     }
 }
 
 
-// Evento ao carregar a página
 document.addEventListener("DOMContentLoaded", async () => {
-    // A lógica foi reativada, mas agora com o propósito de verificar se o botão "Salvar"
-    // deve ser ativado, em vez de baixar ou sincronizar dados automaticamente.
     const user = getUserFromSession();
+    const urlParams = new URLSearchParams(window.location.search);
+    const planilhaNome = urlParams.get("planilha");
+
     if (!user || !planilhaNome) return;
 
-    // Atrasamos a execução para garantir que todos os outros scripts,
-    // incluindo o do menu lateral que escuta o evento, já tenham sido carregados.
+    // Atraso para garantir que a interface principal carregue primeiro
     setTimeout(() => {
-        verificarAlteracoesPendentes(user, planilhaNome);
-    }, 500); // Atraso de 500ms
+        sincronizarDados(user, planilhaNome);
+    }, 500);
 });
-
-
-// As funções abaixo não são mais chamadas diretamente neste script ao carregar a página,
-// mas as mantemos caso sejam necessárias para outras funcionalidades futuras.
-
-async function fetchAndSavePlanilha(user, fileName) {
-    const fileRef = ref(database, `/users/${user.uid}/planilhas/${fileName}`);
-    try {
-        const snapshot = await get(fileRef);
-        if (!snapshot.exists()) {
-            console.warn(`Planilha "${fileName}" não encontrada no Firebase.`);
-            return;
-        }
-        const planilhaChunks = snapshot.val();
-        let fullPlanilhaData = [];
-        Object.keys(planilhaChunks).forEach(chunkKey => {
-            fullPlanilhaData = fullPlanilhaData.concat(planilhaChunks[chunkKey]);
-        });
-        await setItem(`planilha_${fileName}`, fullPlanilhaData);
-        console.log(`Planilha "${fileName}" baixada e salva no IndexedDB.`);
-    } catch (error) {
-        console.error("Erro ao buscar planilha:", error);
-    }
-}
-
-async function fetchAndSaveAuxiliaryTable(user, fileName) {
-    const auxRef = ref(database, `/users/${user.uid}/tabelasAuxiliares/${fileName}`);
-    try {
-        const snapshot = await get(auxRef);
-        if (!snapshot.exists()) {
-            console.warn(`Tabela auxiliar "${fileName}" não encontrada no Firebase.`);
-            return;
-        }
-        const auxChunks = snapshot.val();
-        let fullAuxData = [];
-        Object.keys(auxChunks).forEach(chunkKey => {
-            fullAuxData = fullAuxData.concat(auxChunks[chunkKey]);
-        });
-        await setItem(`auxiliar_${fileName}`, fullAuxData);
-        console.log(`Tabela auxiliar "${fileName}" salva no IndexedDB.`);
-    } catch (error) {
-        console.error("Erro ao buscar tabela auxiliar:", error);
-    }
-}
 

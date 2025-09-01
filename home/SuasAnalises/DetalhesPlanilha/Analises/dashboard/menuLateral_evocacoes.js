@@ -1,6 +1,6 @@
 // menuLateral_evocacoes.js
 
-import { getDatabase, ref, get, set, update } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
+import { getDatabase, ref, get, set, update, push } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-app.js";
 import firebaseConfig from '/firebase.js';
 
@@ -12,7 +12,7 @@ const STORE_NAME = 'planilhas';
 
 let hasUnsavedChanges = false;
 
-// Funções de interação com IndexedDB (sem alterações)
+// --- Funções do IndexedDB ---
 async function openDB() {
     return new Promise((resolve, reject) => {
         const request = indexedDB.open(DB_NAME, 1);
@@ -57,106 +57,95 @@ async function deleteItem(key) {
     });
 }
 
-// Funções de utilidade
+// --- Funções de Utilidade e Controle de UI ---
 function getUserFromSession() {
   const userData = sessionStorage.getItem('user');
-  if (!userData) return null;
-  try {
-    return JSON.parse(userData);
-  } catch (error) {
-    console.error("Erro ao parsear usuário da sessão", error);
-    return null;
-  }
+  return userData ? JSON.parse(userData) : null;
 }
 
-// Atualiza o timestamp no Firebase e retorna o valor para sincronia local
-async function updateTimestamp(planilhaNome) {
-  const user = getUserFromSession();
-  if (!user) return null;
-  const timestamp = Date.now();
-  const caminho = `users/${user.uid}/UltimasAlteracoes/${planilhaNome}`;
-  await set(ref(database, caminho), { [timestamp]: timestamp });
-  console.log("Novo timestamp de sincronização registrado no Firebase.");
-  return timestamp;
-}
-
-// --- FUNÇÃO PARA CONTROLAR O ESTADO VISUAL DO BOTÃO E POPUP ---
 function setUnsavedChanges(status) {
     hasUnsavedChanges = status;
-    const botaoSalvar = document.getElementById('botao-salvar');
-    const popup = document.getElementById('popup-salvar');
-    const seta = document.getElementById('seta-salvar'); // Pega a seta
-
-    if (!botaoSalvar || !popup || !seta) return; // Verifica se a seta existe
-
+    const elements = {
+        botaoSalvar: document.getElementById('botao-salvar'),
+        popup: document.getElementById('popup-salvar'),
+        seta: document.getElementById('seta-salvar')
+    };
+    if (!elements.botaoSalvar || !elements.popup || !elements.seta) return;
+    
     if (status) {
-        botaoSalvar.classList.add('salvar-pendente');
-        botaoSalvar.classList.remove('sem-alteracoes');
-        popup.classList.add('show');
-        seta.classList.add('show'); // Mostra a seta
+        elements.botaoSalvar.classList.add('salvar-pendente');
+        elements.botaoSalvar.classList.remove('sem-alteracoes');
+        elements.popup.classList.add('show');
+        elements.seta.classList.add('show');
     } else {
-        botaoSalvar.classList.remove('salvar-pendente');
-        botaoSalvar.classList.add('sem-alteracoes');
-        popup.classList.remove('show');
-        seta.classList.remove('show'); // Esconde a seta
+        elements.botaoSalvar.classList.remove('salvar-pendente');
+        elements.botaoSalvar.classList.add('sem-alteracoes');
+        elements.popup.classList.remove('show');
+        elements.seta.classList.remove('show');
     }
 }
 
-// --- FUNÇÃO DE SALVAMENTO (UPLOAD) NO FIREBASE ---
+// --- Lógica de Modificação e Sincronização ---
+
+/**
+ * Salva as alterações pendentes no Firebase.
+ */
 async function salvarAlteracoes() {
     if (!hasUnsavedChanges) {
         Swal.fire("Aviso", "Não há alterações pendentes para salvar.", "info");
         return;
     }
-
     const urlParams = new URLSearchParams(window.location.search);
     const planilhaNome = urlParams.get("planilha");
     const user = getUserFromSession();
-    if (!planilhaNome || !user) {
-        Swal.fire("Erro", "Não foi possível identificar a planilha ou o usuário.", "error");
-        return;
-    }
+    if (!planilhaNome || !user) return;
 
-    Swal.fire({
-        title: 'Salvando no Servidor...',
-        text: 'Suas alterações estão sendo sincronizadas. Por favor, aguarde.',
-        allowOutsideClick: false,
-        didOpen: () => Swal.showLoading()
-    });
+    Swal.fire({ title: 'Salvando no Servidor...', text: 'Sincronizando suas alterações.', didOpen: () => Swal.showLoading() });
 
     try {
-        // 1. Pega a planilha inteira e atualizada do armazenamento local
-        const dadosPlanilha = await getItem(`planilha_${planilhaNome}`);
-        if (!dadosPlanilha) throw new Error("Dados da planilha local não encontrados.");
-
-        // 2. Divide em chunks para o Firebase
-        const chunkSize = 500;
-        const chunks = {};
-        for (let i = 0; i < dadosPlanilha.length; i += chunkSize) {
-            chunks[`chunk_${i / chunkSize}`] = dadosPlanilha.slice(i, i + chunkSize);
+        const pendingChanges = await getItem(`pending_changes_${planilhaNome}`) || [];
+        if (pendingChanges.length === 0) {
+            Swal.fire("Aviso", "Não foram encontradas alterações pendentes para salvar.", "info");
+            setUnsavedChanges(false);
+            return;
         }
 
-        // 3. Pega os dados de lematização atualizados do armazenamento local
-        const dadosLemas = await getItem(`lemas_${planilhaNome}`);
+        const updatesForFirebase = {};
+        const historyChangesForPush = {};
 
-        // 4. Envia tudo para o Firebase (sobrescrevendo os dados antigos)
-        const planilhaRef = ref(database, `users/${user.uid}/planilhas/${planilhaNome}`);
-        await set(planilhaRef, chunks);
+        pendingChanges.forEach(change => {
+            const pathParts = change.path.split('/');
+            let currentLevel = updatesForFirebase;
+            pathParts.forEach((part, index) => {
+                if (index === pathParts.length - 1) {
+                    currentLevel[part] = change.value;
+                } else {
+                    currentLevel[part] = currentLevel[part] || {};
+                    currentLevel = currentLevel[part];
+                }
+            });
+             // CORREÇÃO AQUI: Usar o mesmo objeto aninhado para o histórico
+            historyChangesForPush[change.path.replace(/\//g, '_')] = change.value;
+        });
 
-        if (dadosLemas) {
-            const lemaRef = ref(database, `users/${user.uid}/lematizacoes/${planilhaNome}`);
-            await set(lemaRef, dadosLemas);
-        }
+        // 1. Aplica as alterações na base de dados principal
+        await update(ref(database, `users/${user.uid}`), updatesForFirebase);
 
-        // 5. Atualiza o timestamp no Firebase para indicar que a sincronização foi concluída
-        const syncedTimestamp = await updateTimestamp(planilhaNome);
+        const timestamp = Date.now();
+        // 2. Adiciona as alterações ao histórico para outros clientes sincronizarem
+        const historyRef = ref(database, `users/${user.uid}/historico_alteracoes/${planilhaNome}`);
+        // Salva o objeto sem chaves inválidas
+        await push(historyRef, { timestamp, changes: historyChangesForPush });
 
-        // 6. Atualiza o timestamp local para corresponder ao do servidor
-        await setItem(`timestamp_local_change_${planilhaNome}`, syncedTimestamp);
-        
-        // 7. Limpa o estado de "pendente" na interface
+        // 3. Atualiza o timestamp principal de alterações
+        const timestampRef = ref(database, `users/${user.uid}/UltimasAlteracoes/${planilhaNome}`);
+        await set(timestampRef, { [timestamp]: timestamp });
+
+        // 4. Limpa as alterações pendentes locais e atualiza o timestamp local
+        await deleteItem(`pending_changes_${planilhaNome}`);
+        await setItem(`timestamp_local_change_${planilhaNome}`, timestamp);
+
         setUnsavedChanges(false);
-
         Swal.fire("Sucesso!", "Suas alterações foram salvas com sucesso no servidor.", "success");
 
     } catch (error) {
@@ -165,8 +154,21 @@ async function salvarAlteracoes() {
     }
 }
 
+/**
+ * Registra uma alteração para ser enviada posteriormente.
+ */
+async function logLocalChange(planilhaNome, path, value) {
+    const changes = await getItem(`pending_changes_${planilhaNome}`) || [];
+    const existingIndex = changes.findIndex(c => c.path === path);
+    if (existingIndex > -1) {
+        changes[existingIndex].value = value;
+    } else {
+        changes.push({ path, value });
+    }
+    await setItem(`pending_changes_${planilhaNome}`, changes);
+}
 
-// --- FUNÇÕES DE MODIFICAÇÃO LOCAL ---
+// --- Funções de Ação do Usuário (Remover, Fundir) ---
 
 async function removerPalavrasSelecionadas() {
     const palavrasParaRemover = window.selectedEvocacoes || [];
@@ -174,23 +176,30 @@ async function removerPalavrasSelecionadas() {
         Swal.fire("Atenção", "Selecione pelo menos uma palavra para remover.", "warning");
         return;
     }
-
     const urlParams = new URLSearchParams(window.location.search);
     const planilhaNome = urlParams.get("planilha");
     if (!planilhaNome) return;
+    const user = getUserFromSession();
+    const CHUNK_SIZE = 500;
 
     Swal.fire({ title: 'Processando...', text: 'Removendo palavras localmente.', didOpen: () => Swal.showLoading() });
 
     try {
         const storedData = await getItem(`planilha_${planilhaNome}`);
-        if (!storedData) throw new Error("Planilha não encontrada no armazenamento local.");
+        if (!storedData) throw new Error("Planilha não encontrada.");
 
         let hasChanges = false;
-        const updatedData = storedData.map(row => {
-            return row.map(cell => {
+        const logPromises = [];
+
+        const updatedData = storedData.map((row, rowIndex) => {
+            return row.map((cell, cellIndex) => {
                 const valor = String(cell || "").trim().toUpperCase();
                 if (palavrasParaRemover.includes(valor)) {
                     hasChanges = true;
+                    const chunkIndex = Math.floor(rowIndex / CHUNK_SIZE);
+                    const rowIndexInChunk = rowIndex % CHUNK_SIZE;
+                    const path = `planilhas/${planilhaNome}/chunk_${chunkIndex}/${rowIndexInChunk}/${cellIndex}`;
+                    logPromises.push(logLocalChange(planilhaNome, path, "VAZIO"));
                     return "VAZIO";
                 }
                 return cell;
@@ -198,25 +207,21 @@ async function removerPalavrasSelecionadas() {
         });
 
         if (!hasChanges) {
-            Swal.fire("Aviso", "Nenhuma das palavras selecionadas foi encontrada na planilha.", "info");
+            Swal.fire("Aviso", "Nenhuma das palavras selecionadas foi encontrada.", "info");
             return;
         }
-
-        // Salva a planilha modificada e o timestamp da alteração localmente
+        
+        await Promise.all(logPromises);
         await setItem(`planilha_${planilhaNome}`, updatedData);
         await setItem(`timestamp_local_change_${planilhaNome}`, Date.now());
         
         Swal.fire({
-            title: 'Removido!',
-            text: 'As palavras foram removidas localmente. A página será atualizada.',
-            icon: 'success',
-            confirmButtonText: 'Entendido'
-        }).then(() => {
-            location.reload();
-        });
+            title: 'Removido!', text: 'As palavras foram removidas localmente.',
+            icon: 'success', confirmButtonText: 'Entendido'
+        }).then(() => location.reload());
 
     } catch (error) {
-        console.error("Erro ao remover palavras localmente:", error);
+        console.error("Erro ao remover palavras:", error);
         Swal.fire("Erro", "Ocorreu um problema ao remover as palavras.", "error");
     }
 }
@@ -227,7 +232,6 @@ async function fundirPalavrasSelecionadas() {
     Swal.fire("Atenção", "Selecione pelo menos duas palavras para fundir.", "warning");
     return;
   }
-
   const { value: novoNomeRaw } = await Swal.fire({
       title: 'Fundir Palavras', input: 'text', inputLabel: 'Digite o nome para a nova palavra fundida',
       inputPlaceholder: 'Ex: TRANSPORTE PÚBLICO', showCancelButton: true,
@@ -236,28 +240,33 @@ async function fundirPalavrasSelecionadas() {
 
   if (!novoNomeRaw) return;
   const novoNome = novoNomeRaw.trim().toUpperCase();
-
   const urlParams = new URLSearchParams(window.location.search);
   const planilhaNome = urlParams.get("planilha");
   const user = getUserFromSession();
   if (!planilhaNome || !user) return;
+  const CHUNK_SIZE = 500;
 
   Swal.fire({ title: 'Processando...', text: 'Fundindo palavras localmente.', didOpen: () => Swal.showLoading() });
 
   try {
     const storedData = await getItem(`planilha_${planilhaNome}`);
-    if (!storedData) throw new Error("Planilha não encontrada no armazenamento local.");
+    if (!storedData) throw new Error("Planilha não encontrada.");
 
     let hasChanges = false;
     const counts = {};
     palavrasSelecionadas.forEach(p => counts[p] = 0);
+    const logPromises = [];
 
-    const updatedData = storedData.map(row => {
-      return row.map(cell => {
+    const updatedData = storedData.map((row, rowIndex) => {
+      return row.map((cell, cellIndex) => {
         const valor = String(cell || "").trim().toUpperCase();
         if (palavrasSelecionadas.includes(valor)) {
             hasChanges = true;
             counts[valor]++;
+            const chunkIndex = Math.floor(rowIndex / CHUNK_SIZE);
+            const rowIndexInChunk = rowIndex % CHUNK_SIZE;
+            const path = `planilhas/${planilhaNome}/chunk_${chunkIndex}/${rowIndexInChunk}/${cellIndex}`;
+            logPromises.push(logLocalChange(planilhaNome, path, novoNome));
             return novoNome;
         }
         return cell;
@@ -265,59 +274,50 @@ async function fundirPalavrasSelecionadas() {
     });
 
     if (!hasChanges) {
-        Swal.fire("Aviso", "Nenhuma das palavras selecionadas foi encontrada para fusão.", "info");
+        Swal.fire("Aviso", "Nenhuma das palavras selecionadas foi encontrada.", "info");
         return;
     }
 
-    // Atualiza os dados de lematização localmente
     const lemasAtuais = await getItem(`lemas_${planilhaNome}`) || {};
-    lemasAtuais[novoNome] = palavrasSelecionadas.map(p => `${p} (${counts[p] || 0})`);
+    const novoLemaValor = palavrasSelecionadas.map(p => `${p} (${counts[p] || 0})`);
+    lemasAtuais[novoNome] = novoLemaValor;
+    const lemaPath = `lematizacoes/${planilhaNome}/${novoNome}`;
+    logPromises.push(logLocalChange(planilhaNome, lemaPath, novoLemaValor));
     
-    // Salva a planilha, os lemas e o timestamp da alteração localmente
+    await Promise.all(logPromises);
     await setItem(`planilha_${planilhaNome}`, updatedData);
     await setItem(`lemas_${planilhaNome}`, lemasAtuais);
     await setItem(`timestamp_local_change_${planilhaNome}`, Date.now());
     
     Swal.fire({
-        title: 'Fundido!',
-        text: 'As palavras foram fundidas localmente. A página será atualizada.',
-        icon: 'success',
-        confirmButtonText: 'Entendido'
-    }).then(() => {
-        location.reload();
-    });
+        title: 'Fundido!', text: 'As palavras foram fundidas localmente.',
+        icon: 'success', confirmButtonText: 'Entendido'
+    }).then(() => location.reload());
 
   } catch (error) {
-    console.error("Erro ao fundir palavras localmente:", error);
+    console.error("Erro ao fundir palavras:", error);
     Swal.fire("Erro", "Ocorreu um problema ao fundir as palavras.", "error");
   }
 }
 
-// --- CRIAÇÃO DO MENU E EVENT LISTENERS ---
-
+// --- Construção do Menu e Event Listeners ---
 function criarMenuLateral() {
   const menu = document.createElement("div");
   menu.classList.add("menu-lateral");
-
   const makeBtn = (label, iconClass, onClick) => {
     const btn = document.createElement("button");
     btn.type = "button"; btn.className = "menu-botao";
-    const circle = document.createElement("div");
-    circle.className = "icone-circulo";
-    const icon = document.createElement("i");
-    icon.className = iconClass;
+    const circle = document.createElement("div"); circle.className = "icone-circulo";
+    const icon = document.createElement("i"); icon.className = iconClass;
     circle.appendChild(icon);
-    const text = document.createElement("span");
-    text.textContent = label;
-    btn.appendChild(circle);
-    btn.appendChild(text);
-    btn.onclick = onClick;
+    const text = document.createElement("span"); text.textContent = label;
+    btn.appendChild(circle); btn.appendChild(text); btn.onclick = onClick;
     return btn;
   };
 
   const botaoSalvar = makeBtn("Salvar", "fa-solid fa-cloud-arrow-up", salvarAlteracoes);
   botaoSalvar.id = 'botao-salvar';
-
+  // ... resto dos botões
   const botaoRemover = makeBtn("Remover", "fas fa-trash", removerPalavrasSelecionadas);
   const botaoFundir  = makeBtn("Fundir",  "fas fa-compress", fundirPalavrasSelecionadas);
   const botaoFusoes  = makeBtn("Fusões",  "fas fa-random", () => {
@@ -339,11 +339,21 @@ function criarMenuLateral() {
   setTimeout(() => setUnsavedChanges(false), 100);
 }
 
+async function checarAlteracoesPendentes(planilhaNome) {
+    const changes = await getItem(`pending_changes_${planilhaNome}`);
+    if (changes && changes.length > 0) {
+        setUnsavedChanges(true);
+    }
+}
+
 window.addEventListener("DOMContentLoaded", () => {
   criarMenuLateral();
-  // Escuta o evento disparado por 'atualizacao.js'
-  window.addEventListener('alteracoesPendentesDetectadas', () => {
-      setUnsavedChanges(true);
+  const urlParams = new URLSearchParams(window.location.search);
+  const planilhaNome = urlParams.get("planilha");
+
+  // Escuta o evento de 'atualizacao.js' para checar as alterações locais
+  window.addEventListener('checarAlteracoesLocais', () => {
+      if(planilhaNome) checarAlteracoesPendentes(planilhaNome);
   });
 });
 
