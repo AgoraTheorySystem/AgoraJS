@@ -111,6 +111,7 @@ header.barra-externa nav.menu a.active { background: none !important; color: #FF
   border-top-right-radius: 15px;
   border-bottom-right-radius: 15px;
   transition: width 0.3s ease;
+  z-index: 1000;
 }
 
 /* Botões com círculo e texto abaixo */
@@ -126,7 +127,7 @@ header.barra-externa nav.menu a.active { background: none !important; color: #FF
   font-size: 12px;
   text-align: center;
   width: 60px;
-  transition: transform 0.3s ease, font-size 0.3s ease;
+  transition: transform 0.3s ease, font-size 0.3s ease, opacity 0.3s ease;
 }
 
 .menu-botao:hover {
@@ -142,12 +143,103 @@ header.barra-externa nav.menu a.active { background: none !important; color: #FF
   align-items: center;
   justify-content: center;
   margin-bottom: 5px;
+  transition: background-color 0.3s ease;
 }
 
 .menu-botao .icone-circulo i {
   font-size: 18px;
   color: #2e7d32; /* ícone verde */
+  transition: color 0.3s ease;
 }
+
+/* ESTILOS PARA O BOTÃO SALVAR PENDENTE */
+.menu-botao.salvar-pendente .icone-circulo {
+  background-color: #ffc107; /* Amarelo vibrante */
+  animation: pulse 1.5s infinite;
+}
+
+.menu-botao.salvar-pendente .icone-circulo i {
+  color: #333; /* Cor escura para contraste */
+}
+
+.menu-botao.salvar-pendente span {
+  color: #ffc107; /* Texto amarelo para combinar */
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 193, 7, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 193, 7, 0);
+  }
+}
+
+/* ESTADO PADRÃO DO BOTÃO (Sem alterações) */
+.menu-botao.sem-alteracoes {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.menu-botao.sem-alteracoes:hover {
+    transform: none; /* Desativa o efeito de hover quando desabilitado */
+}
+
+/* SETA INDICADORA */
+#seta-salvar {
+  position: fixed;
+  left: 90px; /* Posição ao lado do menu */
+  top: 405px; /* Alinhado com o botão Salvar (aproximadamente) */
+  color: white;
+  font-size: 24px;
+  display: none; /* Começa escondida */
+  z-index: 1001;
+  animation: bounce-horizontal 2s infinite;
+  text-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+#seta-salvar.show {
+  display: block;
+}
+
+@keyframes bounce-horizontal {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateX(0);
+  }
+  40% {
+    transform: translateX(-10px);
+  }
+  60% {
+    transform: translateX(-5px);
+  }
+}
+
+/* POPUP DE AVISO */
+#popup-salvar {
+  position: fixed;
+  bottom: -100px; /* Começa fora da tela */
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #ffc107;
+  color: #333;
+  padding: 15px 25px;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  z-index: 2000;
+  font-weight: bold;
+  transition: bottom 0.5s ease-in-out;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#popup-salvar.show {
+  bottom: 20px; /* Desliza para dentro da tela */
+}
+
 
 /* === TABELA === */
 .table-container {
@@ -468,11 +560,10 @@ th.sortable.active-desc::after {
   margin: 18px 0 0 0;
 }
 
-.menu-lateral { z-index: 1000; }
-
 .conteudo-verde #selected-evocacoes {
   margin: 0;               
   max-width: 100%;         
   width: 100%;
   box-sizing: border-box;  
 }
+
