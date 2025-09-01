@@ -492,6 +492,7 @@ tbody tr:nth-child(even) {
 }
 .selected-item {
   background-color: #cce5ff;
+  color: black;
   padding: 4px 8px;
   border-radius: 4px;
   display: flex;
