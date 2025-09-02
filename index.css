@@ -12,7 +12,7 @@ body, html {
 }
 
 .login-container {
-    background-image: url('/assets/Fundo_Index.jpeg');
+    background-image: url('/assets/fundo_index.jpg');
     background-size: cover;
     background-position: center;
     width: 100vw;
@@ -30,67 +30,69 @@ body, html {
     position: absolute;
     top: 0; left: 0;
     width: 100%; height: 100%;
-    background-color: rgba(0, 48, 61, 0.815);
+    background-color: rgba(0, 48, 61, 0.45);
     z-index: 0;
+    pointer-events: none;
 }
 
-.login-card {
-    position: relative;
-    z-index: 1;
-    background-color: transparent;
-    padding: 40px 50px;
-    text-align: center;
-    width: 500px;
+.login-card{
+  width: min(500px, 92vw);          
+  padding: clamp(24px, 4vw, 40px) clamp(20px, 4vw, 50px);
+  text-align: center;
+  position: relative;
+  z-index: 2;  
 }
 
-.logo-img {
-    width: 80%;
-    height: auto;
-    margin-bottom: 30px;
+/* Logo sempre centralizada */
+.logo-img{
+  display: block;
+  margin-inline: auto;
+  width: min(80%, 340px);
 }
 
-.login-form {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+/* Form ocupa toda a largura do card */
+.login-form{
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;              /* estica filhos à largura do card */
+  gap: 16px;
 }
 
-.input-label {
-    font-size: 16px;
-    font-weight: 500;
-    color: rgb(255, 255, 255);
-    margin-left: 10px;
-    margin-bottom: -5px;
-    text-align: left;
+/* Label alinhada com o texto do input */
+.input-label{
+  text-align: left;
+  margin: 0;                         /* remove offsets */
+  padding-left: 14px;                /* alinha com o texto do input */
+  color: #fff;
 }
 
-.input-group {
-    display: flex;
-    align-items: center;
-    background: rgb(255, 255, 255); 
-    border-radius: 30px;
-    padding: 9px 18px;
-    border: none;
+/* “Pílula” única e estável */
+.input-group{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 9999px;
+  background: #fff;
+  overflow: hidden;                  /* evita “vazar” nas bordas */
+}
+.input-icon-img{
+  flex: 0 0 24px;
+  width: 24px; height: 24px;
+  margin: 0;
+}
+.login-form input{
+  flex: 1;
+  min-width: 0;
+  border: none; outline: none;
+  background: transparent;           /* tira a 2ª “pílula” */
+  border-radius: 0;
+  color: #000;
+  padding: 10px 6px;
 }
 
-.input-icon-img {
-    width: 24px;
-    height: 24px;
-    margin-right: 12px;
-    filter: none; 
-}
-
-.login-form input {
-    border: none;
-    outline: none;
-    flex: 1;
-    font-size: 16px;
-    font-family: 'Ubuntu', sans-serif;
-    background: white;
-    color: black;
-    padding: 10px 15px;
-    border-radius: 20px;
-}
 
 .login-button {
     width: 100px;
@@ -105,7 +107,7 @@ body, html {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    margin: 5px auto 0 auto;
+    margin: 8px auto 0;
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
     transition: background-color 0.2s ease;
 }
@@ -118,8 +120,9 @@ body, html {
     font-size: 16px;
     color: #FDD200;
     text-decoration: none;
-    margin-top: -10px;
+    margin: 2px 4px 0 0;  
     margin-bottom: 10px;
+    align-self: flex-end; 
     text-align: right;
     display: block;
 }
@@ -207,26 +210,18 @@ body, html {
 }
 
 
-@media (max-width: 600px) {
-    .login-card {
-        width: 90%;
-        padding: 30px 20px;
-    }
-
-    .logo-img {
-        width: 150px;
-    }
-
-    .input-icon-img {
-        width: 20px;
-        height: 20px;
-    }
-
-    .login-button {
-        width: 100%;
-        height: auto;
-        padding: 14px 0;
-        font-size: 16px;
-        border-radius: 10px; /* deixa retangular com cantos suaves */
-    }
+@media (max-width: 600px){
+  .login-card{ width: 92vw; }
+  .input-group{ padding: 8px 12px; }
+  .input-icon-img{ width: 20px; height: 20px; }
+  .login-form input{ padding: 8px 6px; }
+  .login-button{
+    width: 100%;
+    height: auto;
+    padding: 14px 0;
+    font-size: 16px;
+    border-radius: 10px;
+    margin-top: 15px;
+    display: block;
+  }
 }
