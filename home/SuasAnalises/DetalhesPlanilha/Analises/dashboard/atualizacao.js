@@ -85,6 +85,8 @@ async function sincronizarDados(user, planilhaNome) {
 
         if (!snapshot.exists()) {
             console.log("Nenhum timestamp remoto encontrado. Sem necessidade de sincronizar.");
+            // Mesmo sem timestamp remoto, precisamos checar se há alterações locais para enviar
+            window.dispatchEvent(new Event('checarAlteracoesLocais'));
             return;
         }
 
@@ -101,7 +103,6 @@ async function sincronizarDados(user, planilhaNome) {
 
     } catch (error) {
         console.error("Erro ao sincronizar dados:", error);
-        // O Swal.fire já está a ser usado, o que é ótimo para feedback ao utilizador.
         Swal.fire("Erro de Sincronização", "Não foi possível verificar as atualizações do servidor.", "error");
     }
 }
@@ -116,13 +117,12 @@ async function sincronizarDados(user, planilhaNome) {
 async function aplicarAlteracoesRemotas(user, planilhaNome, localTimestamp, remoteTimestamp) {
     try {
         const historyRef = ref(database, `users/${user.uid}/historico_alteracoes/${planilhaNome}`);
-        // A consulta que necessita da regra de índice no Firebase
         const q = query(historyRef, orderByChild('timestamp'), startAt(localTimestamp + 1));
         
         const snapshot = await get(q);
         if (!snapshot.exists()) {
-            console.warn("Timestamp remoto é mais novo, mas não foram encontradas alterações no histórico. Pode ser um erro de sincronia.");
-            await setItem(`timestamp_local_change_${planilhaNome}`, remoteTimestamp); // Atualiza o timestamp mesmo assim para evitar loops
+            console.warn("Timestamp remoto é mais novo, mas não foram encontradas alterações no histórico.");
+            await setItem(`timestamp_local_change_${planilhaNome}`, remoteTimestamp);
             return;
         }
 
@@ -136,21 +136,28 @@ async function aplicarAlteracoesRemotas(user, planilhaNome, localTimestamp, remo
             const entry = childSnapshot.val();
             const changes = entry.changes;
 
-            for (const path in changes) {
+            // **CORREÇÃO DA LEITURA DO HISTÓRICO**
+            for (const pathKey in changes) {
                 changesApplied = true;
-                const value = changes[path];
-                const pathParts = path.split('/');
+                const value = changes[pathKey];
+                // Decodifica o caminho, trocando o separador '___' de volta para '/'
+                const pathParts = pathKey.split('___');
                 
                 const type = pathParts[0];
 
                 if (type === 'planilhas' && localSheet) {
                     const [, , chunkName, rowIndexInChunk, cellIndex] = pathParts;
+                    if(!chunkName || !rowIndexInChunk || !cellIndex) continue;
+
                     const chunkIndex = parseInt(chunkName.split('_')[1]);
                     const overallRowIndex = chunkIndex * CHUNK_SIZE + parseInt(rowIndexInChunk);
-                    if (localSheet[overallRowIndex]) {
+                    
+                    if (localSheet[overallRowIndex] && localSheet[overallRowIndex][parseInt(cellIndex)] !== undefined) {
                         localSheet[overallRowIndex][parseInt(cellIndex)] = value;
                     }
+
                 } else if (type === 'lematizacoes') {
+                    // Reconstrói a chave do lema, que pode conter '/'
                     const lemaKey = pathParts.slice(2).join('/');
                     localLemas[lemaKey] = value;
                 }
@@ -169,7 +176,6 @@ async function aplicarAlteracoesRemotas(user, planilhaNome, localTimestamp, remo
                 confirmButtonText: "Ok"
             }).then(() => location.reload());
         } else {
-             // Se não houver alterações para aplicar, apenas atualize o timestamp para evitar verificações repetidas.
             await setItem(`timestamp_local_change_${planilhaNome}`, remoteTimestamp);
         }
     } catch (error) {
@@ -189,7 +195,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
     
-    // Um pequeno atraso pode ajudar a garantir que a interface principal carregue primeiro
     setTimeout(() => {
         sincronizarDados(user, planilhaNome);
     }, 500);

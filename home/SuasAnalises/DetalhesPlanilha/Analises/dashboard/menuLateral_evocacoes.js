@@ -114,27 +114,22 @@ async function salvarAlteracoes() {
         const historyChangesForPush = {};
 
         pendingChanges.forEach(change => {
-            const pathParts = change.path.split('/');
-            let currentLevel = updatesForFirebase;
-            pathParts.forEach((part, index) => {
-                if (index === pathParts.length - 1) {
-                    currentLevel[part] = change.value;
-                } else {
-                    currentLevel[part] = currentLevel[part] || {};
-                    currentLevel = currentLevel[part];
-                }
-            });
-             // CORREÇÃO AQUI: Usar o mesmo objeto aninhado para o histórico
-            historyChangesForPush[change.path.replace(/\//g, '_')] = change.value;
+            // **CORREÇÃO PRINCIPAL**: Cria um objeto plano para o update.
+            // A chave é o caminho completo para o dado (ex: "planilhas/minhaplanilha/chunk_0/10/5")
+            // e o valor é o novo dado. Isso garante que apenas os campos especificados sejam alterados.
+            updatesForFirebase[change.path] = change.value;
+
+            // Para o histórico, não podemos usar '/' na chave. Substituímos por um separador seguro.
+            const historyPathKey = change.path.replace(/\//g, '___');
+            historyChangesForPush[historyPathKey] = change.value;
         });
 
-        // 1. Aplica as alterações na base de dados principal
+        // 1. Aplica as alterações na base de dados principal usando a atualização multi-path
         await update(ref(database, `users/${user.uid}`), updatesForFirebase);
 
         const timestamp = Date.now();
         // 2. Adiciona as alterações ao histórico para outros clientes sincronizarem
         const historyRef = ref(database, `users/${user.uid}/historico_alteracoes/${planilhaNome}`);
-        // Salva o objeto sem chaves inválidas
         await push(historyRef, { timestamp, changes: historyChangesForPush });
 
         // 3. Atualiza o timestamp principal de alterações
@@ -154,6 +149,7 @@ async function salvarAlteracoes() {
     }
 }
 
+
 /**
  * Registra uma alteração para ser enviada posteriormente.
  */
@@ -166,6 +162,7 @@ async function logLocalChange(planilhaNome, path, value) {
         changes.push({ path, value });
     }
     await setItem(`pending_changes_${planilhaNome}`, changes);
+    setUnsavedChanges(true);
 }
 
 // --- Funções de Ação do Usuário (Remover, Fundir) ---
@@ -213,7 +210,6 @@ async function removerPalavrasSelecionadas() {
         
         await Promise.all(logPromises);
         await setItem(`planilha_${planilhaNome}`, updatedData);
-        await setItem(`timestamp_local_change_${planilhaNome}`, Date.now());
         
         Swal.fire({
             title: 'Removido!', text: 'As palavras foram removidas localmente.',
@@ -281,13 +277,14 @@ async function fundirPalavrasSelecionadas() {
     const lemasAtuais = await getItem(`lemas_${planilhaNome}`) || {};
     const novoLemaValor = palavrasSelecionadas.map(p => `${p} (${counts[p] || 0})`);
     lemasAtuais[novoNome] = novoLemaValor;
+
+    // Se o novo nome já existia como um lema, preserva o histórico anterior
     const lemaPath = `lematizacoes/${planilhaNome}/${novoNome}`;
     logPromises.push(logLocalChange(planilhaNome, lemaPath, novoLemaValor));
     
     await Promise.all(logPromises);
     await setItem(`planilha_${planilhaNome}`, updatedData);
     await setItem(`lemas_${planilhaNome}`, lemasAtuais);
-    await setItem(`timestamp_local_change_${planilhaNome}`, Date.now());
     
     Swal.fire({
         title: 'Fundido!', text: 'As palavras foram fundidas localmente.',
@@ -317,7 +314,6 @@ function criarMenuLateral() {
 
   const botaoSalvar = makeBtn("Salvar", "fa-solid fa-cloud-arrow-up", salvarAlteracoes);
   botaoSalvar.id = 'botao-salvar';
-  // ... resto dos botões
   const botaoRemover = makeBtn("Remover", "fas fa-trash", removerPalavrasSelecionadas);
   const botaoFundir  = makeBtn("Fundir",  "fas fa-compress", fundirPalavrasSelecionadas);
   const botaoFusoes  = makeBtn("Fusões",  "fas fa-random", () => {
@@ -356,4 +352,3 @@ window.addEventListener("DOMContentLoaded", () => {
       if(planilhaNome) checarAlteracoesPendentes(planilhaNome);
   });
 });
-
