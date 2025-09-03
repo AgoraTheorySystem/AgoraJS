@@ -293,27 +293,41 @@ function setupMapInteractions() {
             let content = '';
             if (clusteredFeatures.length > 1) {
                 const total = clusteredFeatures.reduce((sum, f) => sum + f.get('cityCount'), 0);
-                let listItems = clusteredFeatures.map(f => `
-                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 14px; padding: 4px 0;">
-                        <span style="color: #4A5568;">${f.get('cityName')}</span>
-                        <span style="font-weight: 600; color: #1A202C; background-color: #EDF2F7; padding: 2px 6px; border-radius: 8px;">${f.get('cityCount')}</span>
-                    </div>
+                
+                // Generate table rows for each city
+                let tableRows = clusteredFeatures.map(f => `
+                    <tr>
+                        <td style="padding: 5px; text-align: left; color: #4A5568;">${f.get('cityName')}</td>
+                        <td style="padding: 5px; text-align: right; font-weight: 600; color: #1A202C;">${f.get('cityCount')}</td>
+                    </tr>
                 `).join('');
+
+                // Generate the full table HTML
                 content = `
-                    <div style="padding: 4px; font-family: 'Inter', sans-serif;">
-                        <h3 style="font-weight: 700; font-size: 16px; margin-bottom: 8px; color: #1A202C; border-bottom: 1px solid #E2E8F0; padding-bottom: 4px;">Cidades Agrupadas</h3>
-                        <div style="display: flex; flex-direction: column; gap: 4px;">${listItems}</div>
-                        <hr style="margin: 8px 0; border: none; border-top: 1px solid #E2E8F0;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 16px;">
-                            <span style="color: #1A202C;">Total</span>
-                            <span style="color: #C53030;">${total}</span>
-                        </div>
+                    <div style="padding: 4px; font-family: 'Inter', sans-serif; min-width: 250px;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                            <thead>
+                                <tr>
+                                    <th style="padding: 8px 5px; text-align: left; font-weight: 700; font-size: 16px; color: #1A202C; border-bottom: 2px solid #E2E8F0;">Cidades Agrupadas</th>
+                                    <th style="padding: 8px 5px; text-align: right; font-weight: 700; font-size: 16px; color: #1A202C; border-bottom: 2px solid #E2E8F0;">Pessoas</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${tableRows}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td style="padding: 8px 5px; text-align: left; font-weight: 700; font-size: 16px; color: #1A202C; border-top: 2px solid #E2E8F0;">Total</td>
+                                    <td style="padding: 8px 5px; text-align: right; font-weight: 700; font-size: 16px; color: #C53030; border-top: 2px solid #E2E8F0;">${total}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
                     </div>`;
             } else {
                 const singleFeature = clusteredFeatures[0];
                 const cityName = singleFeature.get('cityName');
                 const cityCount = singleFeature.get('cityCount');
-                content = `<div style="padding: 4px 8px; font-family: 'Inter', sans-serif; font-size: 14px;"><strong style="font-size: 15px; color: #1A202C;">${cityName}</strong><br>${cityCount} ocorrência${cityCount > 1 ? 's' : ''}</div>`;
+                content = `<div style="padding: 4px 8px; font-family: 'Inter', sans-serif; font-size: 14px;"><strong style="font-size: 15px; color: #1A202C;">${cityName}</strong><br>${cityCount} pessoa${cityCount > 1 ? 's' : ''}</div>`;
             }
             const virtualEl = { getBoundingClientRect: () => ({ width: 0, height: 0, top: evt.pixel[1] + mapElement.getBoundingClientRect().top, right: evt.pixel[0] + mapElement.getBoundingClientRect().left, bottom: evt.pixel[1] + mapElement.getBoundingClientRect().top, left: evt.pixel[0] + mapElement.getBoundingClientRect().left }) };
             tippyInstance = tippy(document.body, { getReferenceClientRect: virtualEl.getBoundingClientRect, content: content, allowHTML: true, placement: 'top', arrow: true, animation: 'fade', theme: 'light-border', trigger: 'manual', appendTo: () => document.body });
