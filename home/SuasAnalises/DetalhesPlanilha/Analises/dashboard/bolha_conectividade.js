@@ -120,53 +120,68 @@ export function gerarBolhasConectividade(parametros, headers, rows, containerEle
   downloadBtn.className = "popup-download";
   downloadBtn.style.marginLeft = "1rem";
   downloadBtn.addEventListener("click", async () => {
-    const originalHeight = networkDiv.style.height;
-    networkDiv.style.height = 'auto';
-    await new Promise(resolve => setTimeout(resolve, 500));
-    const canvas = await window.html2canvas(networkDiv, { scale: 2 });
-    networkDiv.style.height = originalHeight;
-
+    const canvas = await window.html2canvas(contentArea, { scale: 2 });
     const imgData = canvas.toDataURL("image/png");
     const pdf = new window.jspdf.jsPDF({ orientation: "landscape" });
     const width = pdf.internal.pageSize.getWidth();
     const height = (canvas.height * width) / canvas.width;
-
     pdf.addImage(imgData, "PNG", 0, 10, width, height);
-
     const nomePlanilha = new URLSearchParams(window.location.search).get("planilha") || "Planilha";
     const dataStr = new Date().toISOString().split("T")[0];
     const nomeArquivo = `${nomePlanilha}_Agora_Conectividade_${dataStr}.pdf`;
     pdf.save(nomeArquivo);
   });
-
-  const legenda = document.createElement("div");
-  legenda.style.position = "absolute";
-  legenda.style.top = "5rem";
-  legenda.style.right = "2rem";
-  legenda.style.background = "#fff";
-  legenda.style.border = "1px solid #ccc";
-  legenda.style.borderRadius = "6px";
-  legenda.style.padding = "0.5rem 1rem";
-  legenda.style.fontSize = "0.9rem";
-  legenda.style.color = "Black";
-  legenda.innerHTML = `
-    <div style="margin-bottom: 0.2rem;"><span style="display:inline-block;width:12px;height:12px;background:${corCentral};margin-right:5px;border-radius:50%;"></span> ${parametros.aspecto}</div>
-    <div><span style="display:inline-block;width:12px;height:12px;background:${corConectada};margin-right:5px;border-radius:50%;"></span> ${parametros.aspecto === "Ego" ? "Alter" : "Ego"}</div>
-  `;
-
+  
   const buttonsContainer = document.createElement("div");
   buttonsContainer.style.marginBottom = "1rem";
   buttonsContainer.appendChild(closeBtn);
   buttonsContainer.appendChild(downloadBtn);
   popupContent.appendChild(buttonsContainer);
-  popupContent.appendChild(legenda);
 
+  // --- Novo container para o gráfico e legenda ---
+  const contentArea = document.createElement("div");
+  contentArea.style.display = "flex";
+  contentArea.style.gap = "1rem";
+  contentArea.style.alignItems = "stretch"; 
+  contentArea.style.height = "700px"; // Fixa a altura do container
+
+  // --- AJUSTES DA LEGENDA ---
+  const legenda = document.createElement("div");
+  legenda.style.background = "rgba(255, 255, 255, 0.9)";
+  legenda.style.border = "1px solid #ccc";
+  legenda.style.borderRadius = "8px";
+  legenda.style.padding = "1rem";
+  legenda.style.fontSize = "0.9rem";
+  legenda.style.color = "black";
+  legenda.style.flex = "0 0 280px"; // Largura fixa de 280px
+  legenda.style.display = "flex";
+  legenda.style.flexDirection = "column";
+
+  let legendaHTML = `
+    <div style="font-weight: bold; margin-bottom: 10px; padding-bottom: 5px; border-bottom: 1px solid #ccc;">Legenda</div>
+    <div style="margin-bottom: 5px;"><span style="display:inline-block;width:12px;height:12px;background:${corCentral};margin-right:5px;border-radius:50%;"></span> Palavra Central (${parametros.aspecto})</div>
+    <div style="margin-bottom: 10px;"><span style="display:inline-block;width:12px;height:12px;background:${corConectada};margin-right:5px;border-radius:50%;"></span> Palavras Conectadas (${parametros.aspecto === "Ego" ? "Alter" : "Ego"})</div>
+    <div style="flex: 1; overflow-y: auto; padding-right: 10px;">
+  `;
+
+  correlatas.forEach(([palavra, count], i) => {
+      const percentual = totalFreqCentral > 0 ? ((count / totalFreqCentral) * 100).toFixed(1) : "0.0";
+      const rank = `${i + 1}º`;
+      legendaHTML += `<div style="padding: 4px 0; font-size: 0.85rem; border-bottom: 1px solid #eee;"><strong>${rank}</strong> ${palavra} <em>(${count}, ${percentual}%)</em></div>`;
+  });
+
+  legendaHTML += `</div>`;
+  legenda.innerHTML = legendaHTML;
+  
   const networkDiv = document.createElement("div");
   networkDiv.id = "grafoConectividade";
-  networkDiv.style.height = "700px";
   networkDiv.style.background = "#fafafa";
+  networkDiv.style.flex = "1 1 auto"; // O gráfico ocupa o espaço restante
 
-  popupContent.appendChild(networkDiv);
+  contentArea.appendChild(legenda);
+  contentArea.appendChild(networkDiv);
+  popupContent.appendChild(contentArea);
+
   popup.appendChild(popupContent);
   document.body.appendChild(popup);
 
@@ -205,3 +220,4 @@ export function gerarBolhasConectividade(parametros, headers, rows, containerEle
 
   network.fit({ animation: true });
 }
+

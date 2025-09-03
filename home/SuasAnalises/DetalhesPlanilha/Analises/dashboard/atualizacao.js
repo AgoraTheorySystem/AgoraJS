@@ -2,13 +2,20 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.3/firebase
 import { getDatabase, ref, get, query, orderByChild, startAt } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
 import firebaseConfig from '/firebase.js';
 
+// Inicialização do Firebase
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
+// Constantes para o IndexedDB
 const DB_NAME = 'agoraDB';
 const STORE_NAME = 'planilhas';
 
 // --- Funções do IndexedDB (Banco de Dados Local) ---
+
+/**
+ * Abre e, se necessário, cria a base de dados local IndexedDB.
+ * @returns {Promise<IDBDatabase>} A instância da base de dados.
+ */
 function openDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, 1);
@@ -23,6 +30,11 @@ function openDB() {
   });
 }
 
+/**
+ * Obtém um item do IndexedDB.
+ * @param {string} key A chave do item a ser obtido.
+ * @returns {Promise<any>} O valor do item ou null se não for encontrado.
+ */
 async function getItem(key) {
     const db = await openDB();
     const transaction = db.transaction(STORE_NAME, 'readonly');
@@ -34,6 +46,12 @@ async function getItem(key) {
     });
 }
 
+/**
+ * Define um item no IndexedDB.
+ * @param {string} key A chave do item.
+ * @param {any} value O valor a ser guardado.
+ * @returns {Promise<void>}
+ */
 async function setItem(key, value) {
     const db = await openDB();
     const transaction = db.transaction(STORE_NAME, 'readwrite');
@@ -45,6 +63,10 @@ async function setItem(key, value) {
 
 // --- Lógica Principal de Sincronização ---
 
+/**
+ * Obtém os dados do utilizador a partir da sessionStorage.
+ * @returns {object|null} O objeto do utilizador ou null.
+ */
 function getUserFromSession() {
     const userData = sessionStorage.getItem('user');
     return userData ? JSON.parse(userData) : null;
@@ -52,6 +74,8 @@ function getUserFromSession() {
 
 /**
  * Função principal que compara timestamps e inicia a sincronização de diferenças.
+ * @param {object} user O objeto do utilizador autenticado.
+ * @param {string} planilhaNome O nome da planilha a ser sincronizada.
  */
 async function sincronizarDados(user, planilhaNome) {
     try {
@@ -72,74 +96,85 @@ async function sincronizarDados(user, planilhaNome) {
             await aplicarAlteracoesRemotas(user, planilhaNome, localTimestamp, remoteTimestamp);
         } else {
             console.log("Dados locais estão atualizados.");
-            // Dispara evento para checar se existem alterações locais não salvas
             window.dispatchEvent(new Event('checarAlteracoesLocais'));
         }
 
     } catch (error) {
         console.error("Erro ao sincronizar dados:", error);
+        // O Swal.fire já está a ser usado, o que é ótimo para feedback ao utilizador.
         Swal.fire("Erro de Sincronização", "Não foi possível verificar as atualizações do servidor.", "error");
     }
 }
 
 /**
  * Busca apenas as alterações no histórico do Firebase e as aplica localmente.
+ * @param {object} user O objeto do utilizador.
+ * @param {string} planilhaNome O nome da planilha.
+ * @param {number} localTimestamp O último timestamp registado localmente.
+ * @param {number} remoteTimestamp O timestamp mais recente do servidor.
  */
 async function aplicarAlteracoesRemotas(user, planilhaNome, localTimestamp, remoteTimestamp) {
-    const historyRef = ref(database, `users/${user.uid}/historico_alteracoes/${planilhaNome}`);
-    const q = query(historyRef, orderByChild('timestamp'), startAt(localTimestamp + 1));
-    
-    const snapshot = await get(q);
-    if (!snapshot.exists()) {
-        console.warn("Timestamp remoto é mais novo, mas não foram encontradas alterações no histórico. Pode ser um erro de sincronia.");
-        return;
-    }
-
-    // Pega os dados locais atuais para aplicar as mudanças
-    let localSheet = await getItem(`planilha_${planilhaNome}`);
-    let localLemas = await getItem(`lemas_${planilhaNome}`) || {};
-
-    let changesApplied = false;
-    const CHUNK_SIZE = 500; // O mesmo usado no upload
-
-    snapshot.forEach(childSnapshot => {
-        const entry = childSnapshot.val();
-        const changes = entry.changes;
-
-        for (const path in changes) {
-            changesApplied = true;
-            const value = changes[path];
-            const pathParts = path.split('/'); // Ex: 'planilhas/NOME/chunk_0/10/5' ou 'lematizacoes/NOME/LEMA'
-            
-            const type = pathParts[0];
-            const name = pathParts[1]; // O nome da planilha
-
-            if (type === 'planilhas' && localSheet) {
-                const [chunkName, rowIndexInChunk, cellIndex] = pathParts.slice(2);
-                const chunkIndex = parseInt(chunkName.split('_')[1]);
-                const overallRowIndex = chunkIndex * CHUNK_SIZE + parseInt(rowIndexInChunk);
-                if (localSheet[overallRowIndex]) {
-                    localSheet[overallRowIndex][parseInt(cellIndex)] = value;
-                }
-            } else if (type === 'lematizacoes') {
-                const lemaKey = pathParts.slice(2).join('/');
-                localLemas[lemaKey] = value;
-            }
+    try {
+        const historyRef = ref(database, `users/${user.uid}/historico_alteracoes/${planilhaNome}`);
+        // A consulta que necessita da regra de índice no Firebase
+        const q = query(historyRef, orderByChild('timestamp'), startAt(localTimestamp + 1));
+        
+        const snapshot = await get(q);
+        if (!snapshot.exists()) {
+            console.warn("Timestamp remoto é mais novo, mas não foram encontradas alterações no histórico. Pode ser um erro de sincronia.");
+            await setItem(`timestamp_local_change_${planilhaNome}`, remoteTimestamp); // Atualiza o timestamp mesmo assim para evitar loops
+            return;
         }
-    });
 
-    if (changesApplied) {
-        // Salva os dados atualizados localmente
-        await setItem(`planilha_${planilhaNome}`, localSheet);
-        await setItem(`lemas_${planilhaNome}`, localLemas);
-        await setItem(`timestamp_local_change_${planilhaNome}`, remoteTimestamp);
+        let localSheet = await getItem(`planilha_${planilhaNome}`);
+        let localLemas = await getItem(`lemas_${planilhaNome}`) || {};
 
-        Swal.fire({
-            title: "Planilha Atualizada!",
-            text: "Novas alterações do servidor foram aplicadas. A página será recarregada.",
-            icon: "info",
-            confirmButtonText: "Ok"
-        }).then(() => location.reload());
+        let changesApplied = false;
+        const CHUNK_SIZE = 500;
+
+        snapshot.forEach(childSnapshot => {
+            const entry = childSnapshot.val();
+            const changes = entry.changes;
+
+            for (const path in changes) {
+                changesApplied = true;
+                const value = changes[path];
+                const pathParts = path.split('/');
+                
+                const type = pathParts[0];
+
+                if (type === 'planilhas' && localSheet) {
+                    const [, , chunkName, rowIndexInChunk, cellIndex] = pathParts;
+                    const chunkIndex = parseInt(chunkName.split('_')[1]);
+                    const overallRowIndex = chunkIndex * CHUNK_SIZE + parseInt(rowIndexInChunk);
+                    if (localSheet[overallRowIndex]) {
+                        localSheet[overallRowIndex][parseInt(cellIndex)] = value;
+                    }
+                } else if (type === 'lematizacoes') {
+                    const lemaKey = pathParts.slice(2).join('/');
+                    localLemas[lemaKey] = value;
+                }
+            }
+        });
+
+        if (changesApplied) {
+            await setItem(`planilha_${planilhaNome}`, localSheet);
+            await setItem(`lemas_${planilhaNome}`, localLemas);
+            await setItem(`timestamp_local_change_${planilhaNome}`, remoteTimestamp);
+
+            Swal.fire({
+                title: "Planilha Atualizada!",
+                text: "Novas alterações do servidor foram aplicadas. A página será recarregada.",
+                icon: "info",
+                confirmButtonText: "Ok"
+            }).then(() => location.reload());
+        } else {
+             // Se não houver alterações para aplicar, apenas atualize o timestamp para evitar verificações repetidas.
+            await setItem(`timestamp_local_change_${planilhaNome}`, remoteTimestamp);
+        }
+    } catch (error) {
+        console.error("Erro ao aplicar alterações remotas:", error);
+        Swal.fire("Erro ao Atualizar", "Ocorreu um problema ao aplicar as alterações do servidor.", "error");
     }
 }
 
@@ -149,11 +184,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const planilhaNome = urlParams.get("planilha");
 
-    if (!user || !planilhaNome) return;
-
-    // Atraso para garantir que a interface principal carregue primeiro
+    if (!user || !planilhaNome) {
+        console.log("Utilizador ou nome da planilha não encontrado. A sincronização não será iniciada.");
+        return;
+    }
+    
+    // Um pequeno atraso pode ajudar a garantir que a interface principal carregue primeiro
     setTimeout(() => {
         sincronizarDados(user, planilhaNome);
     }, 500);
 });
-
