@@ -1,13 +1,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap');
 
-/* Estilos gerais */
+html {
+  height: 100%;
+  background: inherit;
+}
+
 body {
     display: flex;
     flex-direction: row;
     margin: 0;
     padding: 0;
-    height: 100vh;
-    width: 100vw;
+    min-height: 100svh;   
+    min-height: 100dvh;   
+    width: 100%;
+    background-color: #000; 
     font-family: 'Ubuntu', sans-serif;
     background-image: url(../assets/fundo_cadastro.jpg);
     background-size: cover;
@@ -18,7 +24,6 @@ body {
 .Left {
     flex: 1;
     width: 50%;
-    height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -45,33 +50,22 @@ hr {
 
 .Right {
     flex: 2;
-    /* Controla o tamanho relativo */
-    display: grid;
-    /* Define layout em grade */
+    display: grid;                                 
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    /* Colunas ajustáveis */
-    gap: 10px;
-    /* Espaçamento entre os itens */
-    padding: 20px;
-    /* Espaçamento interno */
+    gap: 10px;                                      
+    padding: 20px;                                  
     width: 100%;
-    /* Garante que use toda a largura disponível */
-    height: 100%;
-    /* Garante que use toda a altura disponível */
     box-sizing: border-box;
-    /* Inclui padding no cálculo do tamanho */
-    align-items: center;
+    align-items: center;                             
+    align-content: start;                            
+    grid-auto-rows: min-content;                     
 }
 
 .button {
     display: flex;
-    /* Permite alinhamento flexível */
     align-items: center;
-    /* Alinha ícone e texto verticalmente */
     justify-content: center;
-    /* Centraliza ícone e texto */
     gap: 10px;
-    /* Espaçamento entre ícone e texto */
     width: 100%;
     height: 60px;
     background-color: #2b6f69;
@@ -81,18 +75,15 @@ hr {
     border: none;
     cursor: pointer;
     border-radius: 5px;
-    /* Bordas arredondadas */
     box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.5);
 }
 
 .button i {
-    font-size: 20px;
-    /* Tamanho do ícone */
+    font-size: 20px;      
 }
 
 .button:hover {
-    background-color: #1e4e4a;
-    /* Escurece o botão ao passar o mouse */
+    background-color: #1e4e4a;   
     opacity: 0.9;
 }
 
@@ -176,7 +167,13 @@ select:hover {
     border-color: #007BFF;
 }
 
-/* Estilos específicos para telas menores */
+
+@supports (-webkit-touch-callout: none) {
+  html { height: -webkit-fill-available; }
+  body { min-height: -webkit-fill-available; }
+}
+
+
 @media (max-width: 1500px) {
     body {
         flex-direction: column;
@@ -216,6 +213,61 @@ select:hover {
         width: 100%;
         height: 100%;
         justify-content: flex-start;
-        margin-top: 100px;
+        margin-top: 0;
+        padding-top: 16px; 
+        padding-bottom: env(safe-area-inset-bottom);
     }
+}
+
+@media (min-width: 601px) and (max-width: 1200px) {
+  .Right {
+    grid-template-columns: 1fr;     
+    max-width: 420px;              
+    margin: 0 auto;                 
+    align-content: start;           
+    grid-auto-rows: min-content;   
+    row-gap: 12px;                  
+  }
+  .button {
+    height: 56px;                   
+  }
+}
+
+
+@media (min-width: 768px) { 
+  .button {
+    height: 70px;
+    font-size: 18px;
+    gap: 14px;
+  }
+}
+
+@media (min-width: 1024px) { 
+  .button {
+    height: 80px;
+    font-size: 20px;
+    gap: 16px;
+  }
+}
+
+@media (min-width: 1440px) { 
+  .button {
+    height: 90px;
+    font-size: 22px;
+    gap: 18px;
+  }
+}
+
+
+@media (min-width: 1201px) {
+  .Right {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    align-content: center;          
+    justify-content: center;        
+    grid-auto-rows: min-content;
+    padding-block: clamp(24px, 6vh, 80px);
+    max-width: 1100px;              
+    margin: 0 auto;
+    gap: clamp(10px, 1.5vw, 20px);  
+  }
 }
