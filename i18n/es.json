@@ -7,5 +7,11 @@
   "welcome_banner": "Bienvenido al sistema Ágora Theory",
   "forgot_password_title": "¿Olvidaste tu contraseña?",
   "email_label": "Introduce tu correo electrónico:",
-  "submit_button": "Enviar correo de restablecimiento"
+  "submit_button": "Enviar correo de restablecimiento",
+  "signup_title": "Crea tu cuenta",
+  "signup_individual": "Persona Física",
+  "signup_company": "Empresa",
+  "signup_university": "Universidad / Escuela",
+  "signup_ngo": "ONG",
+  "signup_other": "Otros"
 }

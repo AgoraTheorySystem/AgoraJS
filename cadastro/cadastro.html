@@ -6,22 +6,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <link rel="icon" type="image/png" href="/assets/icon.png">
+    
     <link href="cadastro.css" rel="stylesheet">
+    <link href="/traducao.css" rel="stylesheet">
+
+    <script src="/traducao.js" type="module" defer></script>
     <script src="cadastro.js" defer></script>
     <title>Ágora</title>
 </head>
 
 <body>
-    <div class="Left">
+    <div id="language-toggle">
+        <img id="current-flag" src="/assets/flags/br.png" alt="Selecionar Idioma">
+    </div>
+
+    <div class="Left" data-translate="signup_title">
         Crie sua conta
     </div>
     <div class="Right">
-        <button id="button1" class="button"><i class="fas fa-user"></i>Pessoa Física</button>
-        <button id="button2" class="button"><i class="fas fa-building"></i>Empresa</button>
-        <button id="button3" class="button"><i class="fas fa-university"></i>Universidade / Escola</button>
-        <!--<button id="button4" class="button"><i class="fas fa-school"></i>Escola</button>-->
-        <button id="button5" class="button"><i class="fas fa-hands-helping"></i>ONG</button>
-        <button id="button6" class="button" onclick="openPage('Outros')"><i class="fas fa-ellipsis-h"></i>Outros</button>
+        <button id="button1" class="button" data-translate="signup_individual"><i class="fas fa-user"></i>Pessoa Física</button>
+        <button id="button2" class="button" data-translate="signup_company"><i class="fas fa-building"></i>Empresa</button>
+        <button id="button3" class="button" data-translate="signup_university"><i class="fas fa-university"></i>Universidade / Escola</button>
+        <button id="button5" class="button" data-translate="signup_ngo"><i class="fas fa-hands-helping"></i>ONG</button>
+        <button id="button6" class="button" data-translate="signup_other" onclick="openPage('Outros')"><i class="fas fa-ellipsis-h"></i>Outros</button>
     </div>
 </body>
 
