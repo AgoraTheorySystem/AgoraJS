@@ -1,15 +1,24 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ágora</title>
     <link rel="stylesheet" href="index.css">
     <link rel="icon" type="image/png" href="/assets/icon.png">
+    
+    <link href="traducao.css" rel="stylesheet"> 
+    
     <script src="index.js" type="module" defer></script>
-    <link href="/suas_analises.css" rel="stylesheet"> <!--Pegando o estilo do loading-->
-</head>
+    <link href="/suas_analises.css" rel="stylesheet"> </head>
+
 <body>
+    <div id="language-toggle">
+        <script src="/traducao.js" type="module" defer></script>
+        <img id="current-flag" src="/assets/flags/br.png" alt="Selecionar Idioma">
+    </div>
+
     <div id="loading" style="display: none;">
         <figure class="loader">
             <div class="dot white"></div>
@@ -24,26 +33,29 @@
             <img src="/assets/Logo_Agora.png" alt="Logo Ágora" class="logo-img">
 
             <form class="login-form">
-                <label for="email" class="input-label">Usuário</label>
+                <label for="email" class="input-label" data-translate="user">Usuário</label>
                 <div class="input-group">
-                    <img src="home\Perfil\assets_perfil\icone_login_pessoa_fisica.png" alt="Usuário" class="input-icon-img">
+                    <img src="home\Perfil\assets_perfil\icone_login_pessoa_fisica.png" alt="Usuário"
+                        class="input-icon-img">
                     <input type="email" id="email" name="email" required>
                 </div>
 
-                <label for="password" class="input-label">Senha</label>
+                <label for="password" class="input-label" data-translate="password">Senha</label>
                 <div class="input-group">
                     <img src="/assets/icone_cadeado.png" alt="Senha" class="input-icon-img">
                     <input type="password" id="password" name="password" required>
                 </div>
 
+                <a href="esqueceu_senha/esqueceu.html" class="forgot-password" data-translate="forgot_password">Esqueceu
+                    sua senha?</a>
 
-                <a href="esqueceu_senha/esqueceu.html" class="forgot-password">Esqueceu sua senha?</a>
-
-                <button type="submit" class="login-button">Login</button>
+                <button type="submit" class="login-button" data-translate="login">Login</button>
             </form>
 
-            <p class="signup-text">Não tem uma conta? <a href="cadastro/cadastro.html" class="signup-link">Crie sua conta!</a></p>
+            <p class="signup-text">Não tem uma conta? <a href="cadastro/cadastro.html" class="signup-link"
+                    data-translate="create_account">Crie sua conta!</a></p>
         </div>
     </div>
 </body>
+
 </html>

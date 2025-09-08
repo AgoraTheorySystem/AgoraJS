@@ -1,0 +1,11 @@
+{
+  "user": "Usuario",
+  "password": "Contraseña",
+  "forgot_password": "¿Olvidaste tu contraseña?",
+  "login": "Iniciar sesión",
+  "create_account": "¡Crea tu cuenta!",
+  "welcome_banner": "Bienvenido al sistema Ágora Theory",
+  "forgot_password_title": "¿Olvidaste tu contraseña?",
+  "email_label": "Introduce tu correo electrónico:",
+  "submit_button": "Enviar correo de restablecimiento"
+}
