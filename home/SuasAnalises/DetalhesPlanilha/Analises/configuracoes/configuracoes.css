@@ -1,143 +1,212 @@
-/* Estilos Gerais */
-/* Estilos Gerais */
-body {
+/* =========================
+   Variáveis (em português)
+   ========================= */
+:root{
+  --cor-fundo:#002e3f;
+  --cor-destaque:#2b6f69;
+  --cor-acao:#fdd200;
+  --cor-texto:#ffffff;
+
+  --raio:12px;
+  --sombra:0 4px 15px rgba(0,0,0,.3);
+  --sombra-forte:0 8px 20px rgba(0,0,0,.5);
+
+  --espaco-1:8px;
+  --espaco-2:16px;
+  --espaco-3:24px;
+  --espaco-4:32px;
+
+  --largura-conteudo:980px; /* mude para 1200px se quiser mais largo */
+}
+
+/* Caixa de medida previsível */
+*, *::before, *::after { box-sizing: border-box; }
+
+/* Tipografia fluida */
+html{ font-size: clamp(14px, 1.2vw + 10px, 18px); }
+
+/* =========================
+   Estilos Gerais
+   ========================= */
+body{
   font-family: 'Arial', sans-serif;
   margin: 0;
-  padding: 0;
-  background-image: url(/assets/fundo_home.jpg); /* Substitua pelo caminho da sua imagem */
+  padding-top: 70px;
+  background-image: url(/assets/fundo_home.jpg);
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
   background-repeat: no-repeat;
-  color: White;
-  /* Ajuste a cor do texto para ser legível no fundo */
+  color: var(--cor-texto);
   display: flex;
-  align-items: flex-start;
   flex-direction: column;
   align-items: center;
-  min-height: 100vh; /* Garante que o body ocupa a altura total da viewport */
-  font-size: 16px;
+  min-height: 100vh;
 }
 
-/* Barra do Menu */
-.menu-bar {
-  background-color: #002e3f;
-  padding: 15px;
-  text-align: center;
-  font-weight: bold;
-  color: white;
-  width: 90%;
+/* Evita jank do background no mobile */
+@media (max-width: 768px){
+  body{ background-attachment: scroll; }
+}
+
+.menu-bar{
+  background-color: var(--cor-fundo);
+  color: var(--cor-texto);
+  width: min(100% - 32px, var(--largura-conteudo));
+  margin-top: 80px;
+  padding: 12px 30px;
   border-radius: 10px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-}
-
-/* Container Responsivo */
-.container {
+  box-shadow: var(--sombra);
   display: flex;
-  flex-direction: column;
-  /* Itens empilhados verticalmente */
-  justify-content: center;
   align-items: center;
-  gap: 20px;
-  width: 100%;
-  padding: 30px;
+  justify-content: space-between;
+  gap: 300px;
+  text-align: left;
 }
 
-/* Blocos de Configuração */
-.config-box {
-  background-color: #002e3f;
-  padding: 20px;
+/* Título com truncamento elegante */
+.Title_Menu_da_análise{
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;         /* ocupa o espaço disponível */
+  min-width: 0;    /* permite o ellipsis funcionar */
+}
+
+/* Link “Voltar” como botão real */
+.btn_menu_analises{
+  display: inline-block;
+  padding: 10px 16px;
+  background-color: var(--cor-destaque);
+  color: #fff;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: bold;
+  border-radius: 8px;
+  box-shadow: 0px 6px 10px rgba(0,0,0,0.2);
+  transition: transform .2s ease, box-shadow .2s ease, background-color .2s ease;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-right: 0 !important; /* remove aquele push de 200px */
+}
+.no-touch .btn_menu_analises:hover{
+  background-color: var(--cor-acao);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px rgba(0,0,0,.3);
+}
+.btn_menu_analises:active{
+  transform: translateY(0);
+  box-shadow: 0px 4px 8px rgba(0,0,0,.2);
+}
+
+/* =========================
+   Container Responsivo (grid)
+   ========================= */
+.container{
+  width: min(100% - 32px, var(--largura-conteudo));
+  margin: var(--espaco-3) auto var(--espaco-4);
+  padding-top: 50px;
+
+  display: grid;
+  gap: var(--espaco-2);
+  grid-template-columns: 1fr; /* mobile: 1 coluna */
+}
+
+/* tablet+: 2 colunas (ajuste para 3 se tiver muitos cards) */
+@media (min-width: 600px){
+  .container{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* =========================
+   Blocos de Configuração
+   ========================= */
+.config-box{
+  background-color: var(--cor-fundo);
+  padding: var(--espaco-3);
   border-radius: 15px;
-  box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.4);
+  box-shadow: 0px 6px 15px rgba(0,0,0,.4);
   text-align: center;
   width: 100%;
-  max-width: 400px;
-  margin: 15px 0;
-  transition: all 0.3s ease-in-out;
+  transition: box-shadow .2s ease; /* sem scale para não “pular” */
+}
+.no-touch .config-box:hover{
+  box-shadow: var(--sombra-forte);
 }
 
-.config-box:hover {
-  transform: scale(1.05);
-  box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.5);
-}
-
-/* Input e Botões */
-input {
-  width: 90%;
+/* Inputs */
+input{
+  width: 100%;
   padding: 12px;
   margin-top: 10px;
   border: none;
   border-radius: 8px;
-  font-size: 16px;
-  transition: all 0.3s;
+  font-size: 1rem;
+  transition: outline-color .2s ease, box-shadow .2s ease;
+}
+input:focus{
+  outline: 2px solid #fff;
+  box-shadow: 0 0 0 4px rgba(255,255,255,.15);
 }
 
-input:focus {
-  outline: none;
-  border: 2px solid #ffffff;
-}
-
-/* Botão Principal */
-button {
-  background-color: #2b6f69;
-  color: white;
+/* Botões */
+button{
+  background-color: var(--cor-destaque);
+  color: #fff;
   border: none;
   padding: 12px 20px;
   border-radius: 8px;
   cursor: pointer;
   margin-top: 15px;
-  font-size: 18px;
+  font-size: 1rem;
   text-transform: uppercase;
-  transition: all 0.3s ease;
+  transition: transform .2s ease, box-shadow .2s ease, background-color .2s ease;
   width: 100%;
 }
-
-button:hover {
-  background-color: #fdd200;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+.no-touch button:hover{
+  background-color: var(--cor-acao);
+  box-shadow: 0 4px 20px rgba(0,0,0,.3);
+  transform: translateY(-2px);
+}
+button:active{
+  transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(0,0,0,.2);
 }
 
 /* Botão de Exclusão */
-.delete-button {
-  background-color: #2b6f69;
-  color: white;
-  font-size: 18px;
+.delete-button{
+  background-color: var(--cor-destaque);
+  color: #fff;
+  font-size: 1rem;
   font-weight: bold;
   padding: 15px;
   width: 100%;
   border-radius: 12px;
-  transition: all 0.3s ease;
+  transition: transform .2s ease, background-color .2s ease;
+}
+.no-touch .delete-button:hover{
+  background-color: var(--cor-acao);
+  transform: translateY(-2px);
 }
 
-.delete-button:hover {
-  background-color: #fdd200;
-  transform: scale(1.05);
-}
-
-/* Loader */
-.loader {
+/* =========================
+   Loader centralizado
+   ========================= */
+.loader{
   position: absolute;
   margin: auto;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  width: 6.250em;
-  height: 6.250em;
+  inset: 0;
+  width: 6.25em;
+  height: 6.25em;
   animation: rotate5123 2.4s linear infinite;
 }
-
-.white {
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
+.white{
+  inset: 0;
   background: white;
   animation: flash 2.4s linear infinite;
   opacity: 0;
 }
-
-.dot {
+.dot{
   position: absolute;
   margin: auto;
   width: 2.4em;
@@ -145,133 +214,51 @@ button:hover {
   border-radius: 100%;
   transition: all 1s ease;
 }
+.dot:nth-child(2){ top:0; bottom:0; left:0; background:#FF4444; animation:dotsY 2.4s linear infinite; }
+.dot:nth-child(3){ left:0; right:0; top:0; background:#FFBB33; animation:dotsX 2.4s linear infinite; }
+.dot:nth-child(4){ top:0; bottom:0; right:0; background:#99CC00; animation:dotsY 2.4s linear infinite; }
+.dot:nth-child(5){ left:0; right:0; bottom:0; background:#33B5E5; animation:dotsX 2.4s linear infinite; }
 
-.dot:nth-child(2) {
-  top: 0;
-  bottom: 0;
-  left: 0;
-  background: #FF4444;
-  animation: dotsY 2.4s linear infinite;
+@keyframes rotate5123{
+  0%{ transform: rotate(0); }
+  10%{ width: 6.25em; height: 6.25em; }
+  66%{ width: 2.4em; height: 2.4em; }
+  100%{ transform: rotate(360deg); width: 6.25em; height: 6.25em; }
+}
+@keyframes dotsY{
+  66%{ opacity:.1; width:2.4em; }
+  77%{ opacity:1; width:0; }
+}
+@keyframes dotsX{
+  66%{ opacity:.1; height:2.4em; }
+  77%{ opacity:1; height:0; }
+}
+@keyframes flash{
+  33%{ opacity:0; border-radius:0%; }
+  55%{ opacity:.6; border-radius:100%; }
+  66%{ opacity:0; }
 }
 
-.dot:nth-child(3) {
-  left: 0;
-  right: 0;
-  top: 0;
-  background: #FFBB33;
-  animation: dotsX 2.4s linear infinite;
+/* =========================
+   Responsividade fina
+   ========================= */
+@media (max-width: 992px){
+  .menu-bar{ padding: var(--espaco-2); }
 }
 
-.dot:nth-child(4) {
-  top: 0;
-  bottom: 0;
-  right: 0;
-  background: #99CC00;
-  animation: dotsY 2.4s linear infinite;
+@media (max-width: 768px){
+  .container{ gap: var(--espaco-2); }
+  .menu-bar{ gap: var(--espaco-1); }
+  .btn_menu_analises{ padding: 10px 14px; }
 }
 
-.dot:nth-child(5) {
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: #33B5E5;
-  animation: dotsX 2.4s linear infinite;
-}
-
-@keyframes rotate5123 {
-  0% {
-    transform: rotate(0);
+@media (max-width: 480px){
+  .menu-bar{
+    flex-wrap: wrap;     /* permite quebrar em 2 linhas sem sobrepor */
+    gap: 8px 12px;
   }
-
-  10% {
-    width: 6.250em;
-    height: 6.250em;
-  }
-
-  66% {
-    width: 2.4em;
-    height: 2.4em;
-  }
-
-  100% {
-    transform: rotate(360deg);
-    width: 6.250em;
-    height: 6.250em;
-  }
+  .btn_menu_analises{ order: 1; }
+  .Title_Menu_da_análise{ order: 2; text-align: center; }
 }
 
-@keyframes dotsY {
-  66% {
-    opacity: .1;
-    width: 2.4em;
-  }
 
-  77% {
-    opacity: 1;
-    width: 0;
-  }
-}
-
-@keyframes dotsX {
-  66% {
-    opacity: .1;
-    height: 2.4em;
-  }
-
-  77% {
-    opacity: 1;
-    height: 0;
-  }
-}
-
-@keyframes flash {
-  33% {
-    opacity: 0;
-    border-radius: 0%;
-  }
-
-  55% {
-    opacity: .6;
-    border-radius: 100%;
-  }
-
-  66% {
-    opacity: 0;
-  }
-}
-
-.btn_menu_analises {
-  margin-right: 200px;
-}
-
-.Title_Menu_da_análise {
-  white-space: nowrap;
-}
-
-/* Estilo para o link como botão */
-.btn_menu_analises {
-  display: inline-block; /* Para o link se comportar como um botão */
-  padding: 12px 25px;
-  background-color: #2b6f69; /* Cor de fundo azul moderno */
-  color: white;
-  text-align: center;
-  text-decoration: none; /* Remover sublinhado do link */
-  font-size: 18px;
-  font-weight: bold;
-  border-radius: 8px;
-  box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.btn_menu_analises:hover {
-  background-color: #fdd200; /* Cor mais escura ao passar o mouse */
-  transform: translateY(-3px); /* Levanta o botão */
-  box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.3);
-}
-
-.btn_menu_analises:active {
-  background-color: #303f9f; /* Cor mais escura ao clicar */
-  transform: translateY(1px); /* Efeito de pressão ao clicar */
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-}
