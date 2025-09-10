@@ -3,272 +3,171 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebas
 import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
-// Inicializa Firebase
+// Inicializa o Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// Autenticação do usuário
-function autenticacao() {
-    const userData = sessionStorage.getItem('user');
-    if (userData) {
-        const user = JSON.parse(userData);
-        console.log('Usuário Logado:', user);
-        fetchUserEmail(user.email);
-        carregarTipoUsuarioEAtualizarIcone(user.uid);
-    } else {
-        console.log('Nenhum usuário logado.');
-        window.location.href = '/index.html';
-    }
+/**
+ * Injeta os ícones SVG no início do body para serem reutilizados no menu.
+ * Isso melhora o desempenho e a escalabilidade dos ícones.
+ */
+function injectSvgSprites() {
+    // Esconder o SVG do layout visual, mas o manter acessível
+    const svgContainer = document.createElement('div');
+    svgContainer.style.display = 'none';
+    svgContainer.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg">
+        <symbol id="icon-home" viewBox="0 0 24 24"><path fill="currentColor" d="M10 20v-6h4v6h5v-8h3L12 3L2 12h3v8h5z"/></symbol>
+        <symbol id="icon-create" viewBox="0 0 24 24"><path fill="currentColor" d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83L19.5 9.59l1.21-1.55M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z"/></symbol>
+        <symbol id="icon-sheets" viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/></symbol>
+        <symbol id="icon-manual" viewBox="0 0 24 24"><path fill="currentColor" d="M19 2H5C3.9 2 3 2.9 3 4v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V6h10v2z"/></symbol>
+        <symbol id="icon-admin" viewBox="0 0 24 24"><path fill="currentColor" d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12-.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59-1.69-.98l2.49 1c.23.09.49 0 .61.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5s3.5 1.57 3.5 3.5s-1.57 3.5-3.5 3.5z"/></symbol>
+        <symbol id="icon-logout" viewBox="0 0 24 24"><path fill="currentColor" d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5l-5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></symbol>
+    </svg>
+    `;
+    document.body.insertAdjacentElement('afterbegin', svgContainer);
 }
 
-// Exibir e-mail
-function fetchUserEmail(email) {
-    const userEmailElement = document.getElementById('menu-user-email');
-    if (userEmailElement) {
-        userEmailElement.textContent = email;
-    }
-}
-
-// Carregar tipo do usuário do Firebase e atualizar ícone
-function carregarTipoUsuarioEAtualizarIcone(uid) {
-    const dbRef = ref(db);
-    get(child(dbRef, `users/${uid}`))
-        .then(snapshot => {
-            if (snapshot.exists()) {
-                const data = snapshot.val();
-                if (data.tipo) {
-                    atualizarIconeUsuarioMenuLateral(data.tipo);
-                }
-            } else {
-                console.log("Dados do usuário não encontrados no banco.");
-            }
-        })
-        .catch(error => {
-            console.error("Erro ao buscar dados do usuário:", error);
-        });
-}
-
-// Atualiza o ícone do usuário conforme tipo de login no menu lateral
-function atualizarIconeUsuarioMenuLateral(tipo) {
-    const icone = document.getElementById('menu-user-icon');
-    if (!icone) return;
-
-    const tipoNormalizado = tipo.trim().toLowerCase();
-
-    const mapaIcones = {
-      "pessoafisica": "/home/Perfil/assets_perfil/icone_login_pessoa_fisica.png",
-      "empresa": "/home/Perfil/assets_perfil/icone_empresas.png",
-      "universidade/escola": "/home/Perfil/assets_perfil/icone_instituicao_de_ensino.png",
-      "ong": "/home/Perfil/assets_perfil/icone_ong.png",
-      "outros": "/home/Perfil/assets_perfil/icone_login_pessoa_fisica.png"
-    };
-
-    icone.src = mapaIcones[tipoNormalizado] || "/home/Perfil/assets_perfil/user.png";
-}
-
-// Alternar menu lateral
-function toggleSidebar() {
-    const checkbox = document.getElementById('menu-burger');
-    const sidebar = document.getElementById('menu-sidebar');
-    if (checkbox && sidebar) {
-        if (checkbox.checked) {
-            sidebar.style.left = '0';  // Quando o menu estiver aberto
-        } else {
-            sidebar.style.left = '-100%';  // Quando o menu estiver fechado
-        }
-    }
-}
-
-// Logout
-function logout() {
-    const auth = getAuth();
-    signOut(auth).then(() => {
-        sessionStorage.clear();
-        const DBDeleteRequest = window.indexedDB.deleteDatabase('agoraDB');
-
-        DBDeleteRequest.onerror = function(event) {
-          console.log("Error deleting database.");
-        };
-
-        DBDeleteRequest.onsuccess = function(event) {
-          console.log("Database deleted successfully");
-          // Redireciona somente após o banco de dados ser excluído com sucesso.
-          window.location.href = '/index.html';
-        };
-
-        DBDeleteRequest.onblocked = function(event) {
-            console.log("Database delete blocked. Please close other connections.");
-            // Lida com o caso em que o banco de dados está bloqueado.
-            // Você pode querer informar o usuário.
-        };
-
-    }).catch((error) => {
-        console.error('Erro ao deslogar:', error);
-    });
-}
-
-// Construir o menu lateral
+/**
+ * Gera o HTML do menu lateral e o insere na página.
+ * Também configura os listeners de eventos para interatividade.
+ */
 function generateSidebarMenu() {
     const isHome = window.location.pathname.includes('/home/home.html');
     const body = document.body;
 
-    const html = `
-    <input type="checkbox" id="menu-burger" hidden>
-    <label id="menu-burger-label" for="menu-burger" style="${isHome ? 'display: none;' : ''}">
-        <span id="bar1"></span>
-        <span id="bar2"></span>
-        <span id="bar3"></span>
-    </label>
+    const menuHtml = `
+    <button id="menu-burger-toggle" class="${isHome ? 'hidden' : ''}" aria-label="Abrir menu" aria-expanded="false">
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+    </button>
 
-    <div id="menu-sidebar">
-        <ul>
-            <div id="menu-box">
-                <div id="menu-user-picture">
+    <aside id="menu-sidebar">
+        <div class="sidebar-header">
+            <div class="user-avatar-container">
+                <div class="user-avatar">
                     <img id="menu-user-icon" src="/home/Perfil/assets_perfil/user.png" alt="Ícone do Usuário" />
                 </div>
-                <div id="menu-user-info">
-                    <h2>Bem-vindo</h2>
-                    <p id="menu-user-email"></p>
-                    <a href="/home/Perfil/perfil.html">Editar perfil</a>
-                </div>
             </div>
-
-            <li class="menu-item" id="menu-btn0">
-                <div class="menu-icon-circle">
-                    <img src="/assets/icone_home.png" alt="Home" />
-                </div>
-                <span class="menu-text">Tela inicial</span>
-            </li>
-
-            <li class="menu-item" id="menu-btn1">
-                <div class="menu-icon-circle">
-                    <img src="/assets/icone_criar_analise.png" alt="Criar Análise" />
-                </div>
-                <span class="menu-text">Criar análise</span>
-            </li>
-
-            <li class="menu-item" id="menu-btn2">
-                <div class="menu-icon-circle">
-                    <img src="/assets/icone_suas_analises.png" alt="Suas Planilhas" />
-                </div>
-                <span class="menu-text">Suas Planilhas</span>
-            </li>
-
-            <li class="menu-item" id="menu-btn-manual">
-                <div class="menu-icon-circle">
-                    <img src="/assets/icon_manual_usuario.png" alt="Manual do Usuário" />
-                </div>
-                <span class="menu-text">Manual do Usuário</span>
-            </li>
-
-            <li class="menu-item" id="menu-btn3" style="display: none;">
-                <div class="menu-icon-circle">
-                    <img src="/assets/icone_admin.png" alt="Admin" />
-                </div>
-                <span class="menu-text">Admin</span>
-            </li>
-
-            <div id="menu-logout-icon-container" title="Sair" role="button" tabindex="0" aria-label="Logout" style="cursor:pointer;">
-                <img src="/assets/icon_sair.png" alt="Sair" id="menu-logout-icon-image" />
-                <span id="menu-logout-text">Sair</span>
+            <div class="user-details">
+                <h2 class="user-greeting">Bem-vindo</h2>
+                <p id="menu-user-email" class="user-email">Carregando...</p>
+                <a href="/home/Perfil/perfil.html" class="edit-profile-link">Editar perfil</a>
             </div>
+        </div>
 
-        </ul>
-    </div>
+        <nav class="sidebar-nav">
+            <a class="nav-item" id="menu-btn0"><svg class="nav-icon"><use xlink:href="#icon-home"></use></svg><span class="nav-text">Tela Inicial</span></a>
+            <a class="nav-item" id="menu-btn1"><svg class="nav-icon"><use xlink:href="#icon-create"></use></svg><span class="nav-text">Criar Análise</span></a>
+            <a class="nav-item" id="menu-btn2"><svg class="nav-icon"><use xlink:href="#icon-sheets"></use></svg><span class="nav-text">Suas Análises</span></a>
+            <a class="nav-item" id="menu-btn-manual"><svg class="nav-icon"><use xlink:href="#icon-manual"></use></svg><span class="nav-text">Manual do Usuário</span></a>
+            <a class="nav-item" id="menu-btn3" style="display: none;"><svg class="nav-icon"><use xlink:href="#icon-admin"></use></svg><span class="nav-text">Admin</span></a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a class="nav-item logout-btn" id="menu-logout-btn"><svg class="nav-icon"><use xlink:href="#icon-logout"></use></svg><span class="nav-text">Sair</span></a>
+        </div>
+    </aside>
+    <div id="sidebar-overlay"></div>
     `;
 
-    body.insertAdjacentHTML('afterbegin', html); // Manter afterbegin
-    console.log('Menu lateral HTML injetado no DOM como afterbegin.');
-
-    // **NOVO: Forçar estilos via JavaScript após a injeção do HTML**
-    const menuLabel = document.getElementById('menu-burger-label');
-    const sidebar = document.getElementById('menu-sidebar');
-    const htmlEl = document.documentElement; // Elemento <html>
-    const bodyEl = document.body;
-
-    if (htmlEl) {
-        htmlEl.style.overflowX = 'hidden';
-        htmlEl.style.width = '100%';
-        htmlEl.style.height = '100%';
-        htmlEl.style.margin = '0';
-        htmlEl.style.padding = '0';
-        console.log('Estilos forçados no HTML.');
-    }
-    if (bodyEl) {
-        bodyEl.style.overflowX = 'hidden';
-        bodyEl.style.width = '100%';
-        bodyEl.style.height = '100%';
-        bodyEl.style.margin = '0';
-        bodyEl.style.padding = '0';
-        console.log('Estilos forçados no BODY.');
-    }
-
-    if (menuLabel) {
-        menuLabel.style.position = 'fixed';
-        menuLabel.style.top = '10px';
-        menuLabel.style.left = '10px';
-        menuLabel.style.zIndex = '9999';
-        console.log('Estilos forçados no menu-burger-label.');
-    }
-    if (sidebar) {
-        sidebar.style.position = 'fixed';
-        sidebar.style.top = '0';
-        sidebar.style.left = '-100%';
-        sidebar.style.width = '360px';
-        sidebar.style.height = '100%';
-        sidebar.style.zIndex = '9998';
-        sidebar.style.background = '#2b6f69'; // Garante cor
-        console.log('Estilos forçados na menu-sidebar.');
-    }
-    // FIM NOVO
-
-
-    if (!isHome) {
-        document.getElementById('menu-burger').addEventListener('change', toggleSidebar);
-    }
-
-    document.getElementById('menu-logout-icon-container').addEventListener('click', () => {
-        Swal.fire({
-            title: 'Tem certeza que deseja sair?',
-            text: 'Você precisará fazer login novamente para acessar a plataforma.',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#2b6f69',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Sim, sair',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-            logout();
-            }
-        });
-    });
-
-
-    // Verifica admin para mostrar botão Admin
-    const userData = sessionStorage.getItem('user');
-    if (userData) {
-    const user = JSON.parse(userData);
-    const adminEmails = [
-        'williamfunk.11@gmail.com',
-        'joao.falves07@gmail.com'
-    ];
-
-    const btn3 = document.getElementById('menu-btn3');
-    if (adminEmails.includes(user.email)) {
-        if (btn3) btn3.style.display = 'flex';
-    } else {
-        if (btn3) btn3.style.display = 'none';
-    }
-}
-
-
+    body.insertAdjacentHTML('beforeend', menuHtml);
+    
+    // Configura as interações após o HTML ser adicionado ao DOM
+    setupMenuInteractions();
+    autenticacao();
     addNavigationListeners();
 }
 
-// Ações de navegação
+/**
+ * Configura os eventos de clique para abrir/fechar o menu.
+ */
+function setupMenuInteractions() {
+    const toggleBtn = document.getElementById('menu-burger-toggle');
+    const overlay = document.getElementById('sidebar-overlay');
+
+    const toggleMenu = () => {
+        const isOpen = document.body.classList.toggle('sidebar-open');
+        toggleBtn.setAttribute('aria-expanded', isOpen);
+    };
+
+    toggleBtn.addEventListener('click', toggleMenu);
+    overlay.addEventListener('click', toggleMenu);
+}
+
+/**
+ * Autentica o usuário, busca e exibe suas informações.
+ */
+function autenticacao() {
+    const userData = sessionStorage.getItem('user');
+    if (userData) {
+        const user = JSON.parse(userData);
+        document.getElementById('menu-user-email').textContent = user.email;
+        carregarTipoUsuarioEAtualizarIcone(user.uid);
+        checkAdminStatus(user.email);
+    } else {
+        console.log('Nenhum usuário logado. Redirecionando...');
+        window.location.href = '/index.html';
+    }
+}
+
+/**
+ * Carrega o tipo de usuário do Firebase e atualiza o ícone correspondente.
+ * @param {string} uid - O ID do usuário.
+ */
+function carregarTipoUsuarioEAtualizarIcone(uid) {
+    get(child(ref(db), `users/${uid}`)).then(snapshot => {
+        if (snapshot.exists()) {
+            const tipo = snapshot.val().tipo;
+            if (tipo) {
+                const iconMap = {
+                    "pessoafisica": "/home/Perfil/assets_perfil/icone_login_pessoa_fisica.png",
+                    "empresa": "/home/Perfil/assets_perfil/icone_empresas.png",
+                    "universidade/escola": "/home/Perfil/assets_perfil/icone_instituicao_de_ensino.png",
+                    "ong": "/home/Perfil/assets_perfil/icone_ong.png",
+                    "outros": "/home/Perfil/assets_perfil/icone_login_pessoa_fisica.png"
+                };
+                document.getElementById('menu-user-icon').src = iconMap[tipo.trim().toLowerCase()] || "/home/Perfil/assets_perfil/user.png";
+            }
+        }
+    }).catch(error => console.error("Erro ao buscar dados do usuário:", error));
+}
+
+/**
+ * Verifica se o usuário é administrador e exibe o botão correspondente.
+ * @param {string} email - O email do usuário.
+ */
+function checkAdminStatus(email) {
+    const adminEmails = ['williamfunk.11@gmail.com', 'joao.falves07@gmail.com'];
+    const adminButton = document.getElementById('menu-btn3');
+    if (adminEmails.includes(email)) {
+        adminButton.style.display = 'flex';
+    }
+}
+
+/**
+ * Realiza o logout do usuário, limpando a sessão e o armazenamento local.
+ */
+function logout() {
+    signOut(getAuth()).then(() => {
+        sessionStorage.clear();
+        const deleteRequest = indexedDB.deleteDatabase('agoraDB');
+        deleteRequest.onsuccess = () => {
+             window.location.href = '/index.html';
+        };
+        deleteRequest.onerror = () => {
+            // Mesmo se falhar, redireciona
+            window.location.href = '/index.html';
+        };
+    }).catch(error => console.error('Erro ao deslogar:', error));
+}
+
+/**
+ * Adiciona os listeners de navegação para os itens do menu e o botão de logout.
+ */
 function addNavigationListeners() {
-    const nav = {
+    const navMap = {
         'menu-btn0': '/home/home.html',
         'menu-btn1': '/home/CriaAnalise/cria_analise.html',
         'menu-btn2': '/home/SuasAnalises/suas_analises.html',
@@ -276,28 +175,40 @@ function addNavigationListeners() {
         'menu-btn-manual': 'https://docs.google.com/document/d/1GRTPK-FSrdIToDhhsmitcQHkWB7nVn3r/edit?usp=drive_link&ouid=111418885411734694225&rtpof=true&sd=true'
     };
 
-    Object.entries(nav).forEach(([id, url]) => {
-        const el = document.getElementById(id);
-        if (el) {
-            el.style.cursor = 'pointer';
-            el.addEventListener('click', () => {
-        if (id === 'menu-btn1') {
-            const loading = document.getElementById('loading');
-            if (loading) loading.style.display = 'flex';
-            setTimeout(() => {
-                window.location.href = url;
-            }, 800); 
-        } else if (id === 'menu-btn-manual') {
-            window.open(url, '_blank');
-        } else {
-            window.location.href = url;
+    Object.entries(navMap).forEach(([id, url]) => {
+        const element = document.getElementById(id);
+        if(element) {
+            element.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (id === 'menu-btn-manual') {
+                    window.open(url, '_blank');
+                } else {
+                    window.location.href = url;
+                }
+            });
         }
     });
-        }
+
+    document.getElementById('menu-logout-btn').addEventListener('click', () => {
+        Swal.fire({
+            title: 'Tem certeza que deseja sair?',
+            text: 'Você precisará fazer login novamente para acessar a plataforma.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sim, sair',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                logout();
+            }
+        });
     });
 }
 
-// Inicializa
-generateSidebarMenu();
-autenticacao();
-
+// Inicializa o processo quando o DOM estiver pronto
+document.addEventListener('DOMContentLoaded', () => {
+    injectSvgSprites();
+    generateSidebarMenu();
+});

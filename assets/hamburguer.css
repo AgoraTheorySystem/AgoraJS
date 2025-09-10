@@ -1,221 +1,259 @@
-@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap');
+/* Importa a fonte do Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap');
 
-/* Reset */
-#menu-sidebar *, #menu-burger-label *, #menu-logout * {
-  box-sizing: border-box;
-  font-family: 'Ubuntu', sans-serif;
-  margin: 0;
-  padding: 0;
-}
-
-/* Botão Hamburguer */
-#menu-burger-label {
-  position: fixed;
-  top: 10px;
-  left: 10px;
-  width: 40px;
-  height: 30px;
-  cursor: pointer;
-  z-index: 1001;
-}
-#menu-burger {
-  display: none;
-}
-#menu-burger-label span {
-  display: block;
-  position: absolute;
-  height: 4px;
-  width: 100%;
-  background: #ffffff;
-  border-radius: 5px;
-  transition: 0.25s ease-in-out;
-}
-#menu-burger-label span:nth-child(2) { top: 12px; }
-#menu-burger-label span:nth-child(3) { top: 24px; }
-
-#menu-burger:checked ~ #menu-burger-label span:nth-child(1) {
-  transform: rotate(45deg);
-  top: 12px;
-}
-#menu-burger:checked ~ #menu-burger-label span:nth-child(2) {
-  opacity: 0;
-}
-#menu-burger:checked ~ #menu-burger-label span:nth-child(3) {
-  transform: rotate(-45deg);
-  top: 12px;
+/* --- Variáveis de Design --- */
+:root {
+    --menu-bg: #2b6f69;
+    --menu-bg-gradient: linear-gradient(180deg, #225a55 0%, #1a4341 100%);
+    --menu-width: 280px;
+    --text-primary: #ffffff;
+    --text-secondary: #c0f0e8;
+    --accent-color: #fdd200;
+    --hover-bg: rgba(255, 255, 255, 0.08);
+    --active-indicator: var(--accent-color);
+    --border-color: rgba(255, 255, 255, 0.1);
+    --shadow-color: rgba(0, 0, 0, 0.35);
+    --transition-speed: 0.4s;
+    --transition-timing: cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-/* Sidebar */
+/* --- Estilos Base --- */
+body {
+    font-family: 'Ubuntu', sans-serif;
+    transition: transform var(--transition-speed) var(--transition-timing);
+}
+
+/* --- Botão Hamburguer --- */
+#menu-burger-toggle {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 45px;
+    height: 45px;
+    background: var(--menu-bg-gradient);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 1002;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    box-shadow: 0 5px 15px var(--shadow-color);
+    transition: all var(--transition-speed) var(--transition-timing);
+}
+
+#menu-burger-toggle:hover {
+    transform: scale(1.1) rotate(90deg);
+}
+
+#menu-burger-toggle.hidden {
+    display: none;
+}
+
+#menu-burger-toggle .bar {
+    width: 22px;
+    height: 2px;
+    background-color: var(--text-primary);
+    border-radius: 2px;
+    transition: all var(--transition-speed) var(--transition-timing);
+}
+
+/* --- Animação do Hamburguer para 'X' e Correção de Posição --- */
+body.sidebar-open #menu-burger-toggle {
+    /* Move o botão para o lado do menu aberto */
+    left: calc(var(--menu-width) + 20px);
+    transform: rotate(180deg);
+}
+
+body.sidebar-open #menu-burger-toggle .bar:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+}
+
+body.sidebar-open #menu-burger-toggle .bar:nth-child(2) {
+    opacity: 0;
+    transform: scale(0);
+}
+
+body.sidebar-open #menu-burger-toggle .bar:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+}
+
+/* --- Sidebar (Menu Lateral) --- */
 #menu-sidebar {
-  position: fixed;
-  top: 0;
-  left: -100%;  
-  width: 360px;
-  height: 100%;
-  background: #2b6f69;
-  transition: left 0.3s ease;
-  z-index: 1000;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.15);
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  box-sizing: border-box;
-  padding-top: 60px; 
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: var(--menu-width);
+    height: 100vh;
+    background: var(--menu-bg-gradient);
+    z-index: 1000;
+    box-shadow: 5px 0 25px var(--shadow-color);
+    display: flex;
+    flex-direction: column;
+    transform: translateX(-100%);
+    transition: transform var(--transition-speed) var(--transition-timing);
+}
+
+body.sidebar-open #menu-sidebar {
+    transform: translateX(0);
+}
+
+/* --- Overlay (Fundo escuro) --- */
+#sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--transition-speed) ease, visibility var(--transition-speed) ease;
+}
+
+body.sidebar-open #sidebar-overlay {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* --- Cabeçalho da Sidebar (Usuário) --- */
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    padding: 25px 20px;
+    border-bottom: 1px solid var(--border-color);
+    min-height: 80px;
+}
+
+.user-avatar-container {
+    position: relative;
+    margin-right: 15px;
+}
+
+.user-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    overflow: hidden;
+    border: 3px solid var(--accent-color);
+    padding: 3px;
+    background: var(--menu-bg);
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.user-details {
+    overflow: hidden;
+}
+
+.user-greeting {
+    font-size: 1.1em;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    white-space: nowrap;
+}
+
+.user-email {
+    font-size: 0.85em;
+    color: var(--text-secondary);
+    margin: 4px 0 8px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.edit-profile-link {
+    font-size: 0.8em;
+    color: var(--accent-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: letter-spacing 0.3s;
+}
+
+.edit-profile-link:hover {
+    text-decoration: underline;
+    letter-spacing: 0.5px;
+}
+
+/* --- Navegação Principal --- */
+.sidebar-nav {
+    flex-grow: 1;
+    padding-top: 20px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 16px 25px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    cursor: pointer;
+    position: relative;
+    white-space: nowrap;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    border-left: 4px solid transparent;
+}
+
+.nav-item:hover {
+    background-color: var(--hover-bg);
+    color: var(--text-primary);
+    border-left-color: var(--accent-color);
+}
+
+.nav-icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    margin-right: 20px;
+    transition: transform 0.3s;
+}
+
+.nav-item:hover .nav-icon {
+    transform: scale(1.1);
+}
+
+.nav-text {
+    font-size: 1.05em;
+    font-weight: 500;
+}
+
+/* --- Rodapé da Sidebar (Logout) --- */
+.sidebar-footer {
+    padding: 15px;
+    border-top: 1px solid var(--border-color);
+}
+
+.logout-btn {
+    color: #ffcdd2;
+}
+
+.logout-btn:hover {
+    background-color: rgba(239, 83, 80, 0.1);
+    color: #ef5350;
+    border-left-color: #ef5350;
 }
 
 
-#menu-burger:checked ~ #menu-sidebar {
-  left: 0; 
+/* --- Responsividade --- */
+@media (max-width: 768px) {
+    #menu-sidebar {
+        box-shadow: 3px 0 20px var(--shadow-color);
+    }
+
+    body.sidebar-open #menu-burger-toggle {
+       left: calc(var(--menu-width) + 15px); /* Um pouco mais perto em telas menores */
+    }
 }
 
-/* Usuário */
-#menu-box {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  margin-bottom: 50px;
-  padding-left: 0;
-  margin-left: 0;
-  width: fit-content;
-  margin-top: 10px; 
-}
-
-#menu-user-picture {
-  width: 100px;
-  height: 100px;
-  background: #fff;
-  border-radius: 50%;
-  border: 10px solid #003d4c;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-shrink: 0;
-  margin: 0;
-  transform: translateY(4px);
-}
-
-#menu-user-picture img {
-  width: 55px;
-  height: 55px;
-  fill: #003d4c;
-}
-
-#menu-user-info {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: left;
-  margin-left: 0;
-  padding-left: 0;
-  white-space: nowrap;
-  padding-top: 20px;
-}
-
-#menu-user-info h2 {
-  font-size: 28px;
-  color: #fff;
-  margin-bottom: 2px;
-  font-weight: 700;
-  line-height: 1.2;
-}
-
-#menu-user-info p {
-  font-size: 17px;
-  color: #d0f0e8;
-  margin-bottom: 10px;
-  word-break: break-word;
-  line-height: 1.0;
-}
-
-#menu-user-info a {
-  color: #fff; /* branco padrão */
-  text-decoration: underline;
-  font-weight: 600;
-  cursor: pointer;
-  transition: color 0.3s ease; /* transição suave */
-}
-
-#menu-user-info a:hover {
-  color: #fdd200; /* amarelo ao passar o mouse */
-}
-
-/* Itens do Menu */
-.menu-item {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 8px 8px 40px 0;
-  margin-left: 10px !important;
-  width: 100%;
-  box-sizing: border-box;
-  cursor: pointer;
-  --color-subtext: #ffffff;
-  color: #fff;
-  font-size: 25px;
-  font-size: var(--font-size-base) !important; /* Aplica o novo tamanho de fonte */
-  font-weight: 600;
-  user-select: none;
-  transition: color 0.3s ease;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-}
-
-.menu-item:hover {
-  color: #fdd200;
-  transform: scale(1.05); 
-  transition: color 0.3s ease, transform 0.3s ease;
-}
-
-.menu-icon-circle {
-  width: 75px;
-  height: 75px;
-  background: #ffffff;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  flex-shrink: 0;
-  transition: background-color 0.3s ease;
-}
-
-.menu-item:hover .menu-icon-circle {
-  background-color: #e6f0f1;
-}
-
-.menu-icon-circle img{
-  width: 45px;
-  height: 45px;
-  fill: #003d4c;
-  object-fit: contain;
-}
-
-/* Espaçamento entre botões */
-#menu-sidebar ul > li.menu-item {
-  margin-bottom: 18px;
-}
-
-/* Botão de sair*/
-#menu-logout-icon-container {
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-#menu-logout-icon-container img {
-  width: 40px;
-  height: 40px;
-  object-fit: contain;
-}
-
-#menu-logout-text {
-  color: white;
-  font-weight: 600;
-  font-size: 22px;
-  user-select: none;
-}
+menu-user-icon
