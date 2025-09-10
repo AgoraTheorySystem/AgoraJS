@@ -13,5 +13,18 @@
   "signup_company": "Company",
   "signup_university": "University / School",
   "signup_ngo": "NGO",
-  "signup_other": "Other"
+  "signup_other": "Other",
+  "welcome_greeting": "Welcome",
+  "edit_profile": "Edit profile",
+  "home_screen": "Home Screen",
+  "create_analysis": "Create Analysis",
+  "your_analyses": "Your Analyses",
+  "user_manual": "User Manual",
+  "admin_panel": "Admin",
+  "logout": "Logout",
+  "language_selector": "language",
+  "swal_logout_title": "Are you sure you want to log out?",
+  "swal_logout_text": "You will need to log in again to access the platform.",
+  "swal_logout_confirm": "Yes, log out",
+  "swal_logout_cancel": "Cancel"
 }

@@ -13,5 +13,18 @@
   "signup_company": "Empresa",
   "signup_university": "Universidad / Escuela",
   "signup_ngo": "ONG",
-  "signup_other": "Otros"
+  "signup_other": "Otros",
+  "welcome_greeting": "Bienvenido",
+  "edit_profile": "Editar perfil",
+  "home_screen": "Pantalla de inicio",
+  "create_analysis": "Crear Análisis",
+  "your_analyses": "Tus Análisis",
+  "user_manual": "Manual de usuario",
+  "admin_panel": "Admin",
+  "logout": "Cerrar sesión",
+  "language_selector": "idioma",
+  "swal_logout_title": "¿Estás seguro de que quieres cerrar la sesión?",
+  "swal_logout_text": "Deberás iniciar sesión de nuevo para acceder a la plataforma.",
+  "swal_logout_confirm": "Sí, cerrar sesión",
+  "swal_logout_cancel": "Cancelar"
 }

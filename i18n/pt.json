@@ -13,5 +13,18 @@
   "signup_company": "Empresa",
   "signup_university": "Universidade / Escola",
   "signup_ngo": "ONG",
-  "signup_other": "Outros"
+  "signup_other": "Outros",
+  "welcome_greeting": "Bem-vindo",
+  "edit_profile": "Editar perfil",
+  "home_screen": "Tela Inicial",
+  "create_analysis": "Criar Análise",
+  "your_analyses": "Suas Análises",
+  "user_manual": "Manual do Usuário",
+  "admin_panel": "Admin",
+  "logout": "Sair",
+  "language_selector": "idioma",
+  "swal_logout_title": "Tem certeza que deseja sair?",
+  "swal_logout_text": "Você precisará fazer login novamente para acessar a plataforma.",
+  "swal_logout_confirm": "Sim, sair",
+  "swal_logout_cancel": "Cancelar"
 }
