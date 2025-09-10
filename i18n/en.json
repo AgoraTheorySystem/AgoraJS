@@ -23,6 +23,8 @@
   "admin_panel": "Admin",
   "logout": "Logout",
   "language_selector": "language",
+  "import_planilhas": "Import Spreadsheets",
+  "uploadButton": "Send Spreadsheet",
   "swal_logout_title": "Are you sure you want to log out?",
   "swal_logout_text": "You will need to log in again to access the platform.",
   "swal_logout_confirm": "Yes, log out",

@@ -23,6 +23,8 @@
   "admin_panel": "Admin",
   "logout": "Cerrar sesión",
   "language_selector": "idioma",
+  "import_planilhas": "Importar hojas de cálculo",
+  "uploadButton": "Enviar hoja de cálculo",
   "swal_logout_title": "¿Estás seguro de que quieres cerrar la sesión?",
   "swal_logout_text": "Deberás iniciar sesión de nuevo para acceder a la plataforma.",
   "swal_logout_confirm": "Sí, cerrar sesión",

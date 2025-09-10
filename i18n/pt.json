@@ -23,6 +23,8 @@
   "admin_panel": "Admin",
   "logout": "Sair",
   "language_selector": "idioma",
+  "import_planilhas": "Importar Planilhas",
+  "uploadButton": "Enviar Planilha",
   "swal_logout_title": "Tem certeza que deseja sair?",
   "swal_logout_text": "Você precisará fazer login novamente para acessar a plataforma.",
   "swal_logout_confirm": "Sim, sair",
