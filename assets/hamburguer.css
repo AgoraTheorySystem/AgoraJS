@@ -255,5 +255,3 @@ body.sidebar-open #sidebar-overlay {
        left: calc(var(--menu-width) + 15px); /* Um pouco mais perto em telas menores */
     }
 }
-
-menu-user-icon
