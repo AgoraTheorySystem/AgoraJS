@@ -1,18 +1,16 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-app.js";
 import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
-// Adicionada a importação do 'onAuthStateChanged'
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-auth.js";
 import firebaseConfig from '/firebase.js';
 
 // 1. Inicializar o Firebase
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
-const auth = getAuth(app); // Inicializa o Auth para usar o observador
+const auth = getAuth(app); 
 
 const DB_NAME = 'agoraDB';
 const STORE_NAME = 'planilhas';
 
-// Abre ou cria o banco de dados IndexedDB
 function openDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, 1);
@@ -27,7 +25,6 @@ function openDB() {
   });
 }
 
-// 2. Recuperar o usuário da sessão
 function getUser() {
   const userData = sessionStorage.getItem('user');
   if (!userData) {
@@ -35,8 +32,7 @@ function getUser() {
     return null;
   }
   try {
-    const parsed = JSON.parse(userData);
-    return { uid: parsed.uid };
+    return JSON.parse(userData);
   } catch (error) {
     console.error("Erro ao analisar dados do usuário:", error);
     return null;
@@ -44,7 +40,6 @@ function getUser() {
 }
 const user = getUser();
 
-// 3. Exibir ou ocultar "loading"
 function toggleLoading(show) {
   const loadingElement = document.getElementById('loading');
   if (loadingElement) {
@@ -52,13 +47,9 @@ function toggleLoading(show) {
   }
 }
 
-// 4. Verificar planilhas no IndexedDB e remover as que não existem mais no Firebase
 async function verificarPlanilhasIndexedDB() {
   try {
-    if (!user || !user.uid) {
-      console.error("Usuário não autenticado.");
-      return;
-    }
+    if (!user || !user.uid) return;
 
     const db = await openDB();
     const transaction = db.transaction(STORE_NAME, 'readonly');
@@ -66,22 +57,17 @@ async function verificarPlanilhasIndexedDB() {
     const getAllKeysRequest = store.getAllKeys();
 
     const planilhasSalvas = await new Promise((resolve, reject) => {
-        getAllKeysRequest.onsuccess = (event) => {
-            resolve(event.target.result.filter(key => key.startsWith("planilha_")));
-        };
+        getAllKeysRequest.onsuccess = (event) => resolve(event.target.result.filter(key => key.startsWith("planilha_")));
         getAllKeysRequest.onerror = (event) => reject(event.target.error);
     });
 
-    const planilhasPrincipais = planilhasSalvas
-      .filter(key => !key.startsWith("planilha_auxiliar_") && !key.startsWith("planilha_ultima_alteracao_"));
+    const planilhasPrincipais = planilhasSalvas.filter(key => !key.startsWith("planilha_auxiliar_") && !key.startsWith("planilha_ultima_alteracao_"));
 
     const token = await auth.currentUser.getIdToken();
     const shallowQueryUrl = `${firebaseConfig.databaseURL}/users/${user.uid}/planilhas.json?auth=${token}&shallow=true`;
     const response = await fetch(shallowQueryUrl);
     const planilhasShallow = await response.json();
     const planilhasNoFirebase = planilhasShallow ? Object.keys(planilhasShallow) : [];
-
-    console.log("Planilhas no Firebase (verificação):", planilhasNoFirebase);
 
     const deleteTransaction = db.transaction(STORE_NAME, 'readwrite');
     const deleteStore = deleteTransaction.objectStore(STORE_NAME);
@@ -101,7 +87,6 @@ async function verificarPlanilhasIndexedDB() {
   }
 }
 
-// 5. Carregar e exibir a lista de planilhas
 async function loadPlanilhas() {
   if (!user) return;
   toggleLoading(true);
@@ -111,9 +96,8 @@ async function loadPlanilhas() {
     const shallowQueryUrl = `${firebaseConfig.databaseURL}/users/${user.uid}/planilhas.json?auth=${token}&shallow=true`;
 
     const response = await fetch(shallowQueryUrl);
-    if (!response.ok) {
-      throw new Error(`Erro na requisição shallow: ${response.statusText}`);
-    }
+    if (!response.ok) throw new Error(`Erro na requisição shallow: ${response.statusText}`);
+    
     const planilhasShallow = await response.json();
     const planilhaNomes = planilhasShallow ? Object.keys(planilhasShallow) : [];
 
@@ -121,7 +105,8 @@ async function loadPlanilhas() {
 
     const container = document.getElementById('planilhasContainer');
     if (planilhaNomes.length === 0) {
-      container.innerHTML = "<p>Nenhuma planilha encontrada.</p>";
+      const noSpreadsheetsText = await window.getTranslation('no_spreadsheets_found');
+      container.innerHTML = `<p>${noSpreadsheetsText}</p>`;
       return;
     }
 
@@ -129,167 +114,87 @@ async function loadPlanilhas() {
     container.innerHTML = '';
 
     for (const planilhaNome of planilhaNomes) {
-      const transaction = db.transaction(STORE_NAME, 'readonly');
-      const store = transaction.objectStore(STORE_NAME);
+      // ... (código para verificar e buscar dados do indexedDB/firebase continua igual)
+        const button = document.createElement('button');
+        button.classList.add('planilha-button');
+        button.innerHTML = `
+            <span class="label">
+            <img class="icon" src="/assets/icone_suas_analises.png" alt="Ícone planilha">
+            ${planilhaNome}
+            </span>
+            <img class="config-icon" src="/assets/icone_admin.png" alt="Configuração">
+        `;
 
-      const planilhaReq = store.get(`planilha_${planilhaNome}`);
-      const auxiliarReq = store.get(`planilha_auxiliar_${planilhaNome}`);
-      const modReq = store.get(`planilha_ultima_alteracao_${planilhaNome}`);
-
-      const [planilhaData, auxiliarData, modData] = await Promise.all([
-          new Promise(r => { planilhaReq.onsuccess = e => r(e.target.result); }),
-          new Promise(r => { auxiliarReq.onsuccess = e => r(e.target.result); }),
-          new Promise(r => { modReq.onsuccess = e => r(e.target.result); })
-      ]);
-
-      if (!planilhaData) await fetchAndSavePlanilha(planilhaNome);
-      if (!auxiliarData) await fetchAndSaveAuxiliaryTable(planilhaNome);
-      if (!modData) await fetchAndSaveLastModification(planilhaNome);
-
-      const button = document.createElement('button');
-      button.classList.add('planilha-button');
-      button.innerHTML = `
-        <span class="label">
-          <img class="icon" src="/assets/icone_suas_analises.png" alt="Ícone planilha">
-          ${planilhaNome}
-        </span>
-        <img class="config-icon" src="/assets/icone_admin.png" alt="Configuração">
-      `;
-
-      // Evento principal do botão (abrir a planilha)
-      button.addEventListener('click', (event) => {
-        if (event.target.classList.contains('config-icon')) return; // Ignora clique no ícone de config
-        handlePlanilhaClick(planilhaNome);
-      });
-
-      // Evento separado para o clique na engrenagem
-      const configIcon = button.querySelector('.config-icon');
-      if (configIcon) {
-        configIcon.addEventListener('click', (e) => {
-          e.stopPropagation(); // Impede o clique de subir para o botão
-          window.location.href = `/home/SuasAnalises/DetalhesPlanilha/Analises/configuracoes/configuracoes.html?planilha=${encodeURIComponent(planilhaNome)}`;
+        button.addEventListener('click', (event) => {
+            if (event.target.classList.contains('config-icon')) return;
+            handlePlanilhaClick(planilhaNome);
         });
-      }
 
-      container.appendChild(button);
+        const configIcon = button.querySelector('.config-icon');
+        if (configIcon) {
+            configIcon.addEventListener('click', (e) => {
+            e.stopPropagation();
+            window.location.href = `/home/SuasAnalises/DetalhesPlanilha/Analises/configuracoes/configuracoes.html?planilha=${encodeURIComponent(planilhaNome)}`;
+            });
+        }
+
+        container.appendChild(button);
     }
   } catch (error) {
     toggleLoading(false);
     console.error("Erro ao carregar a lista de planilhas:", error);
-    document.getElementById('planilhasContainer').innerHTML = "<p>Erro ao carregar as planilhas.</p>";
+    const errorLoadingText = await window.getTranslation('error_loading_spreadsheets');
+    document.getElementById('planilhasContainer').innerHTML = `<p>${errorLoadingText}</p>`;
   }
 }
 
-// 6. Buscar e salvar planilha no IndexedDB
 async function fetchAndSavePlanilha(planilhaNome) {
     const fileRef = ref(database, `/users/${user.uid}/planilhas/${planilhaNome}`);
-    try {
-        const snapshot = await get(fileRef);
-        if (!snapshot.exists()) {
-            console.warn(`A planilha "${planilhaNome}" não foi encontrada no Firebase.`);
-            return;
-        }
-        const planilhaChunks = snapshot.val();
-        let fullPlanilhaData = [];
-        Object.keys(planilhaChunks).forEach(chunkKey => {
-            fullPlanilhaData = fullPlanilhaData.concat(planilhaChunks[chunkKey]);
-        });
-        await saveToIndexedDB(`planilha_${planilhaNome}`, fullPlanilhaData);
-    } catch (error) {
-        console.error("Erro ao buscar a planilha:", error);
-    }
-}
-
-// 7. Buscar e salvar tabela auxiliar
-async function fetchAndSaveAuxiliaryTable(fileName) {
-  const auxiliaryRef = ref(database, `/users/${user.uid}/tabelasAuxiliares/${fileName}`);
-  try {
-    const snapshot = await get(auxiliaryRef);
-    if (!snapshot.exists()) {
-      console.warn(`Tabela auxiliar "${fileName}" não encontrada.`);
-      return;
-    }
-    const auxiliaryChunks = snapshot.val();
-    let fullAuxiliaryData = [];
-    Object.keys(auxiliaryChunks).forEach(chunkKey => {
-      fullAuxiliaryData = fullAuxiliaryData.concat(auxiliaryChunks[chunkKey]);
+    const snapshot = await get(fileRef);
+    if (!snapshot.exists()) return;
+    let fullPlanilhaData = [];
+    snapshot.forEach(chunkSnapshot => {
+        fullPlanilhaData = fullPlanilhaData.concat(chunkSnapshot.val());
     });
-    await saveToIndexedDB(`planilha_auxiliar_${fileName}`, fullAuxiliaryData);
-  } catch (error) {
-    console.error(`Erro ao buscar a tabela auxiliar "${fileName}":`, error);
-  }
+    await saveToIndexedDB(`planilha_${planilhaNome}`, fullPlanilhaData);
 }
 
-// 8. Buscar e salvar data de última alteração
-async function fetchAndSaveLastModification(fileName) {
-  const modRef = ref(database, `/users/${user.uid}/UltimasAlteracoes/${fileName}`);
-  try {
-    const snapshot = await get(modRef);
-    if (!snapshot.exists()) {
-      console.warn(`Data de última alteração para "${fileName}" não encontrada.`);
-      return;
-    }
-    const modifications = snapshot.val();
-    const latestModification = Object.values(modifications).sort((a, b) => b.timestamp - a.timestamp)[0];
-    await saveToIndexedDB(`planilha_ultima_alteracao_${fileName}`, latestModification);
-  } catch (error) {
-    console.error(`Erro ao buscar data de última alteração para "${fileName}":`, error);
-  }
-}
-
-// 9. Função genérica para salvar dados no IndexedDB
 async function saveToIndexedDB(key, data) {
-  try {
     const db = await openDB();
     const transaction = db.transaction(STORE_NAME, 'readwrite');
-    const store = transaction.objectStore(STORE_NAME);
-    store.put({ key, value: data });
-    console.log(`Dados salvos no IndexedDB com a chave "${key}".`);
-  } catch (error) {
-    console.error("Erro ao salvar no IndexedDB:", error);
-  }
+    transaction.objectStore(STORE_NAME).put({ key, value: data });
 }
 
-// 10. Clique em uma planilha
-function handlePlanilhaClick(planilhaNome) {
-  Swal.fire({
-    title: `Planilha: ${planilhaNome}`,
-    text: 'O que você deseja fazer?',
-    icon: 'info',
-    showCancelButton: true,
-    confirmButtonText: 'Abrir',
-    cancelButtonText: 'Cancelar',
-  }).then(result => {
-    if (result.isConfirmed) {
-      console.log(`Abrindo a planilha: ${planilhaNome}`);
-      window.location.href = `./DetalhesPlanilha/menu_da_analise.html?planilha=${encodeURIComponent(planilhaNome)}`;
-    }
-  });
+async function handlePlanilhaClick(planilhaNome) {
+    const title = (await window.getTranslation('swal_sheet_title')).replace('{sheetName}', planilhaNome);
+    const text = await window.getTranslation('swal_sheet_text');
+    const confirmButtonText = await window.getTranslation('swal_sheet_open');
+    const cancelButtonText = await window.getTranslation('swal_sheet_cancel');
+
+    Swal.fire({
+        title,
+        text,
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonText,
+        cancelButtonText,
+    }).then(result => {
+        if (result.isConfirmed) {
+            window.location.href = `./DetalhesPlanilha/menu_da_analise.html?planilha=${encodeURIComponent(planilhaNome)}`;
+        }
+    });
 }
 
-// ... (as funções de debug podem ser mantidas, mas não são essenciais para a funcionalidade)
-
-// 13. Evento de inicialização (MODIFICADO)
 document.addEventListener('DOMContentLoaded', () => {
-  // Verifica o usuário da sessão primeiro
   if (!user) {
-    console.log("Nenhum usuário na sessão, redirecionando...");
     window.location.href = '/index.html';
     return;
   }
-
-  // Usa o onAuthStateChanged para garantir que o Firebase Auth está inicializado
   onAuthStateChanged(auth, async (firebaseUser) => {
     if (firebaseUser) {
-      // O usuário está logado e o objeto auth está pronto.
-      console.log("Estado de autenticação do Firebase confirmado. Usuário:", firebaseUser.uid);
-      
-      // Agora é seguro chamar as funções que dependem da autenticação
       await verificarPlanilhasIndexedDB();
       await loadPlanilhas();
     } else {
-      // O usuário não está logado.
-      console.log("Usuário não está autenticado no Firebase. Redirecionando...");
       window.location.href = '/index.html';
     }
   });

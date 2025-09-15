@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" href="/assets/icon.png" />
     <link href="/assets/hamburguer.css" rel="stylesheet" />
+    <script src="/traducao.js" type="module" defer></script>
     <script src="/MenuLateral.js" type="module" defer></script>
     <script
       src="/home/SuasAnalises/DetalhesPlanilha/Analises/dashboard/atualizacao.js"
@@ -19,7 +20,7 @@
   <body>
     <!-- Barra superior -->
     <div class="top-bar">
-      <h2 class="top-bar-title">Tela de Análises</h2>
+      <h2 class="top-bar-title" data-translate="analysis_screen_title">Tela de Análises</h2>
     </div>
 
     <div class="menu-container">
@@ -27,46 +28,46 @@
         <div class="card-image">
           <img src="/assets/tipo_de_analise_agora.png" alt="Ágora" />
         </div>
-        <p>
+        <p data-translate="dashboard_card_desc">
           Analise a formação de grupos de pensamento a partir das evocações
           dos participantes. Explore os diferentes níveis de afinidade e
           identifique padrões ideológicos, cruzando dados diversos para insights
           aprofundados.
         </p>
-        <button class="analyze-btn dashboard">IR PARA ÁGORA</button>
+        <button class="analyze-btn dashboard" data-translate="goto_agora">IR PARA ÁGORA</button>
       </div>
 
       <div class="card persona">
         <div class="card-image">
           <img src="/assets/tipo_de_analise_ persona.png" alt="Persona" />
         </div>
-        <p>
+        <p data-translate="persona_card_desc">
           Gere perfis representativos a partir dos dados coletados, seguindo
           padrões gerais ou segmentados por Ego, Alter ou dados diversos.
           Visualize como diferentes grupos percebem um tema e compreenda as
           características que os definem, facilitando análises estratégicas.
         </p>
-        <button class="analyze-btn persona">IR PARA PERSONA</button>
+        <button class="analyze-btn persona" data-translate="goto_persona">IR PARA PERSONA</button>
       </div>
 
       <div class="card prototipicas">
         <div class="card-image">
           <img src="/assets/tipo_de_analise_ prototipica.png" alt="Prototípicas" />
         </div>
-        <p>
+        <p data-translate="prototypical_card_desc">
           Identifique os termos/pensamentos mais representativos dentro dos
           grupos analisados. Descubra quais deles são centrais nas diferentes
           ágoras e como eles moldam a percepção coletiva sobre um tema.
         </p>
-        <button class="analyze-btn prototipicas">IR PARA PROTOTÍPICAS</button>
+        <button class="analyze-btn prototipicas" data-translate="goto_prototypical">IR PARA PROTOTÍPICAS</button>
       </div>
 
       <div class="card configuracoes">
         <div class="card-image">
           <img src="/assets/tipo_de_analise_configuracoes.png" alt="Configurações" />
         </div>
-        <p>Ajuste suas preferências: edite o nome da sua análise ou a exclua caso seja necessário.</p>
-        <button class="analyze-btn configuracoes">CONFIGURAÇÕES</button>
+        <p data-translate="settings_card_desc">Ajuste suas preferências: edite o nome da sua análise ou a exclua caso seja necessário.</p>
+        <button class="analyze-btn configuracoes" data-translate="settings">CONFIGURAÇÕES</button>
       </div>
     </div>
   </body>
