@@ -8,27 +8,153 @@ body.socioeconomico {
   min-height: 100vh;
 }
 
-header h1 {
-  margin-bottom: 20px;
+/* ------------------------------------- */
+/* --- SEÇÃO CABEÇALHO E TÍTULO --- */
+/* ------------------------------------- */
+
+.top-barra-planilha {
+  padding: 20px 0;
+  display: flex;
+  justify-content: center;
 }
 
-/* Container geral para a tabela (permite rolagem horizontal e limita largura) */
+.barra-conteudo.card-banner {
+  background-color: #2b6f69;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 30px;
+  border-radius: 36px;
+  width: 90%;
+  max-width: 1000px;
+  margin: 0 auto;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.barra-logo {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.barra-logo img {
+  height: 60px;
+  width: 60px;
+  object-fit: contain;
+  border-radius: 14px;
+}
+
+.titulo-site {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: white;
+  text-transform: uppercase;
+}
+
+.barra-planilha {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: white;
+  text-transform: uppercase;
+  white-space: normal;
+  text-align: right;
+}
+
+/* ------------------------------------- */
+/* --- SEÇÃO MENU DE NAVEGAÇÃO --- */
+/* ------------------------------------- */
+
+.container {
+  margin-top: 30px;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 1620px;
+  width: 90%;
+}
+
+.container .menu {
+  background-color: #2b6f69;
+  border-radius: 36px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2.5rem;
+  padding: 20px 40px;
+  margin: 20px auto;
+  max-width: 1000px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.container .menu a {
+  padding: 15px 10px;
+  text-decoration: none;
+  color: white;
+  font-family: "Montserrat", sans-serif;
+  font-size: 1rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  transition: color 0.3s;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.container .menu a:hover {
+  background: none;
+  color: #FFD600;
+}
+
+/* ------------------------------------- */
+/* --- SEÇÃO FILTRO E TABELA --- */
+/* ------------------------------------- */
+
+.filter-container {
+  max-width: 800px;
+  width: 90%;
+  margin: 20px auto;
+  padding: 0 15px;
+  text-align: center;
+}
+
+.filter-container input {
+  width: 100%;
+  max-width: 250px;
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+}
+
+.filter-container input:focus {
+  outline: none;
+  border-color: #17426C;
+}
+
+.tabela-capsula-verde {
+  background-color: #2b6f69;
+  border-radius: 24px;
+  padding: 15px;
+  margin: 20px auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  width: 95%;
+  max-width: 1600px;
+}
+
 .table-container {
-  overflow-x: auto;         /* Rolagem horizontal, se necessário */
-  max-width: 90%;         /* Largura máxima menor para compactar */
-  margin: 20px auto;        /* Centraliza o container na tela */
+  overflow-x: auto;
+  margin: 0;
+  width: 100%;
 }
 
-/* Estilos da tabela */
 table {
   width: 100%;
   border-collapse: collapse;
   background-color: #fff;
-  box-shadow: 0 0 6px rgba(0, 0, 0, 0.1); /* Reduz a sombra */
-  border-radius: 8px;                    /* Ajusta o raio do canto */
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
   overflow: hidden;
-  margin: 0;                             /* Remove margens extras */
-  font-size: 14px;                       /* Diminui a fonte para compactar */
+  margin: 0;
+  font-size: 14px;
 }
 
 thead {
@@ -37,7 +163,7 @@ thead {
 }
 
 th, td {
-  padding: 8px;             /* Reduz o padding das células */
+  padding: 8px;
   text-align: left;
   border-bottom: 1px solid #ddd;
 }
@@ -50,20 +176,28 @@ tbody tr:nth-child(even) {
   background-color: #f9f9f9;
 }
 
-/* Ajuste específico para a borda do #data-table */
 #data-table {
-  border: 1px solid #ccc; 
-  min-width: 600px;        /* Define uma largura mínima menor */
+  border: 1px solid #ccc;
+  min-width: 100%;
 }
 
-/* Ajuste para as células do #data-table */
 #data-table th,
 #data-table td {
   border: 1px solid #2b6f69;
 }
 
+.destaque {
+  color: #0d47a1;
+  font-weight: bold;
+  background-color: #e3f2fd;
+  padding: 0 2px;
+  border-radius: 3px;
+}
 
-/* Estilos da paginação */
+/* ------------------------------------- */
+/* --- SEÇÃO PAGINAÇÃO --- */
+/* ------------------------------------- */
+
 .pagination {
   display: flex;
   justify-content: center;
@@ -72,34 +206,30 @@ tbody tr:nth-child(even) {
   margin-top: 20px;
 }
 
-.pagination button,
-.page-btn {
-  background-color: #2b6f69; /* Verde escuro */
+.pagination button, .page-btn {
+  background-color: #2b6f69;
   color: #ffffff;
   border: none;
   padding: 6px 12px;
   font-size: 14px;
   border-radius: 6px;
-  margin-left: 5px;
   cursor: pointer;
   transition: background 0.3s, transform 0.2s;
 }
 
-.pagination button:hover:not(:disabled),
-.page-btn:hover:not(:disabled) {
-  background-color: #17426C; /* Azul escuro */
+.pagination button:hover:not(:disabled), .page-btn:hover:not(:disabled) {
+  background-color: #17426C;
   transform: scale(1.05);
 }
 
-.pagination button:disabled,
-.page-btn:disabled {
+.pagination button:disabled, .page-btn:disabled {
   background-color: #888888;
   cursor: not-allowed;
   color: #eeeeee;
 }
 
 .page-btn.active {
-  background-color: #17426C; /* Azul escuro */
+  background-color: #17426C;
   border: 2px solid #ffffff;
   font-weight: bold;
   transform: scale(1.1);
@@ -108,295 +238,52 @@ tbody tr:nth-child(even) {
 #page-info {
   font-size: 14px;
   font-weight: bold;
+  color: #ffffff;
 }
 
-#page-info {
-  font-size: 14px;
-  font-weight: bold;
-  color: #ffffff; 
-}
+/* ------------------------------------- */
+/* --- SEÇÃO RESPONSIVIDADE --- */
+/* ------------------------------------- */
 
-/* Estilos do loading */
-#loading {
-  display: none;
-  position: absolute;
-  margin: auto;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-}
-
-/* Animação do loader - mantida conforme exemplo original */
-.loader {
-  position: absolute;
-  margin: auto;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  width: 6.250em;
-  height: 6.250em;
-  animation: rotate5123 2.4s linear infinite;
-}
-
-.white {
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: white;
-  animation: flash 2.4s linear infinite;
-  opacity: 0;
-}
-
-.dot {
-  position: absolute;
-  margin: auto;
-  width: 2.4em;
-  height: 2.4em;
-  border-radius: 100%;
-  transition: all 1s ease;
-}
-
-.dot:nth-child(2) {
-  top: 0;
-  bottom: 0;
-  left: 0;
-  background: #FF4444;
-  animation: dotsY 2.4s linear infinite;
-}
-
-.dot:nth-child(3) {
-  left: 0;
-  right: 0;
-  top: 0;
-  background: #FFBB33;
-  animation: dotsX 2.4s linear infinite;
-}
-
-.dot:nth-child(4) {
-  top: 0;
-  bottom: 0;
-  right: 0;
-  background: #99CC00;
-  animation: dotsY 2.4s linear infinite;
-}
-
-.dot:nth-child(5) {
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: #33B5E5;
-  animation: dotsX 2.4s linear infinite;
-}
-
-.tabela-capsula-verde {
-  background-color: #2b6f69;
-  border-radius: 24px;
-  padding: 20px;
-  margin: 30px auto;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  width: 95%;
-  max-width: 1600px;
-}
-
-.top-barra-planilha {
-  padding: 20px 0;
-  display: flex;
-  justify-content: center;
-  background: transparent;
-  width: 100%;
-}
-
-.barra-conteudo.card-banner {
-  background-color: #2b6f69;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 30px;
-  border-radius: 36px;
-  width: 100%;
-  max-width: 1000px;  
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-}
-
-.barra-logo {
-  display: flex;
-  align-items: center;
-  background: transparent;
-  padding: 12px 20px;
-  border-radius: 20px;
-  gap: 15px;
-}
-
-.barra-logo img {
-  height: 85px;
-  width: 85px;
-  object-fit: contain;
-  border-radius: 14px;
-}
-
-.titulo-site {
-  font-size: 1.4rem;
-  font-weight: bold;
-  color: white;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.barra-planilha {
-  font-size: 1.4rem;
-  font-weight: bold;
-  color: white;
-  background: transparent;
-  padding: 0;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-header.barra-externa nav.menu {
-  background-color: #2b6f69;
-  border-radius: 36px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 2.5rem;
-  padding: 20px 40px;
-  margin: 2rem auto;
-  max-width: 1000px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-}
-
-header.barra-externa nav.menu a {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 48px;
-  padding: 0 18px;
-  color: #FFFFFF;
-  font-size: 1rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  text-decoration: none;
-  border-radius: 20px;
-  line-height: 1;
-  white-space: nowrap;
-  transition: color 0.2s;
-}
-
-header.barra-externa nav.menu a:hover {
-  background: none;
-  color: #FFD600;
-}
-
-header.barra-externa nav.menu a.active {
-  background: none !important;
-  color: #FFD600 !important;
-}
-
-@keyframes rotate5123 {
-  0% {
-    transform: rotate(0);
-  }
-  10% {
-    width: 6.250em;
-    height: 6.250em;
-  }
-  66% {
-    width: 2.4em;
-    height: 2.4em;
-  }
-  100% {
-    transform: rotate(360deg);
-    width: 6.250em;
-    height: 6.250em;
-  }
-}
-
-@keyframes dotsY {
-  66% {
-    opacity: .1;
-    width: 2.4em;
-  }
-  77% {
-    opacity: 1;
-    width: 0;
-  }
-}
-
-@keyframes dotsX {
-  66% {
-    opacity: .1;
-    height: 2.4em;
-  }
-  77% {
-    opacity: 1;
-    height: 0;
-  }
-}
-
-@keyframes flash {
-  33% {
-    opacity: 0;
-    border-radius: 0%;
-  }
-  55% {
-    opacity: .6;
-    border-radius: 100%;
-  }
-  66% {
-    opacity: 0;
-  }
-}
-
-/* Estilos do filtro */
-.filter-container {
-  max-width: 800px;         /* Ajuste para ficar mais compacto */
-  width: 100%;
-  padding: 0 15px;          /* Espaçamento interno lateral */
-  text-align: right;
-  margin: 20px;
-}
-
-.filter-container input {
-  width: 100%;
-  max-width: 250px;         /* Limita a largura do input em telas maiores */
-  padding: 6px 10px;        /* Reduz o padding */
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 14px;          /* Reduz a fonte */
-  transition: border-color 0.3s ease;
-}
-
-/* Efeito de foco no input */
-.filter-container input:focus {
-  outline: none;
-  border-color: #17426C;
-}
-
-.page-btn {
-  margin-left: 5px;
-  font-size: 14px;
-  padding: 6px 10px;
-}
-
-/* Estilos para dispositivos móveis */
 @media (max-width: 768px) {
-  .filter-container {
-    text-align: center;     /* Centraliza o filtro em telas menores */
+  .barra-conteudo.card-banner {
+    flex-direction: column;
+    text-align: center;
+    padding: 15px;
   }
-
+  .barra-logo {
+    justify-content: center;
+  }
+  .barra-planilha {
+    margin-top: 10px;
+    font-size: 1rem;
+  }
+  .container .menu {
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 20px;
+  }
+  .container .menu a {
+    padding: 10px 0;
+    font-size: 14px;
+    width: 100%;
+    text-align: center;
+    white-space: normal;
+  }
+  .filter-container {
+    text-align: center;
+    width: 95%;
+  }
   .filter-container input {
-    max-width: none;       /* Permite que o input ocupe toda a largura */
+    max-width: none;
+  }
+  table {
+    font-size: 13px;
   }
 }
 
-/* Responsividade adicional para telas muito pequenas */
 @media screen and (max-width: 600px) {
-  table {
-    font-size: 13px;       /* Reduz ainda mais a fonte */
-  }
   th, td {
     padding: 6px;
   }
@@ -408,71 +295,3 @@ header.barra-externa nav.menu a.active {
     width: 100px;
   }
 }
-
-/* Container geral da página */
-.container {
-  margin-top: 30px;
-  margin-left: auto;
-  margin-right: auto;
-  max-width: 1620px;
-}
-
-/* Menu principal */
-.container .menu {
-  background-color: #17426C;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  border-radius: 25px;
-  box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.5);
-  margin-top: 20px;
-}
-
-.container .menu a {
-  padding: 20px 0;
-  text-decoration: none;
-  color: white;
-  font-family: "Montserrat", sans-serif;
-  font-size: 18px;
-  font-weight: bold;
-  text-transform: uppercase;
-  transition: color 0.3s;
-  cursor: pointer;
-}
-
-.container .menu a:hover {
-  color: #fdd200;
-}
-
-/* Menu em dispositivos móveis */
-@media (max-width: 768px) {
-  .container {
-    padding: 0 15px;
-  }
-
-  .container .menu {
-    flex-direction: column; 
-    justify-content: center;
-    align-items: center;
-    margin-top: 20px;
-    padding: 10px;
-  }
-
-  .container .menu a {
-    padding: 10px 0;
-    font-size: 16px;
-    width: 100%;
-    text-align: center;
-  }
-}
-
-.destaque {
-  color: #0d47a1;
-  font-weight: bold;
-  background-color: #e3f2fd;
-  padding: 0 2px;
-  border-radius: 3px;
-}
-
-
-
