@@ -13,13 +13,12 @@ document.addEventListener('DOMContentLoaded', function () {
     // Função genérica para tratar o clique em um botão
     function handleNavigation(categoria) {
         if (planilhaNome) {
-            // Estrutura de URL de exemplo. Ajuste conforme sua necessidade.
-            // Ex: `./Analises/${categoria}/${categoria}.html?planilha=${encodeURIComponent(planilhaNome)}`
-            const destinationUrl = `./${categoria}.html?planilha=${encodeURIComponent(planilhaNome)}`;
+            // Estrutura de URL ajustada para corresponder ao projeto original
+            const destinationUrl = `./Analises/${categoria}/${categoria}.html?planilha=${encodeURIComponent(planilhaNome)}`;
             console.log(`Navegando para: ${destinationUrl}`);
             
-            // Descomente a linha abaixo para habilitar a navegação real
-            // window.location.href = destinationUrl;
+            // Linha reativada para habilitar a navegação
+            window.location.href = destinationUrl;
         } else {
             console.log("Nenhuma planilha foi encontrada para navegação.");
             // Opcional: desabilitar botões ou mostrar uma mensagem ao usuário
@@ -35,3 +34,4 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
+
