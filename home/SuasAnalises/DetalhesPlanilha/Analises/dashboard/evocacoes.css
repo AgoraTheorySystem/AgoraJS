@@ -121,7 +121,7 @@ header.barra-externa nav.menu a.active { background: none !important; color: #FF
   border-top-right-radius: 15px;
   border-bottom-right-radius: 15px;
   transition: width 0.3s ease;
-  z-index: 1000;
+  z-index: 10;
   overflow-y: auto;
 }
 
@@ -187,7 +187,7 @@ header.barra-externa nav.menu a.active { background: none !important; color: #FF
   color: white;
   font-size: 24px;
   display: none;
-  z-index: 1001;
+  z-index: 10;
   animation: bounce-horizontal 2s infinite;
   text-shadow: 0 0 10px rgba(0,0,0,0.5);
 }

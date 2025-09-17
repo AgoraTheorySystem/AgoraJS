@@ -2,6 +2,11 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.3/firebase
 import { getDatabase, ref, get, query, orderByChild, startAt } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
 import firebaseConfig from '/firebase.js';
 
+// Importa a biblioteca SweetAlert2
+const script = document.createElement('script');
+script.src = "https://cdn.jsdelivr.net/npm/sweetalert2@11";
+document.head.appendChild(script);
+
 // Inicialização do Firebase
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
@@ -56,12 +61,13 @@ async function setItem(key, value) {
     const db = await openDB();
     const transaction = db.transaction(STORE_NAME, 'readwrite');
     transaction.objectStore(STORE_NAME).put({ key, value });
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         transaction.oncomplete = () => resolve();
+        transaction.onerror = (event) => reject(event.target.error);
     });
 }
 
-// --- Lógica Principal de Sincronização ---
+// --- Lógica Principal de Sincronização e Download ---
 
 /**
  * Obtém os dados do utilizador a partir da sessionStorage.
@@ -73,7 +79,92 @@ function getUserFromSession() {
 }
 
 /**
- * Função principal que compara timestamps e inicia a sincronização de diferenças.
+ * Baixa a planilha completa do Firebase e a salva localmente.
+ * @param {object} user - O objeto do usuário autenticado.
+ * @param {string} planilhaNome - O nome da planilha a ser baixada.
+ */
+async function baixarPlanilhaInicial(user, planilhaNome) {
+    console.log(`Planilha "${planilhaNome}" não encontrada localmente. Baixando do Firebase...`);
+    
+    // Mostra um alerta de carregamento para o usuário
+    Swal.fire({
+        title: 'Preparando sua análise',
+        text: 'Estamos baixando os dados da planilha pela primeira vez. Por favor, aguarde...',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+    try {
+        // 1. Baixar os dados da planilha (que estão em chunks)
+        const planilhaRef = ref(database, `/users/${user.uid}/planilhas/${planilhaNome}`);
+        const snapshotPlanilha = await get(planilhaRef);
+
+        if (!snapshotPlanilha.exists()) {
+            throw new Error(`Planilha "${planilhaNome}" não encontrada no Firebase.`);
+        }
+
+        let planilhaCompleta = [];
+        snapshotPlanilha.forEach(chunkSnapshot => {
+            planilhaCompleta = planilhaCompleta.concat(chunkSnapshot.val());
+        });
+        await setItem(`planilha_${planilhaNome}`, planilhaCompleta);
+        console.log(`Planilha "${planilhaNome}" salva localmente.`);
+
+        // 2. Baixar o timestamp mais recente
+        const remoteTimestampRef = ref(database, `/users/${user.uid}/UltimasAlteracoes/${planilhaNome}`);
+        const snapshotTimestamp = await get(remoteTimestampRef);
+        if (snapshotTimestamp.exists()) {
+            const remoteData = snapshotTimestamp.val();
+            const remoteTimestamp = parseInt(Object.keys(remoteData)[0]);
+            await setItem(`timestamp_local_change_${planilhaNome}`, remoteTimestamp);
+            console.log(`Timestamp inicial de "${planilhaNome}" salvo localmente.`);
+        }
+        
+        // Fecha o alerta de carregamento e recarrega a página
+        Swal.close();
+        await Swal.fire({
+            title: "Pronto!",
+            text: "Os dados da análise foram preparados com sucesso.",
+            icon: "success",
+            confirmButtonText: "Iniciar Análise"
+        }).then(() => {
+            location.reload();
+        });
+
+    } catch (error) {
+        console.error("Erro ao baixar dados iniciais:", error);
+        Swal.fire("Erro no Download", `Não foi possível baixar os dados da análise: ${error.message}`, "error");
+    }
+}
+
+
+/**
+ * Função principal que verifica se a planilha existe localmente e decide se baixa ou sincroniza.
+ * @param {object} user O objeto do utilizador autenticado.
+ * @param {string} planilhaNome O nome da planilha a ser sincronizada.
+ */
+async function verificarEProcessarPlanilha(user, planilhaNome) {
+    try {
+        const dadosLocais = await getItem(`planilha_${planilhaNome}`);
+
+        if (!dadosLocais) {
+            // Se não existir localmente, baixa pela primeira vez.
+            await baixarPlanilhaInicial(user, planilhaNome);
+        } else {
+            // Se já existir, procede com a sincronização de alterações.
+            await sincronizarDados(user, planilhaNome);
+        }
+    } catch (error) {
+        console.error("Erro no processo de verificação da planilha:", error);
+        Swal.fire("Erro Crítico", "Ocorreu um problema ao acessar os dados da análise.", "error");
+    }
+}
+
+
+/**
+ * Compara timestamps e inicia a sincronização de diferenças.
  * @param {object} user O objeto do utilizador autenticado.
  * @param {string} planilhaNome O nome da planilha a ser sincronizada.
  */
@@ -85,7 +176,6 @@ async function sincronizarDados(user, planilhaNome) {
 
         if (!snapshot.exists()) {
             console.log("Nenhum timestamp remoto encontrado. Sem necessidade de sincronizar.");
-            // Mesmo sem timestamp remoto, precisamos checar se há alterações locais para enviar
             window.dispatchEvent(new Event('checarAlteracoesLocais'));
             return;
         }
@@ -136,11 +226,9 @@ async function aplicarAlteracoesRemotas(user, planilhaNome, localTimestamp, remo
             const entry = childSnapshot.val();
             const changes = entry.changes;
 
-            // **CORREÇÃO DA LEITURA DO HISTÓRICO**
             for (const pathKey in changes) {
                 changesApplied = true;
                 const value = changes[pathKey];
-                // Decodifica o caminho, trocando o separador '___' de volta para '/'
                 const pathParts = pathKey.split('___');
                 
                 const type = pathParts[0];
@@ -157,7 +245,6 @@ async function aplicarAlteracoesRemotas(user, planilhaNome, localTimestamp, remo
                     }
 
                 } else if (type === 'lematizacoes') {
-                    // Reconstrói a chave do lema, que pode conter '/'
                     const lemaKey = pathParts.slice(2).join('/');
                     localLemas[lemaKey] = value;
                 }
@@ -195,7 +282,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
     
-    setTimeout(() => {
-        sincronizarDados(user, planilhaNome);
-    }, 500);
+    // Inicia o processo de verificação
+    verificarEProcessarPlanilha(user, planilhaNome);
 });
