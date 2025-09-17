@@ -1,170 +1,68 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: "Montserrat", sans-serif;
-}
-
+/* Estilos Globais e de Fundo */
 body {
+    font-family: 'Inter', sans-serif;
     background-color: #1a1a2e;
-    background-image: url('/assets/fundo_senha.jpg'); /* Seu background-image permanece aqui */
-    background-size: cover;
-    background-position: center center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    color: white;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
+      background: url('/assets/fundo_senha.jpg') no-repeat center center fixed;
+    overflow-x: hidden; /* Previne scroll horizontal */
 }
 
-/* Ajustes na top-bar */
-.top-bar {
-    background-color: #2b6f69;
-    color: white;
-    padding: 10px 50px; /* Reduziu a altura */
-    text-align: right; /* Coloca o título à direita */
-    position: fixed;
-    width: auto;
-    max-width: calc(100%-40px);
-    top: 20px;
-    left: 20px;
-    right: 20px;
-    transform: none;
-    z-index: 1000;
-    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.4);
-    border-radius: 15px;
-    display: flex;
-    justify-content: flex-end; /* Título à direita */
-    align-items: center;
+/* Animação de Entrada para os Cards */
+@keyframes card-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-.top-bar-title {
-    margin: 0;
-    font-size: 1.5rem; /* Diminuído para ficar menor */
-    font-weight: bold;
-    text-transform: uppercase;
-    color: white;
-}
-
-/* Ajustes no menu container */
-.menu-container {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr); /* Se precisar de 4 colunas */
-    justify-content: center;
-    gap: 30px; /* Aumentado para dar mais espaçamento entre os cards */
-    padding: 30px 20px;
-    align-items: stretch;
-    margin-top: 120px;
-    max-width: 1200px;
-    margin: 120px auto;
-    margin-left: auto;
-    margin-right: auto;
-    width: 100%;
-}
-
-/* Ajustes no card */
+/* Estilo dos Cards */
 .card {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    background-color: #2b6f69;
-    color: white;
-    width: 280px;
-    min-height: 650px;
-    max-height: 700px;
-    border-radius: 15px;
-    padding: 30px;
-    text-align: center;
-    transition: transform 0.3s ease, background-color 0.3s ease;
-    cursor: pointer;
-    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
-    border: 1px solid #3a3a4e;
+    background-image: linear-gradient(145deg, #2b6f69, #235a55);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    opacity: 0; /* Começa escondido para a animação */
+    animation: card-fade-in 0.5s ease-out forwards;
 }
 
-/* Ajustes de hover no card */
+/* Atraso na animação para cada card */
+.card:nth-child(1) { animation-delay: 0.1s; }
+.card:nth-child(2) { animation-delay: 0.2s; }
+.card:nth-child(3) { animation-delay: 0.3s; }
+.card:nth-child(4) { animation-delay: 0.4s; }
+
 .card:hover {
-    transform: scale(1.05) translateY(-5px); /* Efeito de levantar o card */
-    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.5); /* A sombra é aplicada instantaneamente, sem transição pesada */
-    background-color: #1e5c57;
+    transform: translateY(-8px);
+    box-shadow: 0 0 25px rgba(43, 111, 105, 0.5), 0 10px 15px -3px rgba(0,0,0,0.2);
 }
 
-/* Ajustes de imagem no card */
-.card-image {
-    width: 100%;
-    height: 250px; /* Aumentada a altura da área da imagem */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 25px; /* Distância entre a imagem e o título */
+/* Container dos Ícones */
+.icon-container {
+    background-image: linear-gradient(to bottom right, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 0.75rem; /* rounded-xl */
 }
 
-.card-image img {
-    width: 220px; /* Aumentado ainda mais o tamanho da imagem */
-    height: 220px; /* Aumentado ainda mais o tamanho da imagem */
-    object-fit: contain;
-}
-
-/* Ajustes nos botões */
+/* Botões de Análise */
 .analyze-btn {
-    background-color: #0f3460; /* Cor de fundo */
-    border-radius: 30px;
-    padding: 12px 24px;
-    font-size: 1.1rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.3s all ease;
-    color: white;
+    background-image: linear-gradient(to right, #0f3460, #1a4f8a);
+    transition: all 0.3s ease;
     border: none;
-    text-transform: uppercase;
-    width: 100%; /* Garantir que os botões ocupem toda a largura do card */
-    max-width: 100%; /* Remove o limite de 280px, garantindo que todos os botões ocupem o mesmo espaço */
-    display: block; /* Faz com que o botão ocupe toda a largura disponível dentro do card */
-    text-align: center; /* Centraliza o texto dentro do botão */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .analyze-btn:hover {
-    background-color: #1a4f8a;
-    transform: scale(1.1);
+    background-image: linear-gradient(to right, #1a4f8a, #0f3460);
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
-/* Ajustes Responsivos */
-@media (max-width: 1250px) {
-    .menu-container {
-        grid-template-columns: repeat(3, 1fr); /* Ajustado para 3 colunas */
-        max-width: 900px;
-    }
-}
-
-@media (max-width: 950px) {
-    .menu-container {
-        grid-template-columns: repeat(2, 1fr); /* Ajustado para 2 colunas */
-        max-width: 600px;
-    }
-}
-
-@media (max-width: 650px) {
-    .menu-container {
-        grid-template-columns: 1fr;
-        max-width: 350px;
-        padding: 20px;
-    }
-
-    .top-bar {
-        padding: 15px 20px;
-        top: 15px;
-    }
-
-    .top-bar-title {
-        font-size: 1.2rem;
-    }
-}
-
-@media (max-width: 400px) {
-    .card {
-        width: 100%;
-        max-width: 320px; 
-    }
+/* Barra do Cabeçalho */
+.header-bar {
+    background-color: rgba(43, 111, 105, 0.5);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }

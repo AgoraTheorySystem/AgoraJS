@@ -1,74 +1,161 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/png" href="/assets/icon.png" />
-    <link href="/assets/hamburguer.css" rel="stylesheet" />
-    <script src="/traducao.js" type="module" defer></script>
-    <script src="/MenuLateral.js" type="module" defer></script>
-    <script
-      src="/home/SuasAnalises/DetalhesPlanilha/Analises/dashboard/atualizacao.js"
-      type="module"
-      defer
-    ></script>
-    <link href="menu_da_analise.css" rel="stylesheet" />
-    <script src="menu_da_analise.js" type="module" defer></script>
-    <title>Ágora</title>
-  </head>
 
-  <body>
-    <!-- Barra superior -->
-    <div class="top-bar">
-      <h2 class="top-bar-title" data-translate="analysis_screen_title">Tela de Análises</h2>
-    </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tela de Análises | Ágora</title>
 
-    <div class="menu-container">
-      <div class="card dashboard">
-        <div class="card-image">
-          <img src="/assets/tipo_de_analise_agora.png" alt="Ágora" />
-        </div>
-        <p data-translate="dashboard_card_desc">
-          Analise a formação de grupos de pensamento a partir das evocações
-          dos participantes. Explore os diferentes níveis de afinidade e
-          identifique padrões ideológicos, cruzando dados diversos para insights
-          aprofundados.
-        </p>
-        <button class="analyze-btn dashboard" data-translate="goto_agora">IR PARA ÁGORA</button>
+  <!-- Scripts e Estilos do Projeto Original -->
+  <link rel="icon" type="image/png" href="/assets/icon.png" />
+  <script src="/traducao.js" type="module" defer></script>
+  <script src="/MenuLateral.js" type="module" defer></script>
+  <link href="/assets/hamburguer.css" rel="stylesheet" />
+
+  <!-- Estilos Modernos -->
+  <link href="menu_da_analise.css" rel="stylesheet" />
+
+  <!-- Scripts da Página -->
+  <script src="menu_da_analise.js" type="module" defer></script>
+
+  <!-- Dependências Externas -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="text-white antialiased">
+
+  <!-- O Menu Lateral será renderizado aqui pelo seu script MenuLateral.js -->
+  <div id="side-menu-container"></div>
+
+  <div id="root" class="min-h-screen flex flex-col p-4 sm:p-6 lg:p-8">
+
+    <!-- Header -->
+    <header class="header-bar w-full max-w-7xl mx-auto rounded-xl mb-8 sticky top-4 z-10">
+      <div class="px-6 py-4 flex justify-end items-center">
+        <h1 class="text-2xl font-bold text-white tracking-tight" data-translate="analysis_screen_title">Tela de Análises
+        </h1>
+        <!-- O menu lateral pode adicionar um botão aqui, o justify-end manterá o título à direita -->
       </div>
+    </header>
 
-      <div class="card persona">
-        <div class="card-image">
-          <img src="/assets/tipo_de_analise_ persona.png" alt="Persona" />
-        </div>
-        <p data-translate="persona_card_desc">
-          Gere perfis representativos a partir dos dados coletados, seguindo
-          padrões gerais ou segmentados por Ego, Alter ou dados diversos.
-          Visualize como diferentes grupos percebem um tema e compreenda as
-          características que os definem, facilitando análises estratégicas.
-        </p>
-        <button class="analyze-btn persona" data-translate="goto_persona">IR PARA PERSONA</button>
-      </div>
+    <!-- Main Content -->
+    <main class="flex-grow flex items-center justify-center">
+      <div class="w-full max-w-7xl mx-auto">
+        <!-- Cards Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
 
-      <div class="card prototipicas">
-        <div class="card-image">
-          <img src="/assets/tipo_de_analise_ prototipica.png" alt="Prototípicas" />
-        </div>
-        <p data-translate="prototypical_card_desc">
-          Identifique os termos/pensamentos mais representativos dentro dos
-          grupos analisados. Descubra quais deles são centrais nas diferentes
-          ágoras e como eles moldam a percepção coletiva sobre um tema.
-        </p>
-        <button class="analyze-btn prototipicas" data-translate="goto_prototypical">IR PARA PROTOTÍPICAS</button>
-      </div>
+          <!-- Card 1: Ágora -->
+          <div class="card rounded-2xl p-6 flex flex-col h-full">
+            <div class="flex-grow">
+              <div class="icon-container w-14 h-14 flex items-center justify-center mb-5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  class="text-white">
+                  <path d="M3 3v18h18" />
+                  <path d="M18.7 8a5 5 0 0 1-5 5-5 5 0 0 1-5-5 5 5 0 0 1 5-5 5 5 0 0 1 5 5z" />
+                </svg>
+              </div>
+              <h2 class="text-xl font-bold mb-2">Ágora</h2>
+              <p class="text-gray-300 text-sm leading-relaxed" data-translate="dashboard_card_desc">
+                Analise a formação de grupos de pensamento a partir das evocações dos participantes. Explore os
+                diferentes níveis de afinidade e identifique padrões ideológicos.
+              </p>
+            </div>
+            <button
+              class="analyze-btn mt-6 w-full text-white font-semibold py-3 px-4 rounded-lg text-sm uppercase tracking-wider"
+              data-category="dashboard" data-translate="goto_agora">
+              Ir para Ágora
+            </button>
+          </div>
 
-      <div class="card configuracoes">
-        <div class="card-image">
-          <img src="/assets/tipo_de_analise_configuracoes.png" alt="Configurações" />
+          <!-- Card 2: Persona -->
+          <div class="card rounded-2xl p-6 flex flex-col h-full">
+            <div class="flex-grow">
+              <div class="icon-container w-14 h-14 flex items-center justify-center mb-5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  class="text-white">
+                  <rect width="20" height="16" x="2" y="4" rx="2" />
+                  <circle cx="8" cy="10" r="2" />
+                  <path d="M12 14c0-1.1.9-2 2-2h2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2Z" />
+                </svg>
+              </div>
+              <h2 class="text-xl font-bold mb-2">Persona</h2>
+              <p class="text-gray-300 text-sm leading-relaxed" data-translate="persona_card_desc">
+                Gere perfis representativos a partir dos dados coletados. Visualize como diferentes grupos percebem um
+                tema e compreenda as características que os definem.
+              </p>
+            </div>
+            <button
+              class="analyze-btn mt-6 w-full text-white font-semibold py-3 px-4 rounded-lg text-sm uppercase tracking-wider"
+              data-category="persona" data-translate="goto_persona">
+              Ir para Persona
+            </button>
+          </div>
+
+          <!-- Card 3: Prototípicas -->
+          <div class="card rounded-2xl p-6 flex flex-col h-full">
+            <div class="flex-grow">
+              <div class="icon-container w-14 h-14 flex items-center justify-center mb-5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  class="text-white">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <circle cx="12" cy="12" r="6"></circle>
+                  <circle cx="12" cy="12" r="2"></circle>
+                </svg>
+              </div>
+              <h2 class="text-xl font-bold mb-2">Análise Prototípica</h2>
+              <p class="text-gray-300 text-sm leading-relaxed" data-translate="prototypical_card_desc">
+                Identifique os termos e pensamentos mais representativos dentro dos grupos. Descubra quais são centrais
+                nas ágoras e como moldam a percepção coletiva.
+              </p>
+            </div>
+            <button
+              class="analyze-btn mt-6 w-full text-white font-semibold py-3 px-4 rounded-lg text-sm uppercase tracking-wider"
+              data-category="prototipicas" data-translate="goto_prototypical">
+              Ir para Prototípicas
+            </button>
+          </div>
+
+          <!-- Card 4: Configurações -->
+          <div class="card rounded-2xl p-6 flex flex-col h-full">
+            <div class="flex-grow">
+              <div class="icon-container w-14 h-14 flex items-center justify-center mb-5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  class="text-white">
+                  <line x1="4" y1="21" x2="4" y2="14"></line>
+                  <line x1="4" y1="10" x2="4" y2="3"></line>
+                  <line x1="12" y1="21" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12" y2="3"></line>
+                  <line x1="20" y1="21" x2="20" y2="16"></line>
+                  <line x1="20" y1="12" x2="20" y2="3"></line>
+                  <line x1="1" y1="14" x2="7" y2="14"></line>
+                  <line x1="9" y1="8" x2="15" y2="8"></line>
+                  <line x1="17" y1="16" x2="23" y2="16"></line>
+                </svg>
+              </div>
+              <h2 class="text-xl font-bold mb-2">Configurações</h2>
+              <p class="text-gray-300 text-sm leading-relaxed" data-translate="settings_card_desc">
+                Ajuste suas preferências: edite o nome da sua análise ou a exclua caso seja necessário.
+              </p>
+            </div>
+            <button
+              class="analyze-btn mt-6 w-full text-white font-semibold py-3 px-4 rounded-lg text-sm uppercase tracking-wider"
+              data-category="configuracoes" data-translate="settings">
+              Configurações
+            </button>
+          </div>
+
         </div>
-        <p data-translate="settings_card_desc">Ajuste suas preferências: edite o nome da sua análise ou a exclua caso seja necessário.</p>
-        <button class="analyze-btn configuracoes" data-translate="settings">CONFIGURAÇÕES</button>
       </div>
-    </div>
-  </body>
+    </main>
+  </div>
+
+</body>
+
 </html>

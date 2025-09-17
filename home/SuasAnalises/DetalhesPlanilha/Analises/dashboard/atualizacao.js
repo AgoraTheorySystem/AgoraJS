@@ -285,3 +285,4 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Inicia o processo de verificação
     verificarEProcessarPlanilha(user, planilhaNome);
 });
+

@@ -6,6 +6,7 @@ import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs
 // Inicializa o Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+const auth = getAuth(app);
 
 /**
  * Injeta os ícones SVG no início do body para serem reutilizados no menu.
@@ -187,7 +188,7 @@ async function logout() {
         cancelButtonText: cancelButtonText
     }).then((result) => {
         if (result.isConfirmed) {
-            signOut(getAuth()).then(() => {
+            signOut(auth).then(() => {
                 sessionStorage.clear();
                 const deleteRequest = indexedDB.deleteDatabase('agoraDB');
                 deleteRequest.onsuccess = () => {
@@ -292,4 +293,3 @@ document.addEventListener('DOMContentLoaded', () => {
     injectSvgSprites();
     generateSidebarMenu();
 });
-
