@@ -1,54 +1,37 @@
-// Pegar a string de consulta da URL
-const queryString = window.location.search;
-
-// Criar uma instância de URLSearchParams para manipular os parâmetros
-const urlParams = new URLSearchParams(queryString);
-
-// Pegar o valor do parâmetro "planilha"
-const planilhaNome = urlParams.get('planilha');
-
-// Verificar e exibir o valor
-if (planilhaNome) {
-
-} else {
-    console.log("Parâmetro 'planilha' não encontrado na URL.");
-}
-
-// Função genérica para tratar o clique em uma planilha
-function handlePlanilhaClick(planilhaNome, categoria) {
-    if (planilhaNome) {
-        window.location.href = `./Analises/${categoria}/${categoria}.html?planilha=${encodeURIComponent(planilhaNome)}`;
-    } else {
-        console.log("Nenhuma planilha foi encontrada.");
-    }
-}
-
-// Mapeamento das categorias para as classes de botões
-const categorias = ["dashboard", "persona", "prototipicas", "configuracoes"];
-
-// Adicionar eventos de clique de forma dinâmica
-categorias.forEach(categoria => {
-    const buttons = document.getElementsByClassName(categoria);
-    Array.from(buttons).forEach(btn => {
-        btn.addEventListener('click', () => handlePlanilhaClick(planilhaNome, categoria));
-    });
-});
-
 document.addEventListener('DOMContentLoaded', function () {
-    const buttonTextMap = {
-        dashboard: "IR PARA ÁGORA",
-        persona: "IR PARA PERSONA",
-        prototipicas: "IR PARA PROTOTÍPICAS",
-        configuracoes: "CONFIGURAÇÕES"
-    };
+    // Pega a string de consulta da URL
+    const queryString = window.location.search;
+    // Cria uma instância de URLSearchParams para manipular os parâmetros
+    const urlParams = new URLSearchParams(queryString);
+    // Pega o valor do parâmetro "planilha"
+    const planilhaNome = urlParams.get('planilha');
 
+    if (!planilhaNome) {
+        console.log("Parâmetro 'planilha' não encontrado na URL.");
+    }
+
+    // Função genérica para tratar o clique em um botão
+    function handleNavigation(categoria) {
+        if (planilhaNome) {
+            // Estrutura de URL de exemplo. Ajuste conforme sua necessidade.
+            // Ex: `./Analises/${categoria}/${categoria}.html?planilha=${encodeURIComponent(planilhaNome)}`
+            const destinationUrl = `./${categoria}.html?planilha=${encodeURIComponent(planilhaNome)}`;
+            console.log(`Navegando para: ${destinationUrl}`);
+            
+            // Descomente a linha abaixo para habilitar a navegação real
+            // window.location.href = destinationUrl;
+        } else {
+            console.log("Nenhuma planilha foi encontrada para navegação.");
+            // Opcional: desabilitar botões ou mostrar uma mensagem ao usuário
+        }
+    }
+
+    // Adiciona eventos de clique a todos os botões de análise
     const buttons = document.querySelectorAll('.analyze-btn');
-
-    buttons.forEach(button => {
-        const cardClass = button.classList[1]; // Obtém a segunda classe do botão (dashboard, persona, etc.)
-        if (buttonTextMap[cardClass]) {
-            button.textContent = buttonTextMap[cardClass]; // Atualiza o texto do botão
+    buttons.forEach(btn => {
+        const category = btn.dataset.category;
+        if (category) {
+            btn.addEventListener('click', () => handleNavigation(category));
         }
     });
 });
-
