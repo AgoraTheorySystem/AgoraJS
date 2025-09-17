@@ -1,12 +1,11 @@
 /* ===== Variáveis ===== */
 :root {
-  --largura-menu: 80px;           /* largura padrão da sidebar */
-  --offset-conteudo: 20px;        /* espaçamento entre sidebar e conteúdo */
-
-  /* posicionamento do menu/seta */
-  --menu-top-vh: 43;              /* distância da barra em relação ao topo */
-  --menu-padding-top: 20px;       /* padding-top da .menu-lateral */
-  --icon-size: 42px;              /* diâmetro do círculo do ícone */
+  --largura-menu: 80px;           
+  --offset-conteudo: 20px;        
+  
+  --menu-top-vh: 43;              
+  --menu-padding-top: 20px;       
+  --icon-size: 42px;              
 }
 
 /* === Estilo global === */
@@ -22,7 +21,6 @@ body {
   color: #333;
 }
 
-/* ===== Barras verdes do topo ===== */
 .top-barra-planilha {
   padding: 20px 0;
   display: flex;
@@ -105,9 +103,9 @@ header.barra-externa nav.menu a.active { background: none !important; color: #FF
 /* === MENU LATERAL === */
 .menu-lateral {
   position: fixed;
-  top: calc(var(--menu-top-vh) * 1vh) !important; /* mais baixo */
+  top: calc(var(--menu-top-vh) * 1vh) !important; 
   left: 0;
-  transform: none !important;                     /* sem translate */
+  transform: none !important;                     
   height: auto;
   max-height: 90vh;
   margin-top: 0;
@@ -125,7 +123,6 @@ header.barra-externa nav.menu a.active { background: none !important; color: #FF
   overflow-y: auto;
 }
 
-/* Botões com círculo e texto abaixo */
 .menu-botao {
   display: flex;
   flex-direction: column;
@@ -461,7 +458,6 @@ th.sortable.active-desc::after { content: ' ↓'; color: #fff; }
   .pagination button, .page-btn { padding: 6px 10px; font-size: 12px; }
 }
 
-/* Paisagem com pouca altura */
 @media (orientation: landscape) and (max-height: 480px) {
   :root {
     --largura-menu: 50px;
