@@ -58,7 +58,8 @@ window.gerarBolhas = async function(parametros) {
   const planilhaNome = urlParams.get("planilha");
   const raw = await getItem(`planilha_${planilhaNome}`);
   if (!raw) {
-    bolhasContainer.innerHTML += "<p>Erro: planilha não encontrada no IndexedDB.</p>";
+    const errorMessage = await window.getTranslation('bolhas_sheet_not_found_error');
+    bolhasContainer.innerHTML = `<p>${errorMessage}</p>`;
     return;
   }
 

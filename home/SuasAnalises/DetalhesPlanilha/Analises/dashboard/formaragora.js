@@ -1,9 +1,10 @@
 // formaragora.js
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const urlParams = new URLSearchParams(window.location.search);
   const planilhaNome = urlParams.get("planilha");
   if (!planilhaNome) {
-    alert("Parâmetro 'planilha' ausente na URL.");
+    const alertMessage = await window.getTranslation('form_agoras_param_missing_alert');
+    alert(alertMessage);
     return;
   }
   const planilha = new URLSearchParams(location.search).get('planilha');
@@ -84,14 +85,14 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Cria o DOM de uma planilha (tabela + campo de busca + paginação + loading)
-  function createPlanilhaElement() {
+  async function createPlanilhaElement() {
     const planilhaEl = document.createElement("div");
     planilhaEl.classList.add("planilha");
 
     // Campo de busca
     const searchInput = document.createElement("input");
     searchInput.type = "search";
-    searchInput.placeholder = "Pesquisar palavra...";
+    searchInput.placeholder = await window.getTranslation('form_agoras_search_placeholder');
     searchInput.style.marginBottom = "10px";
     searchInput.style.padding = "6px";
     searchInput.style.width = "100%";
@@ -111,14 +112,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const prevBtn = document.createElement("button");
     prevBtn.classList.add("prev-btn");
-    prevBtn.textContent = "Anterior";
+    prevBtn.textContent = await window.getTranslation('previous_button');
 
     const pageInfo = document.createElement("span");
     pageInfo.classList.add("page-info");
 
     const nextBtn = document.createElement("button");
     nextBtn.classList.add("next-btn");
-    nextBtn.textContent = "Próximo";
+    nextBtn.textContent = await window.getTranslation('next_button');
 
     const pageNumbers = document.createElement("div");
     pageNumbers.classList.add("page-numbers");
@@ -224,10 +225,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Renderiza o cabeçalho fixo (duas colunas: Palavra / Frequência)
-    function renderTableHeader() {
+    async function renderTableHeader() {
       container.thead.innerHTML = "";
       const tr = document.createElement("tr");
-      ["Palavra", "Frequência"].forEach(txt => {
+      const headers = [
+          await window.getTranslation('form_agoras_table_header_word'), 
+          await window.getTranslation('form_agoras_table_header_frequency')
+        ];
+      headers.forEach(txt => {
         const th = document.createElement("th");
         th.textContent = txt;
         tr.appendChild(th);
@@ -236,7 +241,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Renderiza o corpo da tabela, criando linhas clicáveis que selecionam palavra
-    function renderTable(page = currentPage) {
+    async function renderTable(page = currentPage) {
       currentPage = page;
       const freqArray = computeFrequencies();
       const total = freqArray.length;
@@ -254,7 +259,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const tr = document.createElement("tr");
         const td = document.createElement("td");
         td.colSpan = 2;
-        td.textContent = "Nenhum registro encontrado.";
+        td.textContent = await window.getTranslation('no_records_found');
         td.style.textAlign = "center";
         tr.appendChild(td);
         container.tbody.appendChild(tr);
@@ -294,7 +299,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // Atualiza controles de paginação
-      container.pageInfo.textContent = `Página ${currentPage} de ${totalPages}`;
+      const pageInfoText = await window.getTranslation('page_info_text');
+      container.pageInfo.textContent = pageInfoText.replace('{currentPage}', currentPage).replace('{totalPages}', totalPages);
       container.prevBtn.disabled = currentPage <= 1;
       container.nextBtn.disabled = currentPage >= totalPages;
 
@@ -361,7 +367,7 @@ document.addEventListener("DOMContentLoaded", () => {
   for (let i = 1; i <= 5; i++) {
     const btn = document.createElement("button");
     btn.textContent = i;
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", async () => {
       // Marca botão selecionado e reseta containers
       document
         .querySelectorAll("#niveisContainer button")
@@ -373,7 +379,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Cria 'i' planilhas (níveis) na tela
       for (let lvl = 1; lvl <= i; lvl++) {
-        const elem = createPlanilhaElement();
+        const elem = await createPlanilhaElement();
         planilhasContainer.appendChild(elem.planilhaEl);
         planilhas.push({ container: elem, level: lvl });
         initPlanilha(elem, planilhaNome, lvl);

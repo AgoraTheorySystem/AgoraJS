@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="/assets/icon.png">
   <link href="/assets/hamburguer.css" rel="stylesheet">
+  <script src="/traducao.js" type="module" defer></script>
   <script src="/MenuLateral.js" type="module" defer></script>
   <script src="/home/SuasAnalises/DetalhesPlanilha/Analises/dashboard/atualizacao.js" type="module" defer></script>
   <link href="evocacoes.css" rel="stylesheet">
@@ -25,7 +26,7 @@
       <div class="barra-conteudo card-banner">
         <div class="barra-logo">
           <img src="/assets/tipo_de_analise_agora.png" alt="Logo Ágora">
-          <div class="titulo-site">METODOLOGIAS DAS<br>ÁGORAS COGNITIVAS</div>
+          <div class="titulo-site" data-translate="agora_methodologies">METODOLOGIAS DAS<br>ÁGORAS COGNITIVAS</div>
         </div>
         <div class="barra-planilha" id="nome-da-planilha"></div>
       </div>
@@ -34,17 +35,17 @@
     <!-- MENU -->
     <div class="container">
       <div class="menu">
-        <a class="menu_analises">Menu Das Análises</a>
-        <a href="./dashboard.html?planilha=">Dashboard</a>
-        <a href="./agora.html?planilha=">Socioeconômico</a>
-        <a href="./evocacoes.html?planilha=">Evocações</a>
-        <a href="./formaragora.html?planilha=">Formar Ágoras</a>
-        <a href="./mapa.html?planilha=">Mapa</a>
+        <a class="menu_analises" data-translate="analysis_menu">Menu Das Análises</a>
+        <a href="./dashboard.html?planilha=" data-translate="dashboard">Dashboard</a>
+        <a href="./agora.html?planilha=" data-translate="socioeconomic">Socioeconômico</a>
+        <a href="./evocacoes.html?planilha=" data-translate="evocations">Evocações</a>
+        <a href="./formaragora.html?planilha=" data-translate="form_agoras">Formar Ágoras</a>
+        <a href="./mapa.html?planilha=" data-translate="map">Mapa</a>
       </div>
     </div>
 
     <div class="filter-container">
-      <input type="text" id="busca-palavra" placeholder="Buscar palavra...">
+      <input type="text" id="busca-palavra" data-translate-placeholder="search_word_placeholder" placeholder="Buscar palavra...">
     </div>
 
     <!-- CONTEÚDO EM VERDE -->
@@ -52,9 +53,9 @@
 
       <!-- PAINEL DE SELECIONADOS -->
       <div id="selected-evocacoes">
-        <h3>Selecionados (<span id="selected-count">0</span>):</h3>
+        <h3 data-translate="selected_items_title">Selecionados (<span id="selected-count">0</span>):</h3>
         <ul id="selected-list"></ul>
-        <button id="clear-selected">Limpar Selecionados</button>
+        <button id="clear-selected" data-translate="clear_selection_button">Limpar Selecionados</button>
       </div>
 
       <!-- TABELA ORIGINAL  -->
@@ -78,10 +79,9 @@
   <div id="seta-salvar" class="fas fa-arrow-left"></div>
   <div id="popup-salvar">
     <i class="fas fa-info-circle"></i>
-    <span>Você possui alterações não salvas. Clique em "Salvar" no menu para sincronizar.</span>
+    <span data-translate="unsaved_changes_popup">Você possui alterações não salvas. Clique em "Salvar" no menu para sincronizar.</span>
   </div>
 
 </body>
 
 </html>
-

@@ -1,5 +1,5 @@
 // bolha_conectividade.js (ajuste de captura para evitar corte no PDF)
-export function gerarBolhasConectividade(parametros, headers, rows, containerElement) {
+export async function gerarBolhasConectividade(parametros, headers, rows, containerElement) {
   const filtroPattern = parametros.aspecto === "Ego"
     ? /^EVOC[1-5]$/i
     : /^EVOC[6-9]$|^EVOC10$/i;
@@ -111,12 +111,12 @@ export function gerarBolhasConectividade(parametros, headers, rows, containerEle
   popupContent.style.margin = "5vh auto";
 
   const closeBtn = document.createElement("button");
-  closeBtn.textContent = "Fechar";
+  closeBtn.textContent = await window.getTranslation('conn_close_button');
   closeBtn.className = "popup-close";
   closeBtn.addEventListener("click", () => popup.remove());
 
   const downloadBtn = document.createElement("button");
-  downloadBtn.textContent = "⬇️ Baixar Tudo como PDF";
+  downloadBtn.textContent = "⬇️ " + await window.getTranslation('conn_download_pdf_button');
   downloadBtn.className = "popup-download";
   downloadBtn.style.marginLeft = "1rem";
   downloadBtn.addEventListener("click", async () => {
@@ -157,10 +157,14 @@ export function gerarBolhasConectividade(parametros, headers, rows, containerEle
   legenda.style.display = "flex";
   legenda.style.flexDirection = "column";
 
+  const legendaTitle = await window.getTranslation('conn_legend_title');
+  const centralWordLabel = await window.getTranslation('conn_legend_central_word');
+  const connectedWordsLabel = await window.getTranslation('conn_legend_connected_words');
+  
   let legendaHTML = `
-    <div style="font-weight: bold; margin-bottom: 10px; padding-bottom: 5px; border-bottom: 1px solid #ccc;">Legenda</div>
-    <div style="margin-bottom: 5px;"><span style="display:inline-block;width:12px;height:12px;background:${corCentral};margin-right:5px;border-radius:50%;"></span> Palavra Central (${parametros.aspecto})</div>
-    <div style="margin-bottom: 10px;"><span style="display:inline-block;width:12px;height:12px;background:${corConectada};margin-right:5px;border-radius:50%;"></span> Palavras Conectadas (${parametros.aspecto === "Ego" ? "Alter" : "Ego"})</div>
+    <div style="font-weight: bold; margin-bottom: 10px; padding-bottom: 5px; border-bottom: 1px solid #ccc;">${legendaTitle}</div>
+    <div style="margin-bottom: 5px;"><span style="display:inline-block;width:12px;height:12px;background:${corCentral};margin-right:5px;border-radius:50%;"></span> ${centralWordLabel} (${parametros.aspecto})</div>
+    <div style="margin-bottom: 10px;"><span style="display:inline-block;width:12px;height:12px;background:${corConectada};margin-right:5px;border-radius:50%;"></span> ${connectedWordsLabel} (${parametros.aspecto === "Ego" ? "Alter" : "Ego"})</div>
     <div style="flex: 1; overflow-y: auto; padding-right: 10px;">
   `;
 
@@ -220,4 +224,3 @@ export function gerarBolhasConectividade(parametros, headers, rows, containerEle
 
   network.fit({ animation: true });
 }
-

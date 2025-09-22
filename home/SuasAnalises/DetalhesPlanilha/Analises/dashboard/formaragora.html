@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/png" href="/assets/icon.png" />
   <link href="/assets/hamburguer.css" rel="stylesheet" />
+  <script src="/traducao.js" type="module" defer></script>
   <script src="/MenuLateral.js" type="module" defer></script>
   <script src="/home/SuasAnalises/DetalhesPlanilha/Analises/dashboard/atualizacao.js" type="module" defer></script>
 
@@ -35,7 +36,7 @@
       <div class="barra-conteudo card-banner">
         <div class="barra-logo">
           <img src="/assets/tipo_de_analise_agora.png" alt="Logo Ágora">
-          <div class="titulo-site">METODOLOGIAS DAS<br>ÁGORAS COGNITIVAS</div>
+          <div class="titulo-site" data-translate="agora_methodologies">METODOLOGIAS DAS<br>ÁGORAS COGNITIVAS</div>
         </div>
         <div class="barra-planilha" id="nome-da-planilha"></div>
       </div>
@@ -43,41 +44,41 @@
 
     <div class="container">
       <div class="menu">
-        <a class="menu_analises" id="link-analises">Menu Das Análises</a>
-        <a id="link-dashboard"  href="./dashboard.html?planilha=">Dashboard</a>
-        <a id="link-agora"      href="./agora.html?planilha=">Socioeconômico</a>
-        <a id="link-evocacoes"  href="./evocacoes.html?planilha=">Evocações</a>
-        <a id="link-formar"     href="./formaragora.html?planilha=">Formar Ágoras</a>
-        <a id="link-mapa"       href="./mapa.html?planilha=">Mapa</a>
+        <a class="menu_analises" id="link-analises" data-translate="analysis_menu">Menu Das Análises</a>
+        <a id="link-dashboard"  href="./dashboard.html?planilha=" data-translate="dashboard">Dashboard</a>
+        <a id="link-agora"      href="./agora.html?planilha=" data-translate="socioeconomic">Socioeconômico</a>
+        <a id="link-evocacoes"  href="./evocacoes.html?planilha=" data-translate="evocations">Evocações</a>
+        <a id="link-formar"     href="./formaragora.html?planilha=" data-translate="form_agoras">Formar Ágoras</a>
+        <a id="link-mapa"       href="./mapa.html?planilha=" data-translate="map">Mapa</a>
       </div>
     </div>
 
     <div class="planilha">
       <div id="menu_agoras">
         <div class="niveis">
-          <label class="niveis-label"><strong>NÍVEL DA ÁGORA</strong></label>
+          <label class="niveis-label"><strong data-translate="form_agoras_level_label">NÍVEL DA ÁGORA</strong></label>
           <div id="niveisContainer" class="niveis-buttons"></div>
         </div>
 
         <div class="analise">
-          <label><strong>ANÁLISE</strong></label>
+          <label><strong data-translate="form_agoras_analysis_label">ANÁLISE</strong></label>
           <label>
             <input type="radio" name="analise" value="Socioeconômica" checked>
-            Socioeconômica
+            <span data-translate="form_agoras_socioeconomic_radio">Socioeconômica</span>
           </label>
           <label>
             <input type="radio" name="analise" value="Conectividade">
-            Conectividade
+            <span data-translate="form_agoras_connectivity_radio">Conectividade</span>
           </label>
         </div>
 
         <div class="extra-opcao" id="extraOpcao">
-          <label><strong>QTD. DE PALAVRAS / NÍVEL</strong></label>
-          <input type="number" id="valorConectividade" placeholder="Digite um número">
+          <label><strong data-translate="form_agoras_words_per_level_label">QTD. DE PALAVRAS / NÍVEL</strong></label>
+          <input type="number" id="valorConectividade" data-translate-placeholder="form_agoras_words_per_level_placeholder" placeholder="Digite um número">
         </div>
 
         <div class="aspecto">
-          <label><strong>ASPECTO ANALISADO</strong></label>
+          <label><strong data-translate="form_agoras_aspect_label">ASPECTO ANALISADO</strong></label>
           <label>
             <input type="radio" name="aspecto" value="Ego" checked> Ego
           </label>
@@ -89,7 +90,7 @@
         <div class="rodar">
           <button class="btn-agora" onclick="rodarAnalise()">
             <img src="/assets/icon_play.png" alt="Ícone de play">
-            <span class="btn-text">FORMAR ÁGORA</span>
+            <span class="btn-text" data-translate="form_agoras_run_button">FORMAR ÁGORA</span>
           </button>
         </div>
       </div>

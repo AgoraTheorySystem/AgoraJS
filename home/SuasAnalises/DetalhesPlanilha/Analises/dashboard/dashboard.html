@@ -4,14 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Ágora - Dashboard</title>
+  <title data-translate="dashboard_title">Ágora - Dashboard</title>
   <link rel="icon" href="/assets/icon.png" type="image/png" />
   
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
   <link href="/assets/hamburguer.css" rel="stylesheet" />
-  <link href="menu.css" rel="stylesheet" />
+  
+  <!-- Estilos Unificados -->
   <link href="dashboard.css" rel="stylesheet" />
+  <link href="menu.css" rel="stylesheet" />
 
+  <!-- Scripts -->
+  <script src="/traducao.js" type="module" defer></script>
   <script src="/MenuLateral.js" type="module" defer></script>
   <script src="menu.js" type="module" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
@@ -20,28 +24,40 @@
 </head>
 
 <body class="dashboard">
-  <header class="barra-externa">
-      <img src="/assets/logo_agora.png" alt="Logo Ágora" class="icon-esquerda" />
 
-    <nav class="menu">
-      <a href="./dashboard.html?planilha=">Dashboard</a>
-      <a href="./agora.html?planilha=">Socioeconômico</a>
-      <a href="./evocacoes.html?planilha=">Evocações</a>
-      <a href="./formaragora.html?planilha=">Metodologia Ágora</a>
-    </nav>
-
-    <div class="menu-search">
-      <input type="text" placeholder="Pesquisar..." id="campoBusca" />
-      <button id="botaoBusca"><i class="fas fa-search"></i></button>
+  <!-- Cabeçalho Superior Padronizado -->
+  <div class="top-barra-planilha">
+    <div class="barra-conteudo card-banner">
+      <div class="barra-logo">
+        <img src="/assets/tipo_de_analise_agora.png" alt="Logo Ágora">
+        <div class="titulo-site" data-translate="agora_methodologies">METODOLOGIAS DAS<br>ÁGORAS COGNITIVAS</div>
+      </div>
+      <div class="barra-planilha" id="nome-da-planilha"></div>
     </div>
-  </header>
+  </div>
+  
+  <!-- Menu de Navegação Padronizado -->
+  <div class="container">
+    <div class="menu">
+      <a class="menu_analises" data-translate="analysis_menu">Menu Das Análises</a>
+      <a href="./dashboard.html?planilha=" data-translate="dashboard">Dashboard</a>
+      <a href="./agora.html?planilha=" data-translate="socioeconomic">Socioeconômico</a>
+      <a href="./evocacoes.html?planilha=" data-translate="evocations">Evocações</a>
+      <a href="./formaragora.html?planilha=" data-translate="form_agoras">Formar Ágoras</a>
+      <a href="./mapa.html?planilha=" data-translate="map">Mapa</a>
+    </div>
+  </div>
 
-  <div id="selected-cards-display" class="cards-container"></div> 
+  <!-- Área de Cards Favoritos -->
+  <div id="selected-cards-display" class="cards-container">
+     <h2 data-translate="no_favorite_cards">Você não tem cards favoritos</h2>
+     <p data-translate="customize_area_message">Personalize esta área escolhendo itens abaixo para que sejam exibidos aqui em destaque</p>
+  </div> 
 
+  <!-- Conteúdo Principal do Dashboard -->
   <main class="container" id="dashboard-content">
-    <section class="group" id="favorites">
-      <div id="othersCards" class="cards-container"></div>
-    </section>
+    <!-- O conteúdo desta seção (gráficos, cards) será gerado pelo dashboard.js -->
   </main>
 </body>
 </html>
+

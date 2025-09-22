@@ -1,5 +1,5 @@
 // bolha_socioeconomica.js (removida condição de legenda apenas para respostas longas)
-export function gerarBolhasSocioeconomica(parametros, headers, rows) {
+export async function gerarBolhasSocioeconomica(parametros, headers, rows) {
   const evocPattern = parametros.aspecto === "Ego"
     ? /^EVOC[1-5]$/i
     : /^EVOC[6-9]$|^EVOC10$/i;
@@ -32,7 +32,7 @@ export function gerarBolhasSocioeconomica(parametros, headers, rows) {
   closeBtn.addEventListener("click", () => popup.remove());
 
   const downloadBtn = document.createElement("button");
-  downloadBtn.textContent = "⬇️ Baixar Tudo como PDF";
+  downloadBtn.textContent = "⬇️ " + await window.getTranslation('socio_download_pdf_button');
   downloadBtn.className = "popup-download";
   downloadBtn.style.marginBottom = "1rem";
 
@@ -49,7 +49,7 @@ export function gerarBolhasSocioeconomica(parametros, headers, rows) {
   loadingOverlay.style.alignItems = "center";
   loadingOverlay.style.fontSize = "1.25rem";
   loadingOverlay.style.fontFamily = "'Inter', sans-serif";
-  loadingOverlay.innerText = "Gerando PDF... Por favor, aguarde.";
+  loadingOverlay.innerText = await window.getTranslation('socio_generating_pdf_message');
   loadingOverlay.style.display = "none";
   document.body.appendChild(loadingOverlay);
 
@@ -105,11 +105,11 @@ export function gerarBolhasSocioeconomica(parametros, headers, rows) {
   popupContent.appendChild(downloadBtn);
 
   const title = document.createElement("h2");
-  title.textContent = "Gráficos Socioeconômicos";
+  title.textContent = await window.getTranslation('socio_chart_title');
   popupContent.appendChild(title);
 
   const subtitle = document.createElement("p");
-  subtitle.textContent = "Distribuição por variáveis não-evocadas entre os respondentes selecionados.";
+  subtitle.textContent = await window.getTranslation('socio_chart_subtitle');
   popupContent.appendChild(subtitle);
 
   const chartsWrapper = document.createElement("div");
@@ -118,7 +118,7 @@ export function gerarBolhasSocioeconomica(parametros, headers, rows) {
   popup.appendChild(popupContent);
   document.body.appendChild(popup);
 
-  nonEvocIndexes.forEach(({ name, idx }) => {
+  nonEvocIndexes.forEach(async ({ name, idx }) => {
     const freq = {};
     linhasFiltradas.forEach(row => {
       const val = row[idx];
@@ -136,13 +136,14 @@ export function gerarBolhasSocioeconomica(parametros, headers, rows) {
     const temOutros = restantes.length > 0;
     if (temOutros) {
       const outrosTotal = restantes.reduce((acc, [_, val]) => acc + val, 0);
-      top25.push(["OUTROS", outrosTotal]);
+      const outrosLabel = await window.getTranslation('socio_chart_others_label');
+      top25.push([outrosLabel, outrosTotal]);
     }
 
     const respostas = top25.map(([resp]) => resp);
     const valores = top25.map(([_, val]) => val);
-
-    const allNumericos = respostas.every(r => !isNaN(r) && r !== "OUTROS");
+    const outrosLabel = await window.getTranslation('socio_chart_others_label');
+    const allNumericos = respostas.every(r => !isNaN(r) && r !== outrosLabel);
     const labels = allNumericos ? respostas : respostas.map((_, i) => String(i + 1));
 
     const canvasWrapper = document.createElement("div");
@@ -195,7 +196,8 @@ export function gerarBolhasSocioeconomica(parametros, headers, rows) {
     if (!allNumericos) {
       const legenda = document.createElement("div");
       legenda.className = "grafico-legenda";
-      legenda.innerHTML = "<strong>Legenda:</strong><br>" + respostas
+      const legendaTitle = await window.getTranslation('socio_chart_legend_label');
+      legenda.innerHTML = `<strong>${legendaTitle}</strong><br>` + respostas
         .map((txt, i) => `<strong>${i + 1}:</strong> ${txt}`)
         .join("<br>");
       canvasWrapper.appendChild(legenda);

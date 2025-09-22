@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="/assets/icon.png">
   <link href="/assets/hamburguer.css" rel="stylesheet">
+  <script src="/traducao.js" type="module" defer></script>
   <script src="/MenuLateral.js" type="module" defer></script>
   <script src="/home/SuasAnalises/DetalhesPlanilha/Analises/dashboard/atualizacao.js" type="module" defer></script>
   <link href="socioeconomico.css" rel="stylesheet">
@@ -19,7 +20,7 @@
   <div class="barra-conteudo card-banner">
     <div class="barra-logo">
       <img src="/assets/tipo_de_analise_agora.png" alt="Logo Ágora">
-      <div class="titulo-site">METODOLOGIAS DAS<br>ÁGORAS COGNITIVAS</div>
+      <div class="titulo-site" data-translate="agora_methodologies">METODOLOGIAS DAS<br>ÁGORAS COGNITIVAS</div>
     </div>
     <div class="barra-planilha" id="nome-da-planilha"></div>
   </div>
@@ -31,12 +32,12 @@
       <!-- MENU -->
     <div class="container">
       <div class="menu">
-        <a class="menu_analises">Menu Das Análises</a>
-        <a href="./dashboard.html?planilha=">Dashboard</a>
-        <a href="./agora.html?planilha=">Socioeconômico</a>
-        <a href="./evocacoes.html?planilha=">Evocações</a>
-        <a href="./formaragora.html?planilha=">Formar Ágoras</a>
-        <a href="./mapa.html?planilha=">Mapa</a>
+        <a class="menu_analises" data-translate="analysis_menu">Menu Das Análises</a>
+        <a href="./dashboard.html?planilha=" data-translate="dashboard">Dashboard</a>
+        <a href="./agora.html?planilha=" data-translate="socioeconomic">Socioeconômico</a>
+        <a href="./evocacoes.html?planilha=" data-translate="evocations">Evocações</a>
+        <a href="./formaragora.html?planilha=" data-translate="form_agoras">Formar Ágoras</a>
+        <a href="./mapa.html?planilha=" data-translate="map">Mapa</a>
       </div>
     </div>
     </header>
@@ -54,7 +55,7 @@
 
     <!-- Área do filtro -->
     <div class="filter-container">
-      <input type="text" id="filter-input" placeholder="Buscar na tabela">
+      <input type="text" id="filter-input" data-translate-placeholder="search_in_table" placeholder="Buscar na tabela">
     </div>
 
     <!-- Tabela de dados -->
@@ -69,9 +70,9 @@
  
     <!-- Controles de paginação -->
     <div class="pagination">
-      <button id="prev-btn">Anterior</button>
+      <button id="prev-btn" data-translate="previous_button">Anterior</button>
       <div id="page-numbers"></div>
-      <button id="next-btn">Próximo</button>
+      <button id="next-btn" data-translate="next_button">Próximo</button>
       <span id="page-info"></span>
     </div>
     

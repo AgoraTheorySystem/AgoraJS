@@ -95,7 +95,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   const urlParams = new URLSearchParams(window.location.search);
   const planilhaNome = urlParams.get("planilha");
   if (!planilhaNome) {
-    Swal.fire({ icon: 'error', title: 'Erro!', text: "Parâmetro 'planilha' ausente na URL." });
+    Swal.fire({ 
+        icon: 'error', 
+        title: await window.getTranslation('swal_error_title'), 
+        text: await window.getTranslation('dashboard_sheet_param_missing') 
+    });
     return;
   }
 
@@ -103,14 +107,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Carrega a planilha e as lematizações do armazenamento local (IndexedDB)
     const data = await getItem(`planilha_${planilhaNome}`);
     if (!data || data.length === 0) {
-      Swal.fire({ icon: 'error', title: 'Erro!', text: "Nenhum dado encontrado para esta planilha no armazenamento local." });
+      Swal.fire({ 
+          icon: 'error', 
+          title: await window.getTranslation('swal_error_title'), 
+          text: await window.getTranslation('evocations_no_data_found')
+        });
       return;
     }
     currentLematizacoes = await getItem(`lemas_${planilhaNome}`) || {};
     processarTabela(data);
   } catch (error) {
     console.error("Erro ao carregar dados locais:", error);
-    Swal.fire({ icon: 'error', title: 'Erro!', text: "Falha ao carregar dados do armazenamento local." });
+    Swal.fire({ 
+        icon: 'error', 
+        title: await window.getTranslation('swal_error_title'), 
+        text: await window.getTranslation('evocations_data_load_error')
+    });
   }
 });
 
@@ -142,7 +154,7 @@ function processarTabela(data) {
   renderTabela();
 }
 
-function renderTabela() {
+async function renderTabela() {
   const termo = currentSearch;
   let lista = termo
     ? allWords.filter(([palavra]) => palavra.includes(termo))
@@ -177,16 +189,23 @@ function renderTabela() {
   const end = start + ITEMS_PER_PAGE;
   const pageWords = lista.slice(start, end);
 
+  // Obter traduções para os cabeçalhos da tabela
+  const header_word = await window.getTranslation('evocations_header_word');
+  const header_total_qty = await window.getTranslation('evocations_header_total_qty');
+  const header_alter_qty = await window.getTranslation('evocations_header_alter_qty');
+  const header_ego_qty = await window.getTranslation('evocations_header_ego_qty');
+  const header_merges = await window.getTranslation('evocations_header_merges');
+
   const table = document.createElement("table");
   table.innerHTML = `
     <thead>
       <tr>
         <th><input type="checkbox" id="select-all-checkbox" /></th>
-        <th data-col="palavra" class="sortable">PALAVRA</th>
-        <th data-col="total" class="sortable">QUANTIDADE TOTAL</th>
-        <th data-col="alter" class="sortable">QUANTIDADE ALTER</th>
-        <th data-col="ego" class="sortable">QUANTIDADE EGO</th>
-        <th>Fusões</th>
+        <th data-col="palavra" class="sortable">${header_word}</th>
+        <th data-col="total" class="sortable">${header_total_qty}</th>
+        <th data-col="alter" class="sortable">${header_alter_qty}</th>
+        <th data-col="ego" class="sortable">${header_ego_qty}</th>
+        <th>${header_merges}</th>
       </tr>
     </thead>
     <tbody>
@@ -282,7 +301,6 @@ function renderizarPaginacao(totalItems) {
 
   paginationContainer.innerHTML = "";
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
-  const maxPagesToShow = 3;
 
   function criarBotao(texto, pagina, ativo = false, desabilitado = false) {
     const btn = document.createElement("button");
