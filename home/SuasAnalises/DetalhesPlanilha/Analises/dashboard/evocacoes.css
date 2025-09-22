@@ -467,3 +467,14 @@ th.sortable.active-desc::after { content: ' ↓'; color: #fff; }
   }
   .menu-botao { font-size: 9px; width: 45px; }
 }
+
+/* Tablets em retrato com largura ~768–834px */
+@media screen and (min-width: 768px) and (max-width: 834px)
+  and (orientation: portrait) {
+  :root { --menu-top-vh: 58; }
+}
+
+
+
+
+
