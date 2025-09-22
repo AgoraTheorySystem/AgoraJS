@@ -57,28 +57,51 @@ const icons = {
 };
 
 // --- Funções de Controle da UI ---
-function displayMessage(msg, type = 'info') { ui.messageText.innerHTML = msg; ui.messageArea.className = `message-area ${type}`; ui.messageIcon.innerHTML = icons[type]; }
-function showLoading(show, progress = 0, text = 'Processando...') { if (show) { ui.loadingOverlay.classList.add('visible'); ui.loadingProgressText.textContent = text; ui.progressBar.style.width = `${progress}%`; } else { ui.loadingOverlay.classList.remove('visible'); ui.progressBar.style.width = '0%'; } }
-window.toggleUnlocatedCities = () => { ui.unlocatedCitiesList.classList.toggle('expanded'); }
-
-function updateDescription() {
-    const { evocations, age } = filtersState;
-    let text = '';
-
-    if (evocations.isActive && age.isActive) {
-        text = 'O mapa exibirá os participantes que correspondem aos filtros de <strong>evocações E idade</strong> selecionados.';
-    } else if (evocations.isActive) {
-        text = 'O mapa exibirá os participantes que correspondem ao filtro de <strong>evocações</strong> selecionado.';
-    } else if (age.isActive) {
-        text = 'O mapa exibirá os participantes que correspondem ao filtro de <strong>idade</strong> selecionado.';
-    } else {
-        text = 'Nenhum filtro ativo. O mapa exibirá <strong>todos os participantes</strong>. Clique em uma opção para configurar.';
+async function displayMessage(msgKey, type = 'info', replacements = {}) {
+    let msg = await window.getTranslation(msgKey);
+    for (const placeholder in replacements) {
+        msg = msg.replace(`{${placeholder}}`, replacements[placeholder]);
     }
-    ui.descriptionText.innerHTML = text;
+    ui.messageText.innerHTML = msg;
+    ui.messageArea.className = `message-area ${type}`;
+    ui.messageIcon.innerHTML = icons[type];
 }
 
-  const planilha = new URLSearchParams(location.search).get('planilha');
-  document.querySelector(".barra-planilha").textContent = planilha;
+async function showLoading(show, progress = 0, textKey = 'map_loading_preparing', replacements = {}) {
+    if (show) {
+        let text = await window.getTranslation(textKey);
+        for (const placeholder in replacements) {
+            text = text.replace(`{${placeholder}}`, replacements[placeholder]);
+        }
+        ui.loadingOverlay.classList.add('visible');
+        ui.loadingProgressText.textContent = text;
+        ui.progressBar.style.width = `${progress}%`;
+    } else {
+        ui.loadingOverlay.classList.remove('visible');
+        ui.progressBar.style.width = '0%';
+    }
+}
+
+window.toggleUnlocatedCities = () => { ui.unlocatedCitiesList.classList.toggle('expanded'); }
+
+async function updateDescription() {
+    const { evocations, age } = filtersState;
+    let textKey = '';
+
+    if (evocations.isActive && age.isActive) {
+        textKey = 'map_description_evocations_and_age';
+    } else if (evocations.isActive) {
+        textKey = 'map_description_evocations';
+    } else if (age.isActive) {
+        textKey = 'map_description_age';
+    } else {
+        textKey = 'map_description_default';
+    }
+    ui.descriptionText.innerHTML = await window.getTranslation(textKey);
+}
+
+const planilha = new URLSearchParams(location.search).get('planilha');
+document.querySelector(".barra-planilha").textContent = planilha;
 
 // --- Lógica do Filtro de Palavras (Modal) ---
 async function loadWords(planilhaNome) {
@@ -98,7 +121,7 @@ async function loadWords(planilhaNome) {
         });
 
         if (!storedData || storedData.length < 2) {
-            throw new Error("Dados da planilha não encontrados.");
+            throw new Error(await window.getTranslation('map_error_sheet_data_not_found'));
         }
 
         const header = storedData[0].map(h => h.toString().toLowerCase().trim());
@@ -117,26 +140,27 @@ async function loadWords(planilhaNome) {
         areWordsLoaded = true;
     } catch (error) {
         console.error("Erro ao carregar palavras:", error);
-        Swal.showValidationMessage(`Erro ao carregar palavras: ${error.message}`);
+        const errorMsg = (await window.getTranslation('map_error_loading_words')).replace('{message}', error.message);
+        Swal.showValidationMessage(errorMsg);
     }
 }
 
-function getEvocationsModalHTML() {
+async function getEvocationsModalHTML() {
     return `
         <div id="evocations-modal-content">
             <div id="selected-words-panel" class="hidden">
-                <h3>Selecionados (<span id="selected-count">0</span>):</h3>
+                <h3>${await window.getTranslation('map_modal_selected_title')} (<span id="selected-count">0</span>):</h3>
                 <ul id="selected-list"></ul>
-                <button id="clear-selected-btn">Limpar</button>
+                <button id="clear-selected-btn">${await window.getTranslation('map_modal_clear_btn')}</button>
             </div>
-            <input type="text" id="word-search-input" class="filter-input" placeholder="Buscar palavra para filtrar...">
-            <div id="word-list-container"><p>Carregando palavras...</p></div>
+            <input type="text" id="word-search-input" class="filter-input" placeholder="${await window.getTranslation('map_modal_search_placeholder')}">
+            <div id="word-list-container"><p>${await window.getTranslation('map_modal_loading_words')}</p></div>
             <div id="pagination-controls"></div>
         </div>
     `;
 }
 
-function renderWordListInModal(tempSelectedWords) {
+async function renderWordListInModal(tempSelectedWords) {
     const wordListContainer = document.getElementById('word-list-container');
     const paginationControls = document.getElementById('pagination-controls');
     const searchTerm = document.getElementById('word-search-input').value.trim().toUpperCase();
@@ -146,7 +170,7 @@ function renderWordListInModal(tempSelectedWords) {
         : allWordsWithCount;
 
     if (filteredWords.length === 0) {
-        wordListContainer.innerHTML = "<p style='padding: 1rem; text-align: center; color: #64748b;'>Nenhuma palavra encontrada.</p>";
+        wordListContainer.innerHTML = `<p style='padding: 1rem; text-align: center; color: #64748b;'>${await window.getTranslation('map_modal_no_words_found')}</p>`;
         paginationControls.innerHTML = '';
         return;
     }
@@ -163,10 +187,10 @@ function renderWordListInModal(tempSelectedWords) {
         </div>
     `).join('');
 
-    renderPaginationInModal(filteredWords.length, tempSelectedWords);
+    await renderPaginationInModal(filteredWords.length, tempSelectedWords);
 }
 
-function renderPaginationInModal(totalItems, tempSelectedWords) {
+async function renderPaginationInModal(totalItems, tempSelectedWords) {
     const paginationControls = document.getElementById('pagination-controls');
     const totalPages = Math.ceil(totalItems / WORDS_PER_PAGE);
     paginationControls.innerHTML = '';
@@ -177,7 +201,7 @@ function renderPaginationInModal(totalItems, tempSelectedWords) {
         btn.className = `page-btn ${isActive ? 'active' : ''}`;
         btn.textContent = text;
         btn.disabled = isDisabled;
-        btn.onclick = () => { currentPage = page; renderWordListInModal(tempSelectedWords); };
+        btn.onclick = async () => { currentPage = page; await renderWordListInModal(tempSelectedWords); };
         return btn;
     };
 
@@ -217,54 +241,60 @@ function updateSelectedWordsPanelInModal(tempSelectedWords) {
     `).join('');
 }
 
-function updateEvocationsFilterStatus() {
+async function updateEvocationsFilterStatus() {
     const { isActive, selectedWords, matchType } = filtersState.evocations;
-    const matchTypeText = matchType === 'all' ? 'todas' : 'qualquer uma';
+    const matchTypeText = await window.getTranslation(matchType === 'all' ? 'map_match_type_all' : 'map_match_type_any');
 
     if (isActive && selectedWords.length > 0) {
-        ui.evocationsFilterStatus.innerHTML = `<strong>${selectedWords.length}</strong> palavra(s) selecionada(s). <br>Corresponder a <strong>${matchTypeText}</strong>.`;
+        const statusText = (await window.getTranslation('map_status_evocations'))
+            .replace('{count}', selectedWords.length)
+            .replace('{matchType}', matchTypeText);
+        ui.evocationsFilterStatus.innerHTML = statusText;
         ui.evocationsFilterCard.classList.add('active');
-        ui.editEvocationsBtn.textContent = 'Editar';
+        ui.editEvocationsBtn.textContent = await window.getTranslation('map_btn_edit');
     } else {
-        ui.evocationsFilterStatus.textContent = 'Nenhum filtro aplicado.';
+        ui.evocationsFilterStatus.textContent = await window.getTranslation('map_status_no_filter');
         ui.evocationsFilterCard.classList.remove('active');
-        ui.editEvocationsBtn.textContent = 'Configurar';
+        ui.editEvocationsBtn.textContent = await window.getTranslation('map_btn_configure');
         filtersState.evocations.isActive = false;
         filtersState.evocations.selectedWords = [];
     }
-    updateDescription();
+    await updateDescription();
 }
 
 // --- Lógica do Filtro de Idade (Modal) ---
-function getAgeModalHTML() {
+async function getAgeModalHTML() {
     const { condition, value } = filtersState.age;
     return `
         <div class="age-filter-inputs">
             <select id="age-condition-modal" class="filter-input">
-                <option value="gte" ${condition === 'gte' ? 'selected' : ''}>Maior ou igual a</option>
-                <option value="eq" ${condition === 'eq' ? 'selected' : ''}>Igual a</option>
-                <option value="lte" ${condition === 'lte' ? 'selected' : ''}>Menor ou igual a</option>
+                <option value="gte" ${condition === 'gte' ? 'selected' : ''}>${await window.getTranslation('map_age_cond_gte')}</option>
+                <option value="eq" ${condition === 'eq' ? 'selected' : ''}>${await window.getTranslation('map_age_cond_eq')}</option>
+                <option value="lte" ${condition === 'lte' ? 'selected' : ''}>${await window.getTranslation('map_age_cond_lte')}</option>
             </select>
-            <input type="number" id="age-value-modal" class="filter-input" placeholder="Digite a idade" min="0" value="${value || ''}">
+            <input type="number" id="age-value-modal" class="filter-input" placeholder="${await window.getTranslation('map_modal_age_placeholder')}" min="0" value="${value || ''}">
         </div>
     `;
 }
 
-function updateAgeFilterStatus() {
+async function updateAgeFilterStatus() {
     const { isActive, condition, value } = filtersState.age;
     if (isActive && value !== null) {
-        const conditionText = { gte: 'Maior ou igual a', eq: 'Igual a', lte: 'Menor ou igual a' }[condition];
-        ui.ageFilterStatus.innerHTML = `<strong>${conditionText} ${value}</strong>`;
+        const conditionText = await window.getTranslation({ gte: 'map_age_cond_gte', eq: 'map_age_cond_eq', lte: 'map_age_cond_lte' }[condition]);
+        const statusText = (await window.getTranslation('map_status_age'))
+            .replace('{conditionText}', conditionText)
+            .replace('{value}', value);
+        ui.ageFilterStatus.innerHTML = statusText;
         ui.ageFilterCard.classList.add('active');
-        ui.editAgeBtn.textContent = 'Editar';
+        ui.editAgeBtn.textContent = await window.getTranslation('map_btn_edit');
     } else {
-        ui.ageFilterStatus.textContent = 'Nenhum filtro aplicado.';
+        ui.ageFilterStatus.textContent = await window.getTranslation('map_status_no_filter');
         ui.ageFilterCard.classList.remove('active');
-        ui.editAgeBtn.textContent = 'Configurar';
+        ui.editAgeBtn.textContent = await window.getTranslation('map_btn_configure');
         filtersState.age.isActive = false;
         filtersState.age.value = null;
     }
-    updateDescription();
+    await updateDescription();
 }
 
 
@@ -281,7 +311,7 @@ function initializeMap() {
 }
 
 function setupMapInteractions() {
-    map.on('pointermove', function (evt) {
+    map.on('pointermove', async function (evt) {
         if (evt.dragging) { if (tippyInstance) tippyInstance.destroy(); return; }
         const feature = map.forEachFeatureAtPixel(evt.pixel, f => f);
         const mapElement = map.getTargetElement();
@@ -294,7 +324,6 @@ function setupMapInteractions() {
             if (clusteredFeatures.length > 1) {
                 const total = clusteredFeatures.reduce((sum, f) => sum + f.get('cityCount'), 0);
                 
-                // Generate table rows for each city
                 let tableRows = clusteredFeatures.map(f => `
                     <tr>
                         <td style="padding: 5px; text-align: left; color: #4A5568;">${f.get('cityName')}</td>
@@ -302,14 +331,13 @@ function setupMapInteractions() {
                     </tr>
                 `).join('');
 
-                // Generate the full table HTML
                 content = `
                     <div style="padding: 4px; font-family: 'Inter', sans-serif; min-width: 250px;">
                         <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
                             <thead>
                                 <tr>
-                                    <th style="padding: 8px 5px; text-align: left; font-weight: 700; font-size: 16px; color: #1A202C; border-bottom: 2px solid #E2E8F0;">Cidades Agrupadas</th>
-                                    <th style="padding: 8px 5px; text-align: right; font-weight: 700; font-size: 16px; color: #1A202C; border-bottom: 2px solid #E2E8F0;">Pessoas</th>
+                                    <th style="padding: 8px 5px; text-align: left; font-weight: 700; font-size: 16px; color: #1A202C; border-bottom: 2px solid #E2E8F0;">${await window.getTranslation('map_tippy_cities_grouped')}</th>
+                                    <th style="padding: 8px 5px; text-align: right; font-weight: 700; font-size: 16px; color: #1A202C; border-bottom: 2px solid #E2E8F0;">${await window.getTranslation('map_tippy_people')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -317,7 +345,7 @@ function setupMapInteractions() {
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <td style="padding: 8px 5px; text-align: left; font-weight: 700; font-size: 16px; color: #1A202C; border-top: 2px solid #E2E8F0;">Total</td>
+                                    <td style="padding: 8px 5px; text-align: left; font-weight: 700; font-size: 16px; color: #1A202C; border-top: 2px solid #E2E8F0;">${await window.getTranslation('map_tippy_total')}</td>
                                     <td style="padding: 8px 5px; text-align: right; font-weight: 700; font-size: 16px; color: #C53030; border-top: 2px solid #E2E8F0;">${total}</td>
                                 </tr>
                             </tfoot>
@@ -327,7 +355,8 @@ function setupMapInteractions() {
                 const singleFeature = clusteredFeatures[0];
                 const cityName = singleFeature.get('cityName');
                 const cityCount = singleFeature.get('cityCount');
-                content = `<div style="padding: 4px 8px; font-family: 'Inter', sans-serif; font-size: 14px;"><strong style="font-size: 15px; color: #1A202C;">${cityName}</strong><br>${cityCount} pessoa${cityCount > 1 ? 's' : ''}</div>`;
+                const personText = await window.getTranslation(cityCount > 1 ? 'map_tippy_persons' : 'map_tippy_person');
+                content = `<div style="padding: 4px 8px; font-family: 'Inter', sans-serif; font-size: 14px;"><strong style="font-size: 15px; color: #1A202C;">${cityName}</strong><br>${cityCount} ${personText}</div>`;
             }
             const virtualEl = { getBoundingClientRect: () => ({ width: 0, height: 0, top: evt.pixel[1] + mapElement.getBoundingClientRect().top, right: evt.pixel[0] + mapElement.getBoundingClientRect().left, bottom: evt.pixel[1] + mapElement.getBoundingClientRect().top, left: evt.pixel[0] + mapElement.getBoundingClientRect().left }) };
             tippyInstance = tippy(document.body, { getReferenceClientRect: virtualEl.getBoundingClientRect, content: content, allowHTML: true, placement: 'top', arrow: true, animation: 'fade', theme: 'light-border', trigger: 'manual', appendTo: () => document.body });
@@ -363,7 +392,7 @@ async function geocodeCity(cityName, stateName) {
 }
 
 async function processDataFromDB(planilhaNome) {
-    showLoading(true, 0, `Carregando dados da planilha...`);
+    await showLoading(true, 0, 'map_process_loading_data');
     ui.unlocatedCitiesSection.classList.add('hidden');
     ui.unlocatedCitiesList.innerHTML = '';
     if (tippyInstance) tippyInstance.destroy();
@@ -383,7 +412,7 @@ async function processDataFromDB(planilhaNome) {
         });
 
         if (!storedData || storedData.length < 2) {
-            displayMessage('Dados não encontrados ou planilha vazia.', 'error'); showLoading(false); return;
+            await displayMessage('map_process_no_data', 'error'); await showLoading(false); return;
         }
 
         const header = storedData[0].map(h => h.toString().toLowerCase().trim());
@@ -393,43 +422,31 @@ async function processDataFromDB(planilhaNome) {
         const evocColumnIndices = header.map((h, i) => h.startsWith('evoc') ? i : -1).filter(i => i !== -1);
 
         if (cityColumnIndex === -1) {
-            displayMessage('Coluna "CIDADES" não encontrada na planilha.', 'error'); showLoading(false); return;
+            await displayMessage('map_process_no_city_column', 'error'); await showLoading(false); return;
         }
         if (filtersState.age.isActive && ageColumnIndex === -1) {
-            displayMessage('Filtro de idade ativo, mas coluna "IDADE" não encontrada.', 'error'); showLoading(false); return;
+            await displayMessage('map_process_no_age_column', 'error'); await showLoading(false); return;
         }
         if (filtersState.evocations.isActive && evocColumnIndices.length === 0) {
-            displayMessage('Filtro de evocações ativo, mas colunas "EVOC" não encontradas.', 'error'); showLoading(false); return;
+            await displayMessage('map_process_no_evoc_column', 'error'); await showLoading(false); return;
         }
 
-        displayMessage('Filtrando participantes...', 'info');
+        await displayMessage('map_process_filtering', 'info');
         const cityCounts = {};
         const dataRows = storedData.slice(1);
 
         for (const row of dataRows) {
             let passesFilters = true;
 
-            // Filtro de Evocações
             if (filtersState.evocations.isActive) {
                 const userEvocations = new Set(evocColumnIndices.map(index => (row[index] || '').toString().trim().toUpperCase()));
-                
                 if (filtersState.evocations.matchType === 'all') {
-                    // Lógica 'E': precisa ter TODAS as palavras
-                    const hasAllWords = filtersState.evocations.selectedWords.every(word => userEvocations.has(word));
-                    if (!hasAllWords) {
-                        passesFilters = false;
-                    }
+                    if (!filtersState.evocations.selectedWords.every(word => userEvocations.has(word))) passesFilters = false;
                 } else {
-                    // Lógica 'OU': precisa ter PELO MENOS UMA das palavras
-                    const hasAnyWord = filtersState.evocations.selectedWords.some(word => userEvocations.has(word));
-                    if (!hasAnyWord) {
-                        passesFilters = false;
-                    }
+                    if (!filtersState.evocations.selectedWords.some(word => userEvocations.has(word))) passesFilters = false;
                 }
             }
 
-
-            // Filtro de Idade
             if (passesFilters && filtersState.age.isActive) {
                 const userAge = parseInt(row[ageColumnIndex], 10);
                 if (isNaN(userAge)) {
@@ -456,8 +473,8 @@ async function processDataFromDB(planilhaNome) {
         }
 
         if (Object.keys(cityCounts).length === 0) {
-            displayMessage('Nenhum participante encontrado com os filtros aplicados.', 'warning');
-            showLoading(false);
+            await displayMessage('map_process_no_participants_found', 'warning');
+            await showLoading(false);
             if(clusterLayer) map.removeLayer(clusterLayer);
             return;
         }
@@ -468,8 +485,12 @@ async function processDataFromDB(planilhaNome) {
         for (let i = 0; i < uniqueCities.length; i++) {
             const cityIdentifier = uniqueCities[i];
             let [cityName, stateName] = cityIdentifier.split(', ');
-            const progressText = `Geocodificando: ${cityName}... (${i + 1}/${uniqueCities.length})`;
-            showLoading(true, Math.round(((i + 1) / uniqueCities.length) * 100), progressText);
+            
+            await showLoading(true, Math.round(((i + 1) / uniqueCities.length) * 100), 'map_process_geocoding', {
+                cityName: cityName,
+                current: i + 1,
+                total: uniqueCities.length
+            });
 
             let coords = await geocodeCity(cityName, stateName);
             if (coords) {
@@ -481,7 +502,7 @@ async function processDataFromDB(planilhaNome) {
             }
         }
 
-        if (features.length === 0) { displayMessage('Nenhuma cidade foi geocodificada com sucesso.', 'error'); showLoading(false); return; }
+        if (features.length === 0) { await displayMessage('map_process_no_cities_geocoded', 'error'); await showLoading(false); return; }
 
         const vectorSource = new ol.source.Vector({ features: features });
         const clusterSource = new ol.source.Cluster({ distance: 40, minDistance: 20, source: vectorSource });
@@ -510,36 +531,37 @@ async function processDataFromDB(planilhaNome) {
         map.addLayer(clusterLayer);
         if (!ol.extent.isEmpty(vectorSource.getExtent())) { map.getView().fit(vectorSource.getExtent(), { padding: [50, 50, 50, 50], duration: 1000 }); }
 
-        let finalMessage = `Mapeamento concluído! <br>Cidades únicas mapeadas: ${features.length}.`;
+        let finalMessage = (await window.getTranslation('map_process_completed')).replace('{count}', features.length);
         if (unlocatedCitiesDetails.length > 0) {
-            finalMessage += `<br>Cidades não encontradas: ${unlocatedCitiesDetails.length}.`;
+            finalMessage += (await window.getTranslation('map_process_unlocated_cities')).replace('{count}', unlocatedCitiesDetails.length);
             ui.unlocatedCitiesSection.classList.remove('hidden');
             ui.unlocatedCountSpan.textContent = unlocatedCitiesDetails.length;
-            ui.unlocatedCitiesList.innerHTML = unlocatedCitiesDetails.map(item => `<li>${item.name} (${item.count} ocorrência${item.count > 1 ? 's' : ''})</li>`).join('');
+            const occurrenceText = await window.getTranslation('map_process_occurrence');
+            const occurrencesText = await window.getTranslation('map_process_occurrences');
+            ui.unlocatedCitiesList.innerHTML = unlocatedCitiesDetails.map(item => `<li>${item.name} (${item.count} ${item.count > 1 ? occurrencesText : occurrenceText})</li>`).join('');
         }
-        displayMessage(finalMessage, 'success');
-        showLoading(false);
+        await displayMessage('map_msg_from_string', 'success', { message: finalMessage }); // Use a generic key for raw HTML
+        await showLoading(false);
         ui.downloadPdfBtn.classList.remove('hidden');
 
     } catch (error) {
         console.error("Erro ao processar dados:", error);
-        displayMessage(`Erro: ${error.message}.`, 'error');
-        showLoading(false);
+        await displayMessage('map_process_error', 'error', { message: error.message });
+        await showLoading(false);
     }
 }
 
-function iniciarMapeamento() {
-    // Validações
+async function iniciarMapeamento() {
     if (filtersState.evocations.isActive && filtersState.evocations.selectedWords.length === 0) {
         ui.resultsPanel.classList.remove('hidden');
-        displayMessage('Por favor, selecione pelo menos uma evocação para filtrar.', 'warning');
+        await displayMessage('map_validate_select_evocation', 'warning');
         if(clusterLayer) map.removeLayer(clusterLayer);
         ui.downloadPdfBtn.classList.add('hidden');
         return;
     }
     if (filtersState.age.isActive && (filtersState.age.value === null || filtersState.age.value === '')) {
         ui.resultsPanel.classList.remove('hidden');
-        displayMessage('Por favor, digite um valor válido para a idade.', 'warning');
+        await displayMessage('map_validate_enter_age', 'warning');
         if(clusterLayer) map.removeLayer(clusterLayer);
         ui.downloadPdfBtn.classList.add('hidden');
         return;
@@ -551,9 +573,9 @@ function iniciarMapeamento() {
     const planilhaNome = urlParams.get("planilha");
 
     if (planilhaNome) {
-        processDataFromDB(planilhaNome);
+        await processDataFromDB(planilhaNome);
     } else {
-        displayMessage('Nome da planilha não fornecido na URL.', 'error');
+        await displayMessage('map_validate_no_sheet_name', 'error');
     }
 }
 
@@ -566,47 +588,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!planilhaNome) {
         ui.mapButton.disabled = true;
-        // disable filter buttons as well
         ui.editAgeBtn.disabled = true;
         ui.editEvocationsBtn.disabled = true;
     }
 
     ui.mapButton.addEventListener('click', iniciarMapeamento);
 
-    // Adiciona listener para o seletor de tipo de match das evocações
     document.getElementById('evocations-match-type').addEventListener('change', (e) => {
         filtersState.evocations.matchType = e.target.value;
         updateEvocationsFilterStatus();
     });
 
-    // Event listener para o modal de Evocações
     ui.editEvocationsBtn.addEventListener('click', async () => {
-        let tempSelectedWords = [...filtersState.evocations.selectedWords]; // Cópia para edição no modal
+        let tempSelectedWords = [...filtersState.evocations.selectedWords];
 
         const result = await Swal.fire({
-            title: 'Filtrar por Evocações',
-            html: getEvocationsModalHTML(),
+            title: await window.getTranslation('map_modal_evocations_title'),
+            html: await getEvocationsModalHTML(),
             showCancelButton: true,
-            confirmButtonText: 'Aplicar Filtro',
-            cancelButtonText: 'Cancelar',
+            confirmButtonText: await window.getTranslation('map_modal_apply_filter_btn'),
+            cancelButtonText: await window.getTranslation('map_modal_cancel_btn'),
             showDenyButton: filtersState.evocations.isActive,
-            denyButtonText: 'Limpar Filtro',
+            denyButtonText: await window.getTranslation('map_modal_clear_filter_btn'),
             didOpen: async () => {
-                const modalContent = document.getElementById('evocations-modal-content');
-                
                 await loadWords(planilhaNome);
                 currentPage = 1;
-                renderWordListInModal(tempSelectedWords);
+                await renderWordListInModal(tempSelectedWords);
                 updateSelectedWordsPanelInModal(tempSelectedWords);
 
                 const searchInput = document.getElementById('word-search-input');
-                searchInput.addEventListener('input', () => {
+                searchInput.addEventListener('input', async () => {
                     currentPage = 1;
-                    renderWordListInModal(tempSelectedWords);
+                    await renderWordListInModal(tempSelectedWords);
                 });
 
-                const wordListContainer = document.getElementById('word-list-container');
-                wordListContainer.addEventListener('change', (e) => {
+                document.getElementById('word-list-container').addEventListener('change', (e) => {
                     if (e.target.type === 'checkbox') {
                         const word = e.target.value;
                         if (e.target.checked) {
@@ -618,24 +634,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
 
-                const selectedPanel = document.getElementById('selected-words-panel');
-                selectedPanel.addEventListener('click', (e) => {
+                document.getElementById('selected-words-panel').addEventListener('click', async (e) => {
                      if (e.target.classList.contains('remove-word-btn')) {
                         const wordToRemove = e.target.dataset.word;
                         tempSelectedWords = tempSelectedWords.filter(w => w !== wordToRemove);
                         updateSelectedWordsPanelInModal(tempSelectedWords);
-                        renderWordListInModal(tempSelectedWords);
+                        await renderWordListInModal(tempSelectedWords);
                     }
                     if (e.target.id === 'clear-selected-btn') {
                         tempSelectedWords = [];
                         updateSelectedWordsPanelInModal(tempSelectedWords);
-                        renderWordListInModal(tempSelectedWords);
+                        await renderWordListInModal(tempSelectedWords);
                     }
                 });
             },
-            preConfirm: () => {
-                return { selectedWords: tempSelectedWords };
-            }
+            preConfirm: () => ({ selectedWords: tempSelectedWords })
         });
 
         if (result.isConfirmed) {
@@ -646,24 +659,23 @@ document.addEventListener('DOMContentLoaded', () => {
             filtersState.evocations.selectedWords = [];
             filtersState.evocations.isActive = false;
         }
-        updateEvocationsFilterStatus();
+        await updateEvocationsFilterStatus();
     });
 
-    // Event listener para o modal de Idade
     ui.editAgeBtn.addEventListener('click', async () => {
         const result = await Swal.fire({
-            title: 'Filtrar por Idade',
-            html: getAgeModalHTML(),
+            title: await window.getTranslation('map_modal_age_title'),
+            html: await getAgeModalHTML(),
             showCancelButton: true,
-            confirmButtonText: 'Aplicar Filtro',
-            cancelButtonText: 'Cancelar',
+            confirmButtonText: await window.getTranslation('map_modal_apply_filter_btn'),
+            cancelButtonText: await window.getTranslation('map_modal_cancel_btn'),
             showDenyButton: filtersState.age.isActive,
-            denyButtonText: 'Limpar Filtro',
-            preConfirm: () => {
+            denyButtonText: await window.getTranslation('map_modal_clear_filter_btn'),
+            preConfirm: async () => {
                 const value = document.getElementById('age-value-modal').value;
                 const condition = document.getElementById('age-condition-modal').value;
                 if (!value) {
-                    Swal.showValidationMessage('Por favor, insira um valor para a idade');
+                    Swal.showValidationMessage(await window.getTranslation('map_modal_age_validation'));
                     return false;
                 }
                 return { value: parseInt(value, 10), condition };
@@ -679,21 +691,19 @@ document.addEventListener('DOMContentLoaded', () => {
             filtersState.age.value = null;
             filtersState.age.isActive = false;
         }
-        updateAgeFilterStatus();
+        await updateAgeFilterStatus();
     });
 
     ui.downloadPdfBtn.addEventListener('click', async () => {
-        showLoading(true, 5, 'Renderizando mapa para PDF...');
+        await showLoading(true, 5, 'map_pdf_rendering');
         await new Promise(resolve => setTimeout(resolve, 500)); 
         
         try {
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
             
-            const mapElement = document.getElementById('map');
-            
-            showLoading(true, 30, 'Capturando imagem do mapa...');
-            const mapCanvas = await html2canvas(mapElement, { 
+            await showLoading(true, 30, 'map_pdf_capturing');
+            const mapCanvas = await html2canvas(document.getElementById('map'), { 
                 scale: 2, 
                 useCORS: true,
                 logging: false,
@@ -702,7 +712,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
             
-            showLoading(true, 70, 'Adicionando imagem ao PDF...');
+            await showLoading(true, 70, 'map_pdf_adding_image');
             const mapImgData = mapCanvas.toDataURL('image/png');
             const mapImgProps = pdf.getImageProperties(mapImgData);
             const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -712,14 +722,14 @@ document.addEventListener('DOMContentLoaded', () => {
             let y = (mapPdfHeight < pdfHeight) ? (pdfHeight - mapPdfHeight) / 2 : 0;
             pdf.addImage(mapImgData, 'PNG', 0, y, mapPdfWidth, mapPdfHeight);
             
-            showLoading(true, 95, 'Finalizando...');
+            await showLoading(true, 95, 'map_pdf_finishing');
             const fileName = `MapaFiltrado_${new Date().toISOString().split("T")[0]}.pdf`;
             pdf.save(fileName);
         } catch (error) {
             console.error("Erro ao gerar PDF:", error);
-            displayMessage('Ocorreu um erro ao gerar o PDF.', 'error');
+            await displayMessage('map_pdf_error', 'error');
         } finally {
-            showLoading(false);
+            await showLoading(false);
         }
     });
 });

@@ -4,35 +4,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Análise Geoespacial Avançada - OpenLayers</title>
-    <!-- OpenLayers CSS -->
+    <title data-translate="map_title">Análise Geoespacial Avançada - OpenLayers</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v7.1.0/ol.css">
-    <!-- Tippy.js CSS -->
     <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css" />
     <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/themes/light-border.css" />
-    <!-- SweetAlert2 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="/home/SuasAnalises/DetalhesPlanilha/Analises/dashboard/atualizacao.js" type="module" defer></script>
 
-    <!-- OpenLayers JS -->
     <script src="https://cdn.jsdelivr.net/npm/ol@v7.1.0/dist/ol.js"></script>
-    <!-- Popper.js & Tippy.js -->
     <script src="https://unpkg.com/@popperjs/core@2"></script>
     <script src="https://unpkg.com/tippy.js@6"></script>
-    <!-- jsPDF and html2canvas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <!-- SweetAlert2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <link rel="icon" type="image/png" href="/assets/icon.png" />
-    <!-- Hamburguer JS -->
+    <script src="/traducao.js" type="module" defer></script>
     <script src="/MenuLateral.js" type="module" defer></script>
     <link href="/assets/hamburguer.css" rel="stylesheet">
-    <!-- Menu JS -->
     <script src="menu.js" type="module" defer></script>
     <link href="menu.css" rel="stylesheet" />
-    <!-- Mapa JS e CSS -->
     <script src="mapa.js" type="module" defer></script>
     <link href="mapa.css" rel="stylesheet" />
 
@@ -43,68 +34,61 @@
         <div class="barra-conteudo card-banner">
             <div class="barra-logo">
                 <img src="/assets/tipo_de_analise_agora.png" alt="Logo Ágora">
-                <div class="titulo-site">METODOLOGIAS DAS<br>ÁGORAS COGNITIVAS</div>
+                <div class="titulo-site" data-translate="agora_methodologies">METODOLOGIAS DAS<br>ÁGORAS COGNITIVAS</div>
             </div>
             <div class="barra-planilha" id="nome-da-planilha"></div>
         </div>
     </div>
     <div class="container">
-        <!-- MENU -->
         <div class="menu">
-            <a class="menu_analises">Menu Das Análises</a>
-            <a href="./dashboard.html?planilha=">Dashboard</a>
-            <a href="./agora.html?planilha=">Socioeconômico</a>
-            <a href="./evocacoes.html?planilha=">Evocações</a>
-            <a href="./formaragora.html?planilha=">Formar Ágoras</a>
-            <a href="./mapa.html?planilha=">Mapa</a>
+            <a class="menu_analises" data-translate="analysis_menu">Menu Das Análises</a>
+            <a href="./dashboard.html?planilha=" data-translate="dashboard">Dashboard</a>
+            <a href="./agora.html?planilha=" data-translate="socioeconomic">Socioeconômico</a>
+            <a href="./evocacoes.html?planilha=" data-translate="evocations">Evocações</a>
+            <a href="./formaragora.html?planilha=" data-translate="form_agoras">Formar Ágoras</a>
+            <a href="./mapa.html?planilha=" data-translate="map">Mapa</a>
         </div>
 
         <div class="page-wrapper">
-            <!-- Sidebar com controles e informações -->
             <aside id="sidebar">
                 <div class="sidebar-header">
-                    <h1>Análise por Geolocalização</h1>
-                    <p class="description" id="description-text">
+                    <h1 data-translate="map_main_title">Análise por Geolocalização</h1>
+                    <p class="description" id="description-text" data-translate="map_description_default_placeholder">
                         Utilize os filtros para refinar os dados que serão exibidos no mapa. Clique em uma opção para configurar.
                     </p>
                 </div>
 
                 <div class="sidebar-content">
-                    <!-- Seção de Filtro Principal -->
                     <div id="filter-section">
-                        <h2>Filtros Avançados</h2>
+                        <h2 data-translate="map_advanced_filters">Filtros Avançados</h2>
 
-                        <!-- Card para Filtro de Evocações -->
                         <div class="filter-card" id="evocations-filter-card">
                             <div class="filter-card-header">
-                                <span class="filter-card-title">Evocações</span>
-                                <button id="edit-evocations-filter" class="edit-filter-btn">Configurar</button>
+                                <span class="filter-card-title" data-translate="map_evocations_filter_title">Evocações</span>
+                                <button id="edit-evocations-filter" class="edit-filter-btn" data-translate="map_btn_configure">Configurar</button>
                             </div>
-                            <p class="filter-card-status" id="evocations-filter-status">Nenhum filtro aplicado.</p>
-                            <!-- Novo Seletor de Tipo de Correspondência -->
+                            <p class="filter-card-status" id="evocations-filter-status" data-translate="map_status_no_filter">Nenhum filtro aplicado.</p>
                             <div class="match-type-selector">
-                                <label for="evocations-match-type">Tipo de filtro:</label>
+                                <label for="evocations-match-type" data-translate="map_filter_type_label">Tipo de filtro:</label>
                                 <select id="evocations-match-type">
-                                    <option value="all" selected>Contém todos (E)</option>
-                                    <option value="any">Contém qualquer um (OU)</option>
+                                    <option value="all" selected data-translate="map_match_all_option">Contém todos (E)</option>
+                                    <option value="any" data-translate="map_match_any_option">Contém qualquer um (OU)</option>
                                 </select>
                             </div>
                         </div>
 
 
-                        <!-- Botão para Filtro de Idade -->
                         <div class="filter-card" id="age-filter-card">
                             <div class="filter-card-header">
-                                <span class="filter-card-title">Idade</span>
-                                <button id="edit-age-filter" class="edit-filter-btn">Configurar</button>
+                                <span class="filter-card-title" data-translate="map_age_filter_title">Idade</span>
+                                <button id="edit-age-filter" class="edit-filter-btn" data-translate="map_btn_configure">Configurar</button>
                             </div>
-                            <p class="filter-card-status" id="age-filter-status">Nenhum filtro aplicado.</p>
+                            <p class="filter-card-status" id="age-filter-status" data-translate="map_status_no_filter">Nenhum filtro aplicado.</p>
                         </div>
 
-                        <button id="map-button">Mapear</button>
+                        <button id="map-button" data-translate="map_map_button">Mapear</button>
                     </div>
 
-                    <!-- Painel de Resultados -->
                     <div id="results-panel" class="hidden">
                         <div id="message-area" class="info">
                             <svg class="message-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
@@ -113,7 +97,7 @@
                                     d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12ZM12 8.25a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V9a.75.75 0 0 1 .75-.75ZM12 15a.75.75 0 0 0-.75.75.75.75 0 0 0 1.5 0 .75.75 0 0 0-.75-.75Z"
                                     clip-rule="evenodd" />
                             </svg>
-                            <span id="message-text">Aguardando mapeamento...</span>
+                            <span id="message-text" data-translate="map_msg_waiting">Aguardando mapeamento...</span>
                         </div>
                         <div id="unlocatedCitiesSection" class="hidden">
                             <span class="unlocated-cities-toggle" onclick="toggleUnlocatedCities()">
@@ -122,22 +106,21 @@
                                         d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.561 0 3.273L7.28 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653Z"
                                         clip-rule="evenodd" />
                                 </svg>
-                                Cidades Não Encontradas (<span id="unlocatedCount">0</span>)
+                                <span data-translate="map_unlocated_cities_toggle">Cidades Não Encontradas</span> (<span id="unlocatedCount">0</span>)
                             </span>
                             <ul id="unlocatedCitiesList" class="unlocated-cities-list"></ul>
                         </div>
-                        <button id="download-pdf-btn" class="hidden">Baixar Mapa como PDF</button>
+                        <button id="download-pdf-btn" class="hidden" data-translate="map_download_pdf_button">Baixar Mapa como PDF</button>
                     </div>
                 </div>
             </aside>
 
-            <!-- Conteúdo principal com o mapa -->
             <main id="main-content">
                 <div id="map-container">
                     <div id="map"></div>
                     <div class="loading-overlay" id="loadingOverlay">
                         <div class="spinner"></div>
-                        <div class="loading-text" id="loadingProgressText">Preparando...</div>
+                        <div class="loading-text" id="loadingProgressText" data-translate="map_loading_preparing">Preparando...</div>
                         <div class="progress-bar-container">
                             <div class="progress-bar" id="progressBar"></div>
                         </div>
