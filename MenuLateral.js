@@ -240,7 +240,10 @@ function setupLanguageSwitcher() {
     const languages = {
         'pt': { flag: '/assets/br.png' },
         'en': { flag: '/assets/us.png' },
-        'es': { flag: '/assets/es.png' }
+        'es': { flag: '/assets/es.png' },
+        'ita': { flag: '/assets/ita.png' },
+        'ru': { flag: '/assets/ru.png' },
+        'cn': { flag: '/assets/cn.png' }
     };
 
     const languageToggle = document.getElementById('language-toggle-menu');
