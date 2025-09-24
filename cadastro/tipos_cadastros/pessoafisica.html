@@ -8,95 +8,100 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
     <link rel="icon" type="image/png" href="../../assets/icon.png">
     <link href="padrao.css" rel="stylesheet">
+    <link href="../../traducao.css" rel="stylesheet">
+    <script src="../../traducao.js" type="module" defer></script>
     <script src="pessoafisica.js" type="module" defer></script>
     <title>Ágora</title>
 </head>
 
 <body>
+    <div id="language-toggle">
+        <img id="current-flag" src="/assets/br.png" alt="Selecionar Idioma">
+    </div>
     <form class="cadastro-form">
-        <h3>Dados Principais</h3>
+        <h3 data-translate="main_data">Dados Principais</h3>
 
-        <label for="email">E-mail<span>*</span>:</label>
-        <input type="email" id="email" name="email" placeholder="Digite seu e-mail">
+        <label for="email" data-translate="email">E-mail<span>*</span>:</label>
+        <input type="email" id="email" name="email" data-translate-placeholder="email_placeholder" placeholder="Digite seu e-mail">
 
-        <label for="senha">Senha<span>*</span>:</label>
-        <input type="password" id="senha" name="senha" placeholder="Digite sua senha">
+        <label for="senha" data-translate="password">Senha<span>*</span>:</label>
+        <input type="password" id="senha" name="senha" data-translate-placeholder="password_placeholder" placeholder="Digite sua senha">
 
-        <label for="confirma_senha">Senha<span>*</span>:</label>
-        <input type="password" id="confirma_senha" name="confirma_senha" placeholder="Digite sua senha">
+        <label for="confirma_senha" data-translate="confirm_password">Confirmar Senha<span>*</span>:</label>
+        <input type="password" id="confirma_senha" name="confirma_senha" data-translate-placeholder="confirm_password_placeholder" placeholder="Digite sua senha novamente">
 
         <hr>
-        <h3>Dados Pessoais</h3>
+        <h3 data-translate="personal_data">Dados Pessoais</h3>
 
-        <label for="nome">Nome completo<span>*</span>:</label>
-        <input type="text" id="nome" name="nome" placeholder="Digite seu nome completo">
+        <label for="nome" data-translate="full_name">Nome completo<span>*</span>:</label>
+        <input type="text" id="nome" name="nome" data-translate-placeholder="full_name_placeholder" placeholder="Digite seu nome completo">
 
-        <label for="data-nascimento">Data de nascimento<span>*</span>:</label>
+        <label for="data-nascimento" data-translate="birth_date">Data de nascimento<span>*</span>:</label>
         <input type="date" id="data-nascimento" name="data-nascimento">
 
-        <label for="cpf">CPF<span>*</span>:</label>
-        <input type="number" id="cpf" name="cpf" placeholder="Digite seu CPF">
+        <label for="cpf" data-translate="cpf">CPF<span>*</span>:</label>
+        <input type="number" id="cpf" name="cpf" data-translate-placeholder="cpf_placeholder" placeholder="Digite seu CPF">
 
-        <label for="rg">RG:</label>
-        <input type="number" id="rg" name="rg" placeholder="Digite seu RG">
+        <label for="rg" data-translate="rg">RG:</label>
+        <input type="number" id="rg" name="rg" data-translate-placeholder="rg_placeholder" placeholder="Digite seu RG">
 
-        <label for="genero">Gênero:</label>
+        <label for="genero" data-translate="gender">Gênero:</label>
         <select id="genero" name="genero">
-            <option value="" disabled selected>Selecione seu gênero</option>
-            <option value="masculino">Masculino</option>
-            <option value="feminino">Feminino</option>
-            <option value="nao-binario">Não-binário</option>
-            <option value="outro">Outro</option>
-            <option value="prefiro-nao-dizer">Prefiro não dizer</option>
+            <option value="" disabled selected data-translate="select_gender">Selecione seu gênero</option>
+            <option value="masculino" data-translate="male">Masculino</option>
+            <option value="feminino" data-translate="female">Feminino</option>
+            <option value="nao-binario" data-translate="non_binary">Não-binário</option>
+            <option value="outro" data-translate="other">Outro</option>
+            <option value="prefiro-nao-dizer" data-translate="prefer_not_to_say">Prefiro não dizer</option>
         </select>
         <div id="outro-input-container">
-            <label for="outro-genero">Por favor, especifique:</label>
-            <input type="text" id="outro-genero" name="outro-genero" placeholder="Digite seu gênero">
+            <label for="outro-genero" data-translate="specify_gender">Por favor, especifique:</label>
+            <input type="text" id="outro-genero" name="outro-genero" data-translate-placeholder="specify_gender_placeholder" placeholder="Digite seu gênero">
         </div>
 
-        <label for="nacionalidade">Nacionalidade:</label>
-        <input type="text" id="nacionalidade" name="nacionalidade" placeholder="Digite sua nacionalidade">
+        <label for="nacionalidade" data-translate="nationality">Nacionalidade:</label>
+        <input type="text" id="nacionalidade" name="nacionalidade" data-translate-placeholder="nationality_placeholder" placeholder="Digite sua nacionalidade">
 
-        <label for="pais">País<span>*</span>:</label>
-        <input type="text" id="pais" name="pais" placeholder="Digite seu país">
+        <label for="pais" data-translate="country">País<span>*</span>:</label>
+        <input type="text" id="pais" name="pais" data-translate-placeholder="country_placeholder" placeholder="Digite seu país">
 
-        <label for="cidade">Cidade:</label>
-        <input type="text" id="cidade" name="cidade" placeholder="Digite sua cidade">
-
-        <hr>
-        <h3>Contato</h3>
-
-        <label for="telefone">Telefone:<span>*</span></label>
-        <input type="tel" id="telefone" name="telefone" placeholder="Digite seu telefone">
-
-        <label for="endereco">Endereço completo:</label>
-        <input type="text" id="endereco" name="endereco" placeholder="Digite seu endereço completo">
+        <label for="cidade" data-translate="city">Cidade:</label>
+        <input type="text" id="cidade" name="cidade" data-translate-placeholder="city_placeholder" placeholder="Digite sua cidade">
 
         <hr>
-        <h3>Dados Complementares</h3>
+        <h3 data-translate="contact">Contato</h3>
 
-        <label for="ocupacao">Ocupação/Profissão:</label>
-        <input type="text" id="ocupacao" name="ocupacao" placeholder="Digite sua ocupação ou profissão">
+        <label for="telefone" data-translate="phone">Telefone:<span>*</span></label>
+        <input type="tel" id="telefone" name="telefone" data-translate-placeholder="phone_placeholder" placeholder="Digite seu telefone">
 
-        <label for="escolaridade">Escolaridade:</label>
+        <label for="endereco" data-translate="full_address">Endereço completo:</label>
+        <input type="text" id="endereco" name="endereco" data-translate-placeholder="full_address_placeholder" placeholder="Digite seu endereço completo">
+
+        <hr>
+        <h3 data-translate="additional_data">Dados Complementares</h3>
+
+        <label for="ocupacao" data-translate="occupation">Ocupação/Profissão:</label>
+        <input type="text" id="ocupacao" name="ocupacao" data-translate-placeholder="occupation_placeholder" placeholder="Digite sua ocupação ou profissão">
+
+        <label for="escolaridade" data-translate="education_level">Escolaridade:</label>
         <select id="escolaridade" name="escolaridade">
-            <option value="" disabled selected>Selecione sua escolaridade</option>
-            <option value="fundamental-incompleto">Ensino Fundamental Incompleto</option>
-            <option value="fundamental-completo">Ensino Fundamental Completo</option>
-            <option value="medio-incompleto">Ensino Médio Incompleto</option>
-            <option value="medio-completo">Ensino Médio Completo</option>
-            <option value="superior-incompleto">Ensino Superior Incompleto</option>
-            <option value="superior-completo">Ensino Superior Completo</option>
-            <option value="pos-graduacao">Pós-Graduação</option>
-            <option value="mestrado">Mestrado</option>
-            <option value="doutorado">Doutorado</option>
+            <option value="" disabled selected data-translate="select_education">Selecione sua escolaridade</option>
+            <option value="fundamental-incompleto" data-translate="elementary_incomplete">Ensino Fundamental Incompleto</option>
+            <option value="fundamental-completo" data-translate="elementary_complete">Ensino Fundamental Completo</option>
+            <option value="medio-incompleto" data-translate="high_school_incomplete">Ensino Médio Incompleto</option>
+            <option value="medio-completo" data-translate="high_school_complete">Ensino Médio Completo</option>
+            <option value="superior-incompleto" data-translate="higher_ed_incomplete">Ensino Superior Incompleto</option>
+            <option value="superior-completo" data-translate="higher_ed_complete">Ensino Superior Completo</option>
+            <option value="pos-graduacao" data-translate="post_graduate">Pós-Graduação</option>
+            <option value="mestrado" data-translate="masters">Mestrado</option>
+            <option value="doutorado" data-translate="doctorate">Doutorado</option>
         </select>
         <p>
 
-            <label for="formacao">Formação:</label>
-            <input type="text" id="formacao" name="formacao" placeholder="Digite sua formação">
+            <label for="formacao" data-translate="degree">Formação:</label>
+            <input type="text" id="formacao" name="formacao" data-translate-placeholder="degree_placeholder" placeholder="Digite sua formação">
 
-            <button type="submit" class="cadastro-button">Cadastrar</button>
+            <button type="submit" class="cadastro-button" data-translate="register_button">Cadastrar</button>
     </form>
 </body>
 
