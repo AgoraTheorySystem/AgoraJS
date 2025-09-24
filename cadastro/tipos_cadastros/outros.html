@@ -8,24 +8,32 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
     <link rel="icon" type="image/png" href="../../assets/icon.png">
     <link href="padrao.css" rel="stylesheet">
+    <link href="../../traducao.css" rel="stylesheet">
+    <script src="../../traducao.js" type="module" defer></script>
     <script src="outros.js" type="module" defer></script>
     <title>Ágora</title>
 </head>
 
 <body>
+    <div id="language-toggle">
+        <img id="current-flag" src="/assets/br.png" alt="Selecionar Idioma">
+    </div>
     <form class="cadastro-form">
-        <h3>Dados Principais</h3>
+        <h3 data-translate="main_data">Dados Principais</h3>
 
-        <label for="email">E-mail<span>*</span>:</label>
-        <input type="email" id="email" name="email" placeholder="Digite seu e-mail">
+        <label for="email" data-translate="email_label">E-mail<span>*</span>:</label>
+        <input type="email" id="email" name="email" data-translate-placeholder="email_placeholder"
+            placeholder="Digite seu e-mail">
 
-        <label for="senha">Senha<span>*</span>:</label>
-        <input type="password" id="senha" name="senha" placeholder="Digite sua senha">
-        
-        <label for="confirma_senha">Senha<span>*</span>:</label>
-        <input type="password" id="confirma_senha" name="confirma_senha" placeholder="Digite sua senha">
-    
-        <button type="submit" class="cadastro-button">Cadastrar</button>
+        <label for="senha" data-translate="password">Senha<span>*</span>:</label>
+        <input type="password" id="senha" name="senha" data-translate-placeholder="password_placeholder"
+            placeholder="Digite sua senha">
+
+        <label for="confirma_senha" data-translate="confirm_password">Confirmar Senha<span>*</span>:</label>
+        <input type="password" id="confirma_senha" name="confirma_senha"
+            data-translate-placeholder="confirm_password_placeholder" placeholder="Digite sua senha novamente">
+
+        <button type="submit" class="cadastro-button" data-translate="register_button">Cadastrar</button>
     </form>
 </body>
 

@@ -7,7 +7,10 @@ let currentLanguage = localStorage.getItem('selectedLanguage') || 'pt';
 const languages = {
     'pt': { flag: '/assets/br.png' },
     'en': { flag: '/assets/us.png' },
-    'es': { flag: '/assets/es.png' }
+    'ita': { flag: '/assets/ita.png' },
+    'ru': { flag: '/assets/ru.png' },
+    'es': { flag: '/assets/es.png' },
+    'cn': { flag: '/assets/cn.png' },
 };
 
 // Função para buscar e carregar um arquivo de idioma
@@ -28,6 +31,7 @@ const loadLanguage = async (lang) => {
 
 // Função para aplicar as traduções aos elementos do DOM
 const applyTranslationsToDOM = () => {
+    // Traduz textos normais
     document.querySelectorAll('[data-translate]').forEach(element => {
         const key = element.getAttribute('data-translate');
         if (window.translations[key]) {
@@ -39,6 +43,14 @@ const applyTranslationsToDOM = () => {
             } else {
                 element.textContent = window.translations[key];
             }
+        }
+    });
+
+    // Traduz atributos placeholder
+    document.querySelectorAll('[data-translate-placeholder]').forEach(element => {
+        const key = element.getAttribute('data-translate-placeholder');
+        if (window.translations[key]) {
+            element.placeholder = window.translations[key];
         }
     });
 };
@@ -64,9 +76,14 @@ const updateLanguage = async (lang) => {
     localStorage.setItem('selectedLanguage', lang);
     currentLanguage = lang;
 
+    // Atualiza ambas as bandeiras (geral e do menu lateral)
     const flagImage = document.getElementById('current-flag');
     if (languages[lang] && flagImage) {
         flagImage.src = languages[lang].flag;
+    }
+    const flagImageMenu = document.getElementById('current-flag-menu');
+    if (languages[lang] && flagImageMenu) {
+        flagImageMenu.src = languages[lang].flag;
     }
     
     await loadLanguage(lang);
@@ -76,18 +93,26 @@ const updateLanguage = async (lang) => {
 // Configuração inicial e eventos
 document.addEventListener('DOMContentLoaded', () => {
     const languageToggle = document.getElementById('language-toggle');
+    const languageToggleMenu = document.getElementById('language-toggle-menu');
     const langKeys = Object.keys(languages);
 
+    const toggleAction = () => {
+        const currentLang = localStorage.getItem('selectedLanguage') || 'pt';
+        const currentIndex = langKeys.indexOf(currentLang);
+        const nextIndex = (currentIndex + 1) % langKeys.length;
+        const nextLang = langKeys[nextIndex];
+        updateLanguage(nextLang);
+    };
+
     if (languageToggle) {
-        languageToggle.addEventListener('click', () => {
-            const currentLang = localStorage.getItem('selectedLanguage') || 'pt';
-            const currentIndex = langKeys.indexOf(currentLang);
-            const nextIndex = (currentIndex + 1) % langKeys.length;
-            const nextLang = langKeys[nextIndex];
-            updateLanguage(nextLang);
-        });
+        languageToggle.addEventListener('click', toggleAction);
+    }
+    // Adiciona o listener ao seletor de idioma do menu lateral também
+    if (languageToggleMenu) {
+        languageToggleMenu.addEventListener('click', toggleAction);
     }
 
     // Carrega o idioma salvo ou o padrão ao iniciar a página
     updateLanguage(currentLanguage);
 });
+

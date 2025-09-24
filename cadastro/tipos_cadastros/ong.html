@@ -8,78 +8,101 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
     <link rel="icon" type="image/png" href="../../assets/icon.png">
     <link href="padrao.css" rel="stylesheet">
+    <link href="../../traducao.css" rel="stylesheet">
+    <script src="../../traducao.js" type="module" defer></script>
     <script src="ong.js" type="module" defer></script>
     <title>Ágora</title>
 </head>
 
 <body>
+    <div id="language-toggle">
+        <img id="current-flag" src="/assets/br.png" alt="Selecionar Idioma">
+    </div>
     <form class="cadastro-form">
-        <h3>Dados Principais</h3>
+        <h3 data-translate="main_data">Dados Principais</h3>
 
-        <label for="email">E-mail oficial<span>*</span>:</label>
-        <input type="email" id="email" name="email" placeholder="Digite o e-mail oficial">
+        <label for="email" data-translate="official_email">E-mail oficial<span>*</span>:</label>
+        <input type="email" id="email" name="email" data-translate-placeholder="official_email_placeholder"
+            placeholder="Digite o e-mail oficial">
 
-        <label for="senha">Senha<span>*</span>:</label>
-        <input type="password" id="senha" name="senha" placeholder="Digite sua senha">
-        
-        <label for="confirma_senha">Senha<span>*</span>:</label>
-        <input type="password" id="confirma_senha" name="confirma_senha" placeholder="Digite sua senha">
+        <label for="senha" data-translate="password">Senha<span>*</span>:</label>
+        <input type="password" id="senha" name="senha" data-translate-placeholder="password_placeholder"
+            placeholder="Digite sua senha">
 
-        <hr>
-        <h3>Dados da ONG</h3>
-
-        <label for="nome-ong">Nome da organização<span>*</span>:</label>
-        <input type="text" id="nome-ong" name="nome-ong" placeholder="Digite o nome da organização">
-
-        <label for="cnpj">CNPJ<span>*</span>:</label>
-        <input type="text" id="cnpj" name="cnpj" placeholder="Digite o CNPJ">
-
-        <label for="pais">País<span>*</span>:</label>
-        <input type="text" id="pais" name="pais" placeholder="Digite o país da sua ONG">
-
-        <label for="cidade">Cidade<span>*</span>:</label>
-        <input type="text" id="cidade" name="cidade" placeholder="Digite a cidade da sua ONG">
-
-        <label for="area-atuacao">Área de atuação:</label>
-        <textarea id="area-atuacao" name="area-atuacao" placeholder="Descreva a área de atuação"></textarea>
-
-        <label for="missao">Missão/Objetivo social:</label>
-        <textarea id="missao" name="missao" placeholder="Descreva a missão ou objetivo social"></textarea>
+        <label for="confirma_senha" data-translate="confirm_password">Confirmar Senha<span>*</span>:</label>
+        <input type="password" id="confirma_senha" name="confirma_senha"
+            data-translate-placeholder="confirm_password_placeholder" placeholder="Digite sua senha novamente">
 
         <hr>
-        <h3>Representante Legal</h3>
-        
-        <label for="representante-nome">Nome completo<span>*</span>:</label>
-        <input type="text" id="representante-nome" name="representante-nome" placeholder="Nome do representante legal">
+        <h3 data-translate="ngo_data">Dados da ONG</h3>
 
-        <label for="representante-cpf">CPF<span>*</span>:</label>
-        <input type="text" id="representante-cpf" name="representante-cpf" placeholder="CPF do representante">
+        <label for="nome-ong" data-translate="organization_name">Nome da organização<span>*</span>:</label>
+        <input type="text" id="nome-ong" name="nome-ong" data-translate-placeholder="organization_name_placeholder"
+            placeholder="Digite o nome da organização">
 
-        <label for="representante-cargo">Cargo:</label>
-        <input type="text" id="representante-cargo" name="representante-cargo" placeholder="Cargo do representante">
+        <label for="cnpj" data-translate="cnpj">CNPJ<span>*</span>:</label>
+        <input type="text" id="cnpj" name="cnpj" data-translate-placeholder="cnpj_placeholder"
+            placeholder="Digite o CNPJ">
 
-        <label for="representante-contato">Telefone:<span>*</span></label>
-        <input type="tel" id="representante-contato" name="representante-contato" placeholder="Contato do representante">
+        <label for="pais" data-translate="country">País<span>*</span>:</label>
+        <input type="text" id="pais" name="pais" data-translate-placeholder="country_placeholder"
+            placeholder="Digite o país da sua ONG">
+
+        <label for="cidade" data-translate="city">Cidade<span>*</span>:</label>
+        <input type="text" id="cidade" name="cidade" data-translate-placeholder="city_placeholder"
+            placeholder="Digite a cidade da sua ONG">
+
+        <label for="area-atuacao" data-translate="area_of_operation">Área de atuação:</label>
+        <textarea id="area-atuacao" name="area-atuacao" data-translate-placeholder="area_of_operation_placeholder"
+            placeholder="Descreva a área de atuação"></textarea>
+
+        <label for="missao" data-translate="mission_objective">Missão/Objetivo social:</label>
+        <textarea id="missao" name="missao" data-translate-placeholder="mission_objective_placeholder"
+            placeholder="Descreva a missão ou objetivo social"></textarea>
 
         <hr>
-        <h3>Contato Institucional</h3>
+        <h3 data-translate="legal_representative">Representante Legal</h3>
 
-        <label for="telefone">Telefone fixo e/ou celular:</label>
-        <input type="tel" id="telefone" name="telefone" placeholder="Digite o telefone">
+        <label for="representante-nome" data-translate="full_name">Nome completo<span>*</span>:</label>
+        <input type="text" id="representante-nome" name="representante-nome"
+            data-translate-placeholder="legal_representative_name_placeholder"
+            placeholder="Nome do representante legal">
 
-        <label for="endereco">Endereço completo:</label>
-        <input type="text" id="endereco" name="endereco" placeholder="Digite o endereço completo">
+        <label for="representante-cpf" data-translate="cpf">CPF<span>*</span>:</label>
+        <input type="text" id="representante-cpf" name="representante-cpf"
+            data-translate-placeholder="representative_cpf_placeholder" placeholder="CPF do representante">
+
+        <label for="representante-cargo" data-translate="position">Cargo:</label>
+        <input type="text" id="representante-cargo" name="representante-cargo"
+            data-translate-placeholder="position_placeholder" placeholder="Cargo do representante">
+
+        <label for="representante-contato" data-translate="phone">Telefone:<span>*</span></label>
+        <input type="tel" id="representante-contato" name="representante-contato"
+            data-translate-placeholder="representative_phone_placeholder" placeholder="Contato do representante">
 
         <hr>
-        <h3>Dados Complementares</h3>
-        
-        <label for="atividades">Atividades principais realizadas:</label>
-        <textarea id="atividades" name="atividades" placeholder="Descreva as atividades principais"></textarea>
+        <h3 data-translate="institutional_contact">Contato Institucional</h3>
 
-        <label for="projetos">Projetos em andamento:</label>
-        <textarea id="projetos" name="projetos" placeholder="Descreva os projetos em andamento"></textarea>
+        <label for="telefone" data-translate="business_phone">Telefone fixo e/ou celular:</label>
+        <input type="tel" id="telefone" name="telefone" data-translate-placeholder="phone_placeholder"
+            placeholder="Digite o telefone">
 
-        <button type="submit" class="cadastro-button">Cadastrar</button>
+        <label for="endereco" data-translate="full_address">Endereço completo:</label>
+        <input type="text" id="endereco" name="endereco" data-translate-placeholder="full_address_placeholder"
+            placeholder="Digite o endereço completo">
+
+        <hr>
+        <h3 data-translate="additional_data">Dados Complementares</h3>
+
+        <label for="atividades" data-translate="main_activities">Atividades principais realizadas:</label>
+        <textarea id="atividades" name="atividades" data-translate-placeholder="main_activities_placeholder"
+            placeholder="Descreva as atividades principais"></textarea>
+
+        <label for="projetos" data-translate="ongoing_projects">Projetos em andamento:</label>
+        <textarea id="projetos" name="projetos" data-translate-placeholder="ongoing_projects_placeholder"
+            placeholder="Descreva os projetos em andamento"></textarea>
+
+        <button type="submit" class="cadastro-button" data-translate="register_button">Cadastrar</button>
     </form>
 </body>
 
