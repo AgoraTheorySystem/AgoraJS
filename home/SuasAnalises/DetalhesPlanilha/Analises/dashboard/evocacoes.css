@@ -1,7 +1,7 @@
 /* ===== Variáveis ===== */
 :root {
-  --largura-menu: 80px;           
-  --offset-conteudo: 20px;        
+  --largura-menu: 85px;           
+  --offset-conteudo: 25px;        
   
   --menu-top-vh: 43;              
   --menu-padding-top: 20px;       
@@ -58,7 +58,6 @@ body {
   font-weight: bold;
   color: white;
   text-transform: uppercase;
-  white-space: nowrap;
 }
 .barra-planilha {
   font-size: 1.4rem;
@@ -94,7 +93,6 @@ header.barra-externa nav.menu a {
   text-decoration: none;
   border-radius: 20px;
   line-height: 1;
-  white-space: nowrap;
   transition: color 0.2s;
 }
 header.barra-externa nav.menu a:hover { background: none; color: #FFD600; }
@@ -135,6 +133,7 @@ header.barra-externa nav.menu a.active { background: none !important; color: #FF
   font-size: 12px;
   text-align: center;
   width: calc(var(--largura-menu) - 20px);
+  white-space: normal;
   transition: transform 0.3s ease, font-size 0.3s ease, opacity 0.3s ease;
 }
 .menu-botao:hover { transform: scale(1.1); }
@@ -426,36 +425,36 @@ th.sortable.active-desc::after { content: ' ↓'; color: #fff; }
   border-radius: 3px;
 }
 
-/* === RESPONSIVO === */
-
 /* Tablets */
 @media (max-width: 800px) {
-  .menu-botao { font-size: 11px; }
+    .menu-botao {
+        font-size: 11px;
+    }
 }
 
-/* Celulares médios */
 @media (max-width: 600px) {
-  :root {
-    --largura-menu: 60px;
-    --menu-top-vh: 65;
-    --menu-padding-top: 20px;
-    --icon-size: 42px;
-  }
-  .menu-botao { font-size: 11px; width: 54px; }
-  th, td { padding: 8px 8px; }
+    :root {
+        --largura-menu: 65px; 
+        --menu-top-vh: 65;
+        --menu-padding-top: 20px;
+        --icon-size: 42px;
+    }
+    .menu-botao {
+        font-size: 11px;
+        width: 60px; 
+    }
 }
 
-/* Celulares muito pequenos */
 @media (max-width: 400px) {
-  body { padding: 10px; }
-  :root {
-    --largura-menu: 55px;
-    --menu-top-vh: 65;
-    --menu-padding-top: 18px;
-    --icon-size: 42px;
-  }
-  .menu-botao { font-size: 10px; }
-  .pagination button, .page-btn { padding: 6px 10px; font-size: 12px; }
+    body { padding: 10px; }
+    :root {
+        --largura-menu: 60px;
+        --menu-top-vh: 65;
+        --menu-padding-top: 18px;
+        --icon-size: 42px;
+    }
+    .menu-botao { font-size: 10px; width: 55px; }
+    .pagination button, .page-btn { padding: 6px 10px; font-size: 12px; }
 }
 
 @media (orientation: landscape) and (max-height: 480px) {
@@ -468,12 +467,33 @@ th.sortable.active-desc::after { content: ' ↓'; color: #fff; }
   .menu-botao { font-size: 9px; width: 45px; }
 }
 
-/* Tablets em retrato com largura ~768–834px */
 @media screen and (min-width: 768px) and (max-width: 834px)
   and (orientation: portrait) {
   :root { --menu-top-vh: 58; }
 }
 
+.titulo-site {
+    font-size: 1rem; 
+    white-space: normal; 
+  }
+
+@media (max-width: 576px) {
+  .barra-conteudo.card-banner {
+    flex-direction: column; 
+    padding: 12px 15px;
+    text-align: center;
+  }
+  .barra-logo {
+    flex-direction: column;
+    text-align: center;
+    gap: 5px;
+  }
+  .barra-planilha {
+    font-size: 1.2rem;
+    margin-top: 10px;
+    white-space: normal; 
+  }
+}
 
 
 
