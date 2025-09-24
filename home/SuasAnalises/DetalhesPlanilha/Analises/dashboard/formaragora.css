@@ -84,7 +84,6 @@ main {
   font-weight: bold;
   color: #fff;
   text-transform: uppercase;
-  white-space: nowrap;
 }
 
 .barra-planilha {
@@ -94,7 +93,6 @@ main {
   background: transparent;
   padding: 0;
   text-transform: uppercase;
-  white-space: nowrap;
 }
 
 /* --- Menu de Navegação --- */
@@ -549,6 +547,33 @@ main > .container > .menu a.active {
   }
   #menu_agoras .rodar .btn-agora:hover {
     transform: scale(1.07);
+  }
+
+  .barra-conteudo.card-banner {
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 15px;
+  }
+
+  /* No logo e no título, ajuste o alinhamento e o espaçamento */
+  .barra-logo {
+    flex-direction: column;
+    text-align: center;
+    gap: 5px;
+  }
+
+  /* Reduza o tamanho da fonte do título principal para economizar espaço */
+  .titulo-site {
+    font-size: 1rem;
+    /* Permita a quebra de linha em telas menores */
+    white-space: normal;
+  }
+
+  /* Ajuste o nome da planilha */
+  .barra-planilha {
+    font-size: 1.2rem;
+    margin-top: 10px;
+    white-space: normal;
   }
 }
 
