@@ -7,10 +7,10 @@ let currentLanguage = localStorage.getItem('selectedLanguage') || 'pt';
 const languages = {
     'pt': { flag: '/assets/br.png' },
     'en': { flag: '/assets/us.png' },
+    'es': { flag: '/assets/es.png' },
     'ita': { flag: '/assets/ita.png' },
     'ru': { flag: '/assets/ru.png' },
-    'es': { flag: '/assets/es.png' },
-    'cn': { flag: '/assets/cn.png' },
+    'cn': { flag: '/assets/cn.png' }
 };
 
 // Função para buscar e carregar um arquivo de idioma
@@ -85,7 +85,7 @@ const updateLanguage = async (lang) => {
     if (languages[lang] && flagImageMenu) {
         flagImageMenu.src = languages[lang].flag;
     }
-    
+
     await loadLanguage(lang);
     applyTranslationsToDOM();
 };
