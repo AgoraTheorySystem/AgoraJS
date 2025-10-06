@@ -15,7 +15,15 @@ body {
 .container {
   display: flex;
   width: 100%;
-  margin-top: -60px;
+  min-height: 100vh; 
+  margin-top: 0;
+}
+
+.container {
+  display: flex;
+  width: 100%;
+  min-height: 100vh; /* ocupa toda a altura da viewport */
+  margin-top: 0;
 }
 
 .tela_principal {
@@ -25,11 +33,14 @@ body {
   background-image: url(assets_perfil/tela07.jpg);
   background-size: cover;
   background-position: center;
+  background-repeat: no-repeat;
   display: flex;
   justify-content: center;
   align-items: flex-start;
+  width: 100%;
   min-height: 100vh;
 }
+
 
 .perfil_area {
   background-color: #002e3b;
@@ -145,6 +156,7 @@ input.editando {
   .perfil_topo span {
     font-size: 1.1em;
   }
+
 }
 
 @media (max-width: 768px) {
