@@ -42,37 +42,53 @@ function createUserCard(data, userId) {
     card.querySelector(".trash-btn").addEventListener("click", () => {
         deleteUser(userId, card);
     });
-
+    
+    // CORREÇÃO: Busca e exibe os timestamps de criação e último acesso
     fetch(`${apiBaseUrl}/users/${userId}/timestamps`)
-        .then(response => response.text())
-        .then(htmlSnippet => {
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Erro na API: ${response.status}`);
+            }
+            // Verifica o tipo de conteúdo antes de analisar
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                return response.json();
+            } else {
+                return response.text().then(text => {
+                    throw new Error("A resposta não é JSON. Conteúdo: " + text);
+                });
+            }
+        })
+        .then(timestampsData => {
             const timestampsDiv = card.querySelector(".timestamps");
-            const matches = [...htmlSnippet.matchAll(/(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z)/g)];
-            const [createdAtRaw, lastAccessRaw] = matches.map(m => m[0]);
+            const createdAt = timestampsData.createdAt;
+            const lastLoginAt = timestampsData.lastLoginAt;
 
-            const toBrazilTime = (utcStr) =>
-                new Date(utcStr).toLocaleString("pt-BR", {
+            const toBrazilTime = (utcStr) => {
+                if (!utcStr) return "Indisponível";
+                return new Date(utcStr).toLocaleString("pt-BR", {
                     timeZone: "America/Sao_Paulo",
-                    weekday: "long",
                     day: "2-digit",
                     month: "2-digit",
                     year: "numeric",
                     hour: "2-digit",
-                    minute: "2-digit",
-                    second: "2-digit"
+                    minute: "2-digit"
                 });
+            };
 
-            if (createdAtRaw && lastAccessRaw) {
+            if (createdAt || lastLoginAt) {
                 timestampsDiv.innerHTML = `
-                    <p>criado em: ${toBrazilTime(createdAtRaw)}</p>
-                    <p>último acesso: ${toBrazilTime(lastAccessRaw)}</p>
+                    <p>Criado em: ${toBrazilTime(createdAt)}</p>
+                    <p>Último acesso: ${toBrazilTime(lastLoginAt)}</p>
                 `;
             } else {
-                timestampsDiv.innerHTML = `<p>Informações indisponíveis.</p>`;
+                timestampsDiv.innerHTML = `<p>Informações de data indisponíveis.</p>`;
             }
         })
         .catch((error) => {
-            card.querySelector(".timestamps").innerHTML = `<p>Erro ao carregar os dados: ${error.message}</p>`;
+            console.error(`Erro ao buscar timestamps para o usuário ${userId}:`, error);
+            const timestampsDiv = card.querySelector(".timestamps");
+            timestampsDiv.innerHTML = `<p>Datas indisponíveis.</p>`;
         });
 }
 
@@ -93,7 +109,16 @@ async function deleteUser(userId, cardElement) {
     try {
         await remove(ref(database, `users/${userId}`));
         const response = await fetch(`${apiBaseUrl}/users/${userId}`, { method: 'DELETE' });
-        const data = await response.json();
+        
+        // CORREÇÃO: Lidar com respostas não-JSON
+        let data;
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+            data = await response.json();
+        } else {
+            data = { error: await response.text() };
+        }
+
 
         if (response.ok) {
             await Swal.fire({
@@ -225,6 +250,8 @@ function applyFilter(filterType) {
         : allCardsData.filter(({ cardData }) =>
             (cardData.tipo || "").toUpperCase() === filterType.toUpperCase());
 
+    currentPage = 1; // Reset page on filter change
+    
     updatePaginationControls(filtered.length, () => {
         renderCards(filtered, createUserCard);
     });
@@ -332,11 +359,8 @@ function fetchData() {
 
             createFilterButtons([...accountTypes]);
 
-            updatePaginationControls(allCardsData.length, () => {
-                renderCards(allCardsData, createUserCard);
-            });
+            applyFilter("TODOS"); // Apply the initial "ALL" filter
 
-            renderCards(allCardsData, createUserCard);
         } else {
             document.getElementById("containerCards").innerHTML = "<p>Nenhum usuário encontrado.</p>";
             document.getElementById("pagination-controls").style.display = "none";
@@ -348,3 +372,4 @@ function fetchData() {
 }
 
 fetchData();
+
