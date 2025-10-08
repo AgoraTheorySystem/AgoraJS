@@ -731,5 +731,65 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             await showLoading(false);
         }
+
+        // chama depois do DOM pronto
+            window.addEventListener('load', () => {
+            setTimeout(() => { if (window.map) { try { map.updateSize(); } catch(e){} } }, 0);
+            });
+
+            // no resize / rotação (já ajuda a manter o alinhamento perfeito)
+            window.addEventListener('resize', () => {
+            if (window.map) { try { map.updateSize(); } catch(e){} }
+            });
+
     });
 });
+
+// ========== PATCH OpenLayers: initializar só com área e manter updateSize ==========
+const MAP_ID = "map";
+const PAGE_WRAPPER_SEL = ".page-wrapper";
+const MENU_SEL = ".container > .menu";
+
+function hasArea(el){ return el && el.offsetWidth>0 && el.offsetHeight>0; }
+function waitForArea(el, tries=40){
+  return new Promise((res, rej)=>{
+    const tick=()=>{ if(hasArea(el)) return res(true);
+      if(tries--<=0) return rej(new Error("map container sem área"));
+      requestAnimationFrame(tick);
+    }; tick();
+  });
+}
+function refreshMapSize(){
+  if (!window.map) return;
+  try {
+    map.updateSize();
+    requestAnimationFrame(()=>map.updateSize());
+  } catch(e){ console.warn("updateSize:", e); }
+}
+async function initMapWhenReady(){
+  const el = document.getElementById(MAP_ID);
+  if (!el) return;
+  try { await waitForArea(el); } catch { el.style.minHeight = el.style.minHeight || "60vh"; }
+  if (!window.map) initializeMap();          // usa sua initializeMap existente
+  const wrapper = document.querySelector(PAGE_WRAPPER_SEL);
+  if (wrapper && "ResizeObserver" in window) {
+    new ResizeObserver(()=>refreshMapSize()).observe(wrapper);
+  }
+  const mq = window.matchMedia("(max-width: 768px)");
+  (mq.addEventListener? mq.addEventListener("change", refreshMapSize) : mq.addListener(refreshMapSize));
+  window.addEventListener("resize", refreshMapSize);
+  window.addEventListener("orientationchange", refreshMapSize);
+  const menu = document.querySelector(MENU_SEL);
+  if (menu) document.addEventListener("transitionend", (e)=>{ if(menu.contains(e.target)) refreshMapSize(); });
+  requestAnimationFrame(refreshMapSize);
+}
+
+// troque isto:
+// document.addEventListener('DOMContentLoaded', () => { initializeMap(); ... });
+
+// por isto:
+document.addEventListener('DOMContentLoaded', () => { 
+  initMapWhenReady(); 
+  // ... (o resto do seu código DOMContentLoaded permanece igual)
+});
+
