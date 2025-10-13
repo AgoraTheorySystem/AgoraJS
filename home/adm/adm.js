@@ -9,7 +9,7 @@ let currentPage = 1;
 const cardsPerPage = 9;
 let allCardsData = [];
 
-const apiBaseUrl = 'https://nodejsteste.vercel.app';
+const apiBaseUrl = 'https://api-adm-agora.vercel.app';
 
 function createUserCard(data, userId) {
     const card = document.createElement("div");
