@@ -32,6 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const nextBtn = document.getElementById("next-btn");
   const loadingDiv = document.getElementById("loading");
   const filterInput = document.getElementById("filter-input");
+  const downloadBtn = document.getElementById("download-btn");
 
   function openDB() {
     return new Promise((resolve, reject) => {
@@ -178,6 +179,28 @@ document.addEventListener("DOMContentLoaded", () => {
     loadingDiv.style.display = show ? "block" : "none";
   }
 
+  async function downloadPlanilha() {
+    try {
+        showLoading(true);
+        const planilhaData = await loadFromIndexedDB(planilhaNome);
+        if (planilhaData.length === 0) {
+            alert("Não foi possível encontrar os dados da planilha para download.");
+            return;
+        }
+
+        const worksheet = XLSX.utils.aoa_to_sheet(planilhaData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Dados");
+
+        XLSX.writeFile(workbook, `${planilhaNome}.xlsx`);
+    } catch (error) {
+        console.error("Erro ao gerar o arquivo XLSX:", error);
+        alert("Ocorreu um erro ao tentar baixar a planilha.");
+    } finally {
+        showLoading(false);
+    }
+  }
+
   prevBtn.addEventListener("click", () => {
     if (currentPage > 1) {
       currentPage--;
@@ -196,6 +219,8 @@ document.addEventListener("DOMContentLoaded", () => {
   filterInput.addEventListener("input", debounce((e) => {
     applyFilter(e.target.value.trim().toLowerCase());
   }, 300));
+
+  downloadBtn.addEventListener("click", downloadPlanilha);
 
   async function init() {
     showLoading(true);

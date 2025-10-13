@@ -1,10 +1,11 @@
 /* Estilos gerais */
 body.socioeconomico {
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif, Arial, sans-serif;
   background-image: url('/assets/fundo_senha.jpg');
-  background-size: 100% auto;
-  background-repeat: repeat;
+  background-size: cover;
+  background-repeat: no-repeat;
   background-position: top center;
+  background-attachment: fixed;
   min-height: 100vh;
 }
 
@@ -108,27 +109,59 @@ body.socioeconomico {
 /* ------------------------------------- */
 
 .filter-container {
-  max-width: 800px;
+  max-width: 450px;
   width: 90%;
-  margin: 20px auto;
+  margin: 40px auto 20px;
   padding: 0 15px;
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
 }
 
 .filter-container input {
-  width: 100%;
-  max-width: 250px;
-  padding: 6px 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 14px;
-  transition: border-color 0.3s ease;
+  flex-grow: 1;
+  height: 44px;
+  padding: 8px 15px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 .filter-container input:focus {
   outline: none;
-  border-color: #17426C;
+  border-color: #2b6f69;
+  box-shadow: 0 0 0 3px rgba(43, 111, 105, 0.2);
 }
+
+#download-btn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 44px;
+  height: 44px;
+  background-color: #2b6f69;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+  flex-shrink: 0;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+#download-btn:hover {
+  background-color: #1e4d4a;
+  transform: translateY(-2px);
+}
+
+#download-btn img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain; /* Garante que a imagem se ajuste sem distorção */
+}
+
 
 .tabela-capsula-verde {
   background-color: #2b6f69;
@@ -163,17 +196,22 @@ thead {
 }
 
 th, td {
-  padding: 8px;
+  padding: 12px 15px;
   text-align: left;
   border-bottom: 1px solid #ddd;
 }
 
 th {
   text-transform: uppercase;
+  font-weight: 600;
 }
 
 tbody tr:nth-child(even) {
   background-color: #f9f9f9;
+}
+
+tbody tr:hover {
+  background-color: #f1f1f1;
 }
 
 #data-table {
@@ -190,8 +228,8 @@ tbody tr:nth-child(even) {
   color: #0d47a1;
   font-weight: bold;
   background-color: #e3f2fd;
-  padding: 0 2px;
-  border-radius: 3px;
+  padding: 2px 4px;
+  border-radius: 4px;
 }
 
 /* ------------------------------------- */
@@ -204,17 +242,18 @@ tbody tr:nth-child(even) {
   align-items: center;
   gap: 10px;
   margin-top: 20px;
+  padding-bottom: 20px;
 }
 
 .pagination button, .page-btn {
   background-color: #2b6f69;
   color: #ffffff;
   border: none;
-  padding: 6px 12px;
+  padding: 8px 14px;
   font-size: 14px;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background 0.3s, transform 0.2s;
+  transition: background-color 0.3s, transform 0.2s;
 }
 
 .pagination button:hover:not(:disabled), .page-btn:hover:not(:disabled) {
@@ -226,6 +265,7 @@ tbody tr:nth-child(even) {
   background-color: #888888;
   cursor: not-allowed;
   color: #eeeeee;
+  opacity: 0.7;
 }
 
 .page-btn.active {
@@ -239,6 +279,9 @@ tbody tr:nth-child(even) {
   font-size: 14px;
   font-weight: bold;
   color: #ffffff;
+  background-color: rgba(0,0,0,0.2);
+  padding: 8px 14px;
+  border-radius: 8px;
 }
 
 /* ------------------------------------- */
@@ -272,11 +315,16 @@ tbody tr:nth-child(even) {
     white-space: normal;
   }
   .filter-container {
-    text-align: center;
+    flex-direction: column;
     width: 95%;
   }
   .filter-container input {
     max-width: none;
+    width: 100%;
+  }
+  #download-btn {
+    width: 100%;
+    margin-top: 10px;
   }
   table {
     font-size: 13px;
@@ -285,13 +333,18 @@ tbody tr:nth-child(even) {
 
 @media screen and (max-width: 600px) {
   th, td {
-    padding: 6px;
+    padding: 8px;
   }
   .pagination {
-    flex-direction: column;
-    gap: 5px;
+    flex-wrap: wrap;
+    gap: 8px;
   }
   .pagination button {
-    width: 100px;
+    flex-grow: 1;
+  }
+  #page-info {
+    width: 100%;
+    text-align: center;
   }
 }
+
