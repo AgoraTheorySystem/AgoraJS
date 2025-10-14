@@ -169,7 +169,7 @@ async function getTranslation(key) {
 }
 
 /**
- * Realiza o logout do usuário, limpando a sessão e o armazenamento local.
+ * Realiza o logout do usuário, limpando a sessão.
  */
 async function logout() {
     const title = await getTranslation('swal_logout_title');
@@ -190,18 +190,13 @@ async function logout() {
         if (result.isConfirmed) {
             signOut(auth).then(() => {
                 sessionStorage.clear();
-                const deleteRequest = indexedDB.deleteDatabase('agoraDB');
-                deleteRequest.onsuccess = () => {
-                    window.location.href = '/index.html';
-                };
-                deleteRequest.onerror = () => {
-                    // Mesmo se falhar, redireciona
-                    window.location.href = '/index.html';
-                };
+                // A linha que deletava o IndexedDB foi removida daqui.
+                window.location.href = '/index.html'; // Redireciona diretamente.
             }).catch(error => console.error('Erro ao deslogar:', error));
         }
     });
 }
+
 
 /**
  * Adiciona os listeners de navegação para os itens do menu e o botão de logout.
