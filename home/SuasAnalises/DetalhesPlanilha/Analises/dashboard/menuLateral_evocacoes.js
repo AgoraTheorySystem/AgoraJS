@@ -1,6 +1,4 @@
-// menuLateral_evocacoes.js
-
-import { getDatabase, ref, get, set, update, push } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
+import { getDatabase, ref, update, set } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-app.js";
 import firebaseConfig from '/firebase.js';
 
@@ -12,7 +10,7 @@ const STORE_NAME = 'planilhas';
 
 let hasUnsavedChanges = false;
 
-// --- Funções do IndexedDB ---
+// --- Funções do IndexedDB (sem alterações) ---
 async function openDB() {
     return new Promise((resolve, reject) => {
         const request = indexedDB.open(DB_NAME, 1);
@@ -57,7 +55,7 @@ async function deleteItem(key) {
     });
 }
 
-// --- Funções de Utilidade e Controle de UI ---
+// --- Funções de Utilidade e Controle de UI (sem alterações) ---
 function getUserFromSession() {
   const userData = sessionStorage.getItem('user');
   return userData ? JSON.parse(userData) : null;
@@ -89,6 +87,7 @@ function setUnsavedChanges(status) {
 
 /**
  * Salva as alterações pendentes no Firebase.
+ * MODIFICADO: Não cria mais o 'historico_alteracoes'.
  */
 async function salvarAlteracoes() {
     if (!hasUnsavedChanges) {
@@ -114,24 +113,24 @@ async function salvarAlteracoes() {
             return;
         }
 
+        // 1. Prepara o objeto com todas as alterações de dados.
         const updatesForFirebase = {};
-        const historyChangesForPush = {};
-
         pendingChanges.forEach(change => {
             updatesForFirebase[change.path] = change.value;
-            const historyPathKey = change.path.replace(/\//g, '___');
-            historyChangesForPush[historyPathKey] = change.value;
         });
 
+        // 2. Envia o pacote de atualizações para o Firebase.
         await update(ref(database, `users/${user.uid}`), updatesForFirebase);
 
+        // 3. Cria um novo timestamp.
         const timestamp = Date.now();
-        const historyRef = ref(database, `users/${user.uid}/historico_alteracoes/${planilhaNome}`);
-        await push(historyRef, { timestamp, changes: historyChangesForPush });
-
+        
+        // 4. ATUALIZA o nó 'UltimasAlteracoes' com o novo timestamp.
+        // O 'set' aqui substitui completamente o nó antigo, sinalizando a mudança.
         const timestampRef = ref(database, `users/${user.uid}/UltimasAlteracoes/${planilhaNome}`);
         await set(timestampRef, { [timestamp]: timestamp });
 
+        // 5. Limpa as alterações pendentes locais e atualiza o estado da UI.
         await deleteItem(`pending_changes_${planilhaNome}`);
         await setItem(`timestamp_local_change_${planilhaNome}`, timestamp);
 
@@ -146,7 +145,7 @@ async function salvarAlteracoes() {
 
 
 /**
- * Registra uma alteração para ser enviada posteriormente.
+ * Registra uma alteração para ser enviada posteriormente. (sem alterações)
  */
 async function logLocalChange(planilhaNome, path, value) {
     const changes = await getItem(`pending_changes_${planilhaNome}`) || [];
@@ -160,7 +159,7 @@ async function logLocalChange(planilhaNome, path, value) {
     setUnsavedChanges(true);
 }
 
-// --- Funções de Ação do Usuário (Remover, Fundir) ---
+// --- Funções de Ação do Usuário (Remover, Fundir) - (sem alterações) ---
 
 async function removerPalavrasSelecionadas() {
     const palavrasParaRemover = window.selectedEvocacoes || [];
@@ -171,7 +170,6 @@ async function removerPalavrasSelecionadas() {
     const urlParams = new URLSearchParams(window.location.search);
     const planilhaNome = urlParams.get("planilha");
     if (!planilhaNome) return;
-    const user = getUserFromSession();
     const CHUNK_SIZE = 500;
 
     Swal.fire({ 
@@ -215,8 +213,11 @@ async function removerPalavrasSelecionadas() {
             text: await window.getTranslation('swal_words_removed_text'),
             icon: 'success', 
             confirmButtonText: await window.getTranslation('swal_understood_button')
-        }).then(() => location.reload());
+        });
 
+        // Força a atualização da tabela na tela
+        window.dispatchEvent(new Event('atualizarTabelaEvocacoes'));
+        
     } catch (error) {
         console.error("Erro ao remover palavras:", error);
         Swal.fire(await window.getTranslation('swal_error_title'), await window.getTranslation('swal_remove_error_text'), "error");
@@ -230,7 +231,6 @@ async function fundirPalavrasSelecionadas() {
     return;
   }
   
-  // CORREÇÃO: Busca as traduções ANTES de chamar o Swal.fire
   const title = await window.getTranslation('swal_merge_words_title');
   const inputLabel = await window.getTranslation('swal_merge_input_label');
   const inputPlaceholder = await window.getTranslation('swal_merge_input_placeholder');
@@ -253,8 +253,7 @@ async function fundirPalavrasSelecionadas() {
   const novoNome = novoNomeRaw.trim().toUpperCase();
   const urlParams = new URLSearchParams(window.location.search);
   const planilhaNome = urlParams.get("planilha");
-  const user = getUserFromSession();
-  if (!planilhaNome || !user) return;
+  if (!planilhaNome) return;
   const CHUNK_SIZE = 500;
 
   Swal.fire({ 
@@ -309,7 +308,10 @@ async function fundirPalavrasSelecionadas() {
         text: await window.getTranslation('swal_words_merged_text'),
         icon: 'success', 
         confirmButtonText: await window.getTranslation('swal_understood_button')
-    }).then(() => location.reload());
+    });
+
+    // Força a atualização da tabela na tela
+    window.dispatchEvent(new Event('atualizarTabelaEvocacoes'));
 
   } catch (error) {
     console.error("Erro ao fundir palavras:", error);
@@ -317,7 +319,7 @@ async function fundirPalavrasSelecionadas() {
   }
 }
 
-// --- Construção do Menu e Event Listeners ---
+// --- Construção do Menu e Event Listeners (sem alterações) ---
 async function criarMenuLateral() {
   const menu = document.createElement("div");
   menu.classList.add("menu-lateral");
@@ -367,9 +369,7 @@ window.addEventListener("DOMContentLoaded", () => {
   const urlParams = new URLSearchParams(window.location.search);
   const planilhaNome = urlParams.get("planilha");
 
-  // Escuta o evento de 'atualizacao.js' para checar as alterações locais
   window.addEventListener('checarAlteracoesLocais', () => {
       if(planilhaNome) checarAlteracoesPendentes(planilhaNome);
   });
 });
-

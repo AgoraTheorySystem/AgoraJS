@@ -122,27 +122,19 @@ window.alterarNome = async function () {
     if (result.isConfirmed) {
         toggleLoading(true);
         try {
-            const pathsToProcess = ["planilhas", "UltimasAlteracoes", "tabelasAuxiliares", "lematizacoes"];
+            // **MODIFICAÇÃO AQUI TAMBÉM** - Inclui historico_alteracoes na renomeação
+            const pathsToProcess = ["planilhas", "UltimasAlteracoes", "tabelasAuxiliares", "lematizacoes", "historico_alteracoes"];
             const firebasePromises = pathsToProcess.map(async (path) => {
                 const oldRef = ref(db, `users/${user.uid}/${path}/${nomeAntigo}`);
                 const snapshot = await get(oldRef);
                 if (snapshot.exists()) {
-                    if (path === 'planilhas') {
-                        const chunkPromises = [];
-                        snapshot.forEach((chunkSnapshot) => {
-                            const newChunkRef = ref(db, `users/${user.uid}/${path}/${novoNome}/${chunkSnapshot.key}`);
-                            chunkPromises.push(set(newChunkRef, chunkSnapshot.val()));
-                        });
-                        await Promise.all(chunkPromises);
-                    } else {
-                        await set(ref(db, `users/${user.uid}/${path}/${novoNome}`), snapshot.val());
-                    }
+                    await set(ref(db, `users/${user.uid}/${path}/${novoNome}`), snapshot.val());
                     await remove(oldRef);
                 }
             });
 
-            const indexedDBKeys = { main: `planilha_${nomeAntigo}`, modificacao: `planilha_ultima_alteracao_${nomeAntigo}` };
-            const indexedDBPromises = Object.entries(indexedDBKeys).map(async ([, oldKey]) => {
+            const indexedDBKeys = { main: `planilha_${nomeAntigo}`, modificacao: `planilha_ultima_alteracao_${nomeAntigo}`, lemas: `lemas_${nomeAntigo}`, changes: `pending_changes_${nomeAntigo}` };
+            const indexedDBPromises = Object.values(indexedDBKeys).map(async (oldKey) => {
                 const data = await getItem(oldKey);
                 if (data !== null) {
                     const newKey = oldKey.replace(nomeAntigo, novoNome);
@@ -150,6 +142,7 @@ window.alterarNome = async function () {
                     await removeItem(oldKey);
                 }
             });
+
 
             await Promise.all([...firebasePromises, ...indexedDBPromises]);
 
@@ -191,9 +184,12 @@ window.excluirAnalise = async function () {
     if (result.isConfirmed) {
         toggleLoading(true);
         try {
-            const pathsToDelete = ["planilhas", "UltimasAlteracoes", "tabelasAuxiliares", "lematizacoes"];
+            // **MODIFICAÇÃO AQUI** - Adicionado 'historico_alteracoes' à lista de exclusão
+            const pathsToDelete = ["planilhas", "UltimasAlteracoes", "tabelasAuxiliares", "lematizacoes", "historico_alteracoes"];
             const firebasePromises = pathsToDelete.map(path => remove(ref(db, `users/${user.uid}/${path}/${nomePlanilha}`)));
-            const keysToRemove = [`planilha_${nomePlanilha}`, `planilha_ultima_alteracao_${nomePlanilha}`];
+            
+            // Também remove todos os dados relacionados do IndexedDB
+            const keysToRemove = [`planilha_${nomePlanilha}`, `planilha_ultima_alteracao_${nomePlanilha}`, `lemas_${nomePlanilha}`, `pending_changes_${nomePlanilha}`];
             const indexedDBPromises = keysToRemove.map(key => removeItem(key));
 
             await Promise.all([...firebasePromises, ...indexedDBPromises]);
@@ -251,7 +247,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     loadingContainer.style.zIndex = "1000";
     loadingContainer.style.flexDirection = "column";
     
-    // Adiciona o texto traduzido ao loader
     const loadingText = await window.getTranslation('settings_loading_text');
     loadingContainer.innerHTML = `
       <div class="loader">
@@ -261,7 +256,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     `;
     document.body.appendChild(loadingContainer);
 
-    // Aplica a tradução para placeholders
     document.querySelectorAll('[data-translate-placeholder]').forEach(async element => {
         const key = element.getAttribute('data-translate-placeholder');
         if(key) {
