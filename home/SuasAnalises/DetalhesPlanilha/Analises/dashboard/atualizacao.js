@@ -17,10 +17,6 @@ const STORE_NAME = 'planilhas';
 
 // --- Funções do IndexedDB (Banco de Dados Local) ---
 
-/**
- * Abre e, se necessário, cria a base de dados local IndexedDB.
- * @returns {Promise<IDBDatabase>} A instância da base de dados.
- */
 function openDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, 1);
@@ -35,11 +31,6 @@ function openDB() {
   });
 }
 
-/**
- * Obtém um item do IndexedDB.
- * @param {string} key A chave do item a ser obtido.
- * @returns {Promise<any>} O valor do item ou null se não for encontrado.
- */
 async function getItem(key) {
     const db = await openDB();
     const transaction = db.transaction(STORE_NAME, 'readonly');
@@ -51,12 +42,6 @@ async function getItem(key) {
     });
 }
 
-/**
- * Define um item no IndexedDB.
- * @param {string} key A chave do item.
- * @param {any} value O valor a ser guardado.
- * @returns {Promise<void>}
- */
 async function setItem(key, value) {
     const db = await openDB();
     const transaction = db.transaction(STORE_NAME, 'readwrite');
@@ -69,24 +54,19 @@ async function setItem(key, value) {
 
 // --- Lógica Principal de Sincronização e Download ---
 
-/**
- * Obtém os dados do utilizador a partir da sessionStorage.
- * @returns {object|null} O objeto do utilizador ou null.
- */
 function getUserFromSession() {
     const userData = sessionStorage.getItem('user');
     return userData ? JSON.parse(userData) : null;
 }
 
 /**
- * Baixa a planilha completa do Firebase e a salva localmente.
+ * Baixa a planilha completa do Firebase, salva localmente e recarrega a página.
  * @param {object} user - O objeto do usuário autenticado.
  * @param {string} planilhaNome - O nome da planilha a ser baixada.
  */
 async function baixarPlanilhaInicial(user, planilhaNome) {
     console.log(`Planilha "${planilhaNome}" não encontrada localmente. Baixando do Firebase...`);
     
-    // Mostra um alerta de carregamento para o usuário
     Swal.fire({
         title: 'Preparando sua análise',
         text: 'Estamos baixando os dados da planilha pela primeira vez. Por favor, aguarde...',
@@ -97,7 +77,6 @@ async function baixarPlanilhaInicial(user, planilhaNome) {
     });
 
     try {
-        // 1. Baixar os dados da planilha (que estão em chunks)
         const planilhaRef = ref(database, `/users/${user.uid}/planilhas/${planilhaNome}`);
         const snapshotPlanilha = await get(planilhaRef);
 
@@ -112,25 +91,24 @@ async function baixarPlanilhaInicial(user, planilhaNome) {
         await setItem(`planilha_${planilhaNome}`, planilhaCompleta);
         console.log(`Planilha "${planilhaNome}" salva localmente.`);
 
-        // 2. Baixar o timestamp mais recente
         const remoteTimestampRef = ref(database, `/users/${user.uid}/UltimasAlteracoes/${planilhaNome}`);
         const snapshotTimestamp = await get(remoteTimestampRef);
         if (snapshotTimestamp.exists()) {
             const remoteData = snapshotTimestamp.val();
             const remoteTimestamp = parseInt(Object.keys(remoteData)[0]);
             await setItem(`timestamp_local_change_${planilhaNome}`, remoteTimestamp);
-            console.log(`Timestamp inicial de "${planilhaNome}" salvo localmente.`);
         }
         
-        // Fecha o alerta de carregamento e recarrega a página
         Swal.close();
+        
+        // Exibe um alerta de sucesso e, ao confirmar, recarrega a página.
         await Swal.fire({
             title: "Pronto!",
-            text: "Os dados da análise foram preparados com sucesso.",
+            text: `Os dados de "${planilhaNome}" foram preparados. A página será recarregada para carregar os novos dados.`,
             icon: "success",
-            confirmButtonText: "Iniciar Análise"
+            confirmButtonText: "Ok"
         }).then(() => {
-            location.reload();
+            location.reload(); // FORÇA O F5 NA PÁGINA
         });
 
     } catch (error) {
@@ -138,7 +116,6 @@ async function baixarPlanilhaInicial(user, planilhaNome) {
         Swal.fire("Erro no Download", `Não foi possível baixar os dados da análise: ${error.message}`, "error");
     }
 }
-
 
 /**
  * Função principal que verifica se a planilha existe localmente e decide se baixa ou sincroniza.
@@ -153,7 +130,7 @@ async function verificarEProcessarPlanilha(user, planilhaNome) {
             // Se não existir localmente, baixa pela primeira vez.
             await baixarPlanilhaInicial(user, planilhaNome);
         } else {
-            // Se já existir, procede com a sincronização de alterações.
+            // Se já existir, apenas procede com a sincronização de alterações (sem recarregar).
             await sincronizarDados(user, planilhaNome);
         }
     } catch (error) {
@@ -161,7 +138,6 @@ async function verificarEProcessarPlanilha(user, planilhaNome) {
         Swal.fire("Erro Crítico", "Ocorreu um problema ao acessar os dados da análise.", "error");
     }
 }
-
 
 /**
  * Compara timestamps e inicia a sincronização de diferenças.
@@ -188,6 +164,7 @@ async function sincronizarDados(user, planilhaNome) {
             await aplicarAlteracoesRemotas(user, planilhaNome, localTimestamp, remoteTimestamp);
         } else {
             console.log("Dados locais estão atualizados.");
+            // Dispara o evento para scripts que precisam saber que a verificação terminou (como evocacoes.js)
             window.dispatchEvent(new Event('checarAlteracoesLocais'));
         }
 
@@ -261,7 +238,7 @@ async function aplicarAlteracoesRemotas(user, planilhaNome, localTimestamp, remo
                 text: "Novas alterações do servidor foram aplicadas. A página será recarregada.",
                 icon: "info",
                 confirmButtonText: "Ok"
-            }).then(() => location.reload());
+            }).then(() => location.reload()); // Recarrega também ao aplicar atualizações
         } else {
             await setItem(`timestamp_local_change_${planilhaNome}`, remoteTimestamp);
         }
@@ -282,7 +259,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
     
-    // Inicia o processo de verificação
+    // Inicia o processo de verificação para a planilha atual
     verificarEProcessarPlanilha(user, planilhaNome);
 });
-
