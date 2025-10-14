@@ -57,7 +57,7 @@ form.addEventListener("submit", async (e) => {
     if (senha !== confirmaSenha) {
         Swal.fire({
             icon: "error",
-            title: "As senhas não coincidem!"
+            title: await window.getTranslation('pearson_password'),
         });
         return;
     }
@@ -65,7 +65,7 @@ form.addEventListener("submit", async (e) => {
     if (nomeFantasia == vazio) {
         Swal.fire({
             icon: "error",
-            title: "Por favor informe o nome da empresa!"
+            title: await window.getTranslation('company_regis_name'),
         });
         return;
     }

@@ -71,7 +71,7 @@ form.addEventListener("submit", async (e) => {
     if (senha !== confirmaSenha) {
         Swal.fire({
             icon: "error",
-            title: "As senhas não coincidem!"
+            title: await window.getTranslation('pearson_password'),
         });
         return;
     }
@@ -79,7 +79,7 @@ form.addEventListener("submit", async (e) => {
     if (nome == vazio) {
         Swal.fire({
             icon: "error",
-            title: "Por favor informe seu nome"
+            title: await window.getTranslation('pearson_name'),
         });
         return;
     }
@@ -87,7 +87,7 @@ form.addEventListener("submit", async (e) => {
     if (dataNascimento == vazio) {
         Swal.fire({
             icon: "error",
-            title: "Por favor informe sua data de nascimento"
+            title: await window.getTranslation('pearson_date'),
         });
         return;
     }
@@ -95,7 +95,7 @@ form.addEventListener("submit", async (e) => {
     if (cidade == vazio) {
         Swal.fire({
             icon: "error",
-            title: "Por favor informe sua cidade"
+            title: await window.getTranslation('pearson_city'),
         });
         return;
     }
@@ -103,7 +103,7 @@ form.addEventListener("submit", async (e) => {
     if (pais == vazio) {
         Swal.fire({
             icon: "error",
-            title: "Por favor informe seu país"
+            title: await window.getTranslation('pearson_country'),
         });
         return;
     }
@@ -111,7 +111,7 @@ form.addEventListener("submit", async (e) => {
     if (telefone == vazio) {
         Swal.fire({
             icon: "error",
-            title: "Por favor informe seu telefone"
+            title: await window.getTranslation('pearson_phone'),
         });
         return;
     }
@@ -142,16 +142,16 @@ form.addEventListener("submit", async (e) => {
 
         await Swal.fire({
             icon: "success",
-            title: "Sucesso",
-            text: "Cadastro realizado com sucesso!",
+            title: await window.getTranslation('success'),
+            text: await window.getTranslation('success_message'),
         });
         form.reset(); // Reseta o formulário
         window.location.href = "../../index.html";
     } catch (error) {
         Swal.fire({
             icon: "error",
-            title: "Erro ao cadastrar",
-            text: "Devido a algum motivo, não foi possível realizar o cadastro",
+            title: await window.getTranslation('error'),
+            text: await window.getTranslation('error_message'),
         });
     }
 });
