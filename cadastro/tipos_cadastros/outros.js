@@ -33,7 +33,7 @@ form.addEventListener("submit", async (e) => {
     if (senha !== confirmaSenha) {
         Swal.fire({
             icon: "error",
-            title: "As senhas não coincidem!"
+            title: await window.getTranslation('pearson_password'),
         });
         return;
     }
@@ -51,8 +51,8 @@ form.addEventListener("submit", async (e) => {
 
         await Swal.fire({
             icon: "success",
-            title: "Sucesso",
-            text: "Cadastro realizado com sucesso!",
+            title: await window.getTranslation('success'),
+            text: await window.getTranslation('success_message'),
         });
         form.reset(); // Reseta o formulário
         window.location.href = "../../index.html";
@@ -79,7 +79,7 @@ form.addEventListener("submit", async (e) => {
 
     Swal.fire({
         icon: "error",
-        title: "Erro ao Cadastrar",
+        title: await window.getTranslation('error'),
         text: mensagemErro, // Exibe a mensagem específica do erro
     });
 }

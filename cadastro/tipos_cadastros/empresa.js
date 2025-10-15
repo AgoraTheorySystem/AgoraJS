@@ -73,7 +73,7 @@ form.addEventListener("submit", async (e) => {
     if (pais == vazio) {
         Swal.fire({
             icon: "error",
-            title: "Por favor informe o país da empresa!"
+            title: await window.getTranslation('company_country'),
         });
         return;
     }
@@ -81,7 +81,7 @@ form.addEventListener("submit", async (e) => {
     if (cidade == vazio) {
         Swal.fire({
             icon: "error",
-            title: "Por favor informe a cidade da empresa!"
+            title: await window.getTranslation('company_city'),
         });
         return;
     }
@@ -89,7 +89,7 @@ form.addEventListener("submit", async (e) => {
     if (telefone == vazio) {
         Swal.fire({
             icon: "error",
-            title: "Por favor informe o telefone da empresa!"
+            title: await window.getTranslation('company_phone'),
         });
         return;
     }
@@ -124,16 +124,16 @@ form.addEventListener("submit", async (e) => {
 
         await Swal.fire({
             icon: "success",
-            title: "Sucesso",
-            text: "Cadastro realizado com sucesso!",
+            title: await window.getTranslation('success'),
+            text: await window.getTranslation('success_message'),
         });
         form.reset(); // Reseta o formulário
         window.location.href = "../../index.html";
     } catch (error) {
         Swal.fire({
             icon: "error",
-            title: "Erro ao cadastrar",
-            text: "Devido a algum motivo, não foi possível realizar o cadastro",
+            title: await window.getTranslation('error'),
+            text: await window.getTranslation('error_message'),
         });
     }
 });

@@ -68,8 +68,9 @@ async function baixarPlanilhaInicial(user, planilhaNome) {
     console.log(`Planilha "${planilhaNome}" não encontrada localmente. Baixando do Firebase...`);
     
     Swal.fire({
-        title: 'Preparando sua análise',
-        text: 'Estamos baixando os dados da planilha pela primeira vez. Por favor, aguarde...',
+        title: await window.getTranslation('preparing_analy'),
+        text: await window.getTranslation('download_analy'),
+        
         allowOutsideClick: false,
         didOpen: () => {
             Swal.showLoading();
@@ -103,8 +104,9 @@ async function baixarPlanilhaInicial(user, planilhaNome) {
         
         // Exibe um alerta de sucesso e, ao confirmar, recarrega a página.
         await Swal.fire({
-            title: "Pronto!",
+            title: await window.getTranslation('ready'),
             text: `Os dados de "${planilhaNome}" foram preparados. A página será recarregada para carregar os novos dados.`,
+            text: await window.getTranslation('data_loaded'),
             icon: "success",
             confirmButtonText: "Ok"
         }).then(() => {
@@ -234,8 +236,8 @@ async function aplicarAlteracoesRemotas(user, planilhaNome, localTimestamp, remo
             await setItem(`timestamp_local_change_${planilhaNome}`, remoteTimestamp);
 
             Swal.fire({
-                title: "Planilha Atualizada!",
-                text: "Novas alterações do servidor foram aplicadas. A página será recarregada.",
+                title: await window.getTranslation('update_spreedsheet'),
+                text: await window.getTranslation('update_spreedsheet_text'),
                 icon: "info",
                 confirmButtonText: "Ok"
             }).then(() => location.reload()); // Recarrega também ao aplicar atualizações

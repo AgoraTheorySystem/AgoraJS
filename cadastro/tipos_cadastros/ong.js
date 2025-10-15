@@ -54,7 +54,7 @@ form.addEventListener("submit", async (e) => {
     if (senha !== confirmaSenha) {
         Swal.fire({
             icon: "error",
-            title: "As senhas não coincidem!"
+            title: await window.getTranslation('pearson_password'),
         });
         return;
     }
@@ -62,7 +62,7 @@ form.addEventListener("submit", async (e) => {
     if (nomeOng == vazio) {
         Swal.fire({
             icon: "error",
-            title: "Por favor informe o nome da sua ONG"
+            title: await window.getTranslation('ong_name'),
         });
         return;
     }
@@ -70,7 +70,7 @@ form.addEventListener("submit", async (e) => {
     if (pais == vazio) {
         Swal.fire({
             icon: "error",
-            title: "Por favor informe o pais da sua ONG"
+            title: await window.getTranslation('ong_country'),
         });
         return;
     }
@@ -78,7 +78,7 @@ form.addEventListener("submit", async (e) => {
     if (cidade == vazio) {
         Swal.fire({
             icon: "error",
-            title: "Por favor informe a cidade da sua ONG"
+            title: await window.getTranslation('ong_city'),
         });
         return;
     }
@@ -86,7 +86,7 @@ form.addEventListener("submit", async (e) => {
     if (telefone == vazio) {
         Swal.fire({
             icon: "error",
-            title: "Por favor informe o telefone da sua ONG"
+            title: await window.getTranslation('ong_phone'),
         });
         return;
     }
@@ -118,16 +118,16 @@ form.addEventListener("submit", async (e) => {
 
         await Swal.fire({
             icon: "success",
-            title: "Sucesso",
-            text: "Cadastro realizado com sucesso!",
+            title: await window.getTranslation('success'),
+            text: await window.getTranslation('success_message'),
         });
         form.reset(); // Reseta o formulário
         window.location.href = "../../index.html";
     } catch (error) {
         Swal.fire({
             icon: "error",
-            title: "Erro ao cadastrar",
-            text: "Devido a algum motivo, não foi possível realizar o cadastro",
+            title: await window.getTranslation('error'),
+            text: await window.getTranslation('error_message'),
         });
     }
 });

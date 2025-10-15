@@ -2,6 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.3/firebase
 import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
 import firebaseConfig from '/firebase.js';
 
+
 // 1. Inicializar o Firebase
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
@@ -36,7 +37,7 @@ function openDB() {
 ============================== */
 
 // Recupera o usuário da sessão
-function getUserFromSession() {
+async function getUserFromSession() {
   try {
     const userData = sessionStorage.getItem('user');
     if (!userData) throw new Error("Dados do usuário não encontrados na sessão.");
@@ -45,7 +46,7 @@ function getUserFromSession() {
     return { uid: parsedData.uid };
   } catch (error) {
     console.error("Erro ao recuperar dados do usuário:", error);
-    Swal.fire({ icon: 'error', title: 'Erro', text: 'Faça login novamente.' });
+    Swal.fire({ icon: 'error', title: await window.getTranslation('error'), text: await window.getTranslation('auth_error_textauth_error_text') });
     return null;
   }
 }
@@ -245,7 +246,7 @@ async function handleFileUpload(user) {
   const file = fileInput.files[0];
 
   if (!file) {
-    await Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Selecione um arquivo!' });
+    await Swal.fire({ icon: 'warning', title: await window.getTranslation('swal_attention_title'), text: await window.getTranslation('select_arch'), });
     return;
   }
 
@@ -254,11 +255,11 @@ async function handleFileUpload(user) {
   if (fileExists) {
     const result = await Swal.fire({
       icon: 'warning',
-      title: 'Arquivo já existe',
-      text: `Substituir ${fileName}?`,
+      title: await window.getTranslation('exist_arch'),
+      text: await window.getTranslation('select_arch'),
       showCancelButton: true,
-      confirmButtonText: 'Substituir',
-      cancelButtonText: 'Cancelar'
+      confirmButtonText: await window.getTranslation('confirm_button'),
+      cancelButtonText: await window.getTranslation('cancel_button'),
     });
     if (!result.isConfirmed) return;
   }
@@ -281,12 +282,12 @@ async function handleFileUpload(user) {
     await saveLastModification(user, fileName);
 
     toggleLoading(false);
-    await Swal.fire({ icon: 'success', title: 'Sucesso', text: 'Planilha enviada!' });
+    await Swal.fire({ icon: 'success', title: await window.getTranslation('success'), text: await window.getTranslation('send_spreedsheet'), });
     // Redireciona para a página de listagem
     window.location.href = `/home/SuasAnalises/suas_analises.html`;
   } catch (error) {
     toggleLoading(false);
-    await Swal.fire({ icon: 'error', title: 'Erro', text: 'Falha ao enviar planilha.' });
+    await Swal.fire({ icon: 'error', title: await window.getTranslation('swal_error_title'), text: await window.getTranslation('error_spreedsheet'), });
     console.error("Erro ao processar e enviar o arquivo:", error);
   }
 }
