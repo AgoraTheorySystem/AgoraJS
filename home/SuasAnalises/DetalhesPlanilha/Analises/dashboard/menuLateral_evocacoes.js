@@ -1,4 +1,6 @@
-import { getDatabase, ref, update, set } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
+// menuLateral_evocacoes.js
+
+import { getDatabase, ref, get, set, update, push } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-app.js";
 import firebaseConfig from '/firebase.js';
 
@@ -10,7 +12,7 @@ const STORE_NAME = 'planilhas';
 
 let hasUnsavedChanges = false;
 
-// --- Funções do IndexedDB (sem alterações) ---
+// --- Funções do IndexedDB ---
 async function openDB() {
     return new Promise((resolve, reject) => {
         const request = indexedDB.open(DB_NAME, 1);
@@ -55,7 +57,7 @@ async function deleteItem(key) {
     });
 }
 
-// --- Funções de Utilidade e Controle de UI (sem alterações) ---
+// --- Funções de Utilidade e Controle de UI ---
 function getUserFromSession() {
   const userData = sessionStorage.getItem('user');
   return userData ? JSON.parse(userData) : null;
@@ -87,11 +89,10 @@ function setUnsavedChanges(status) {
 
 /**
  * Salva as alterações pendentes no Firebase.
- * MODIFICADO: Não cria mais o 'historico_alteracoes'.
  */
 async function salvarAlteracoes() {
     if (!hasUnsavedChanges) {
-        Swal.fire(await window.getTranslation('swal_warning_title'), await window.getTranslation('swal_no_pending_changes'), "info");
+        Swal.fire("Aviso", "Não há alterações pendentes para salvar.", "info");
         return;
     }
     const urlParams = new URLSearchParams(window.location.search);
@@ -99,53 +100,58 @@ async function salvarAlteracoes() {
     const user = getUserFromSession();
     if (!planilhaNome || !user) return;
 
-    Swal.fire({ 
-        title: await window.getTranslation('swal_saving_title'), 
-        text: await window.getTranslation('swal_saving_text'), 
-        didOpen: () => Swal.showLoading() 
-    });
+    Swal.fire({ title: 'Salvando no Servidor...', text: 'Sincronizando suas alterações.', didOpen: () => Swal.showLoading() });
 
     try {
         const pendingChanges = await getItem(`pending_changes_${planilhaNome}`) || [];
         if (pendingChanges.length === 0) {
-            Swal.fire(await window.getTranslation('swal_warning_title'), await window.getTranslation('swal_no_pending_changes_found'), "info");
+            Swal.fire("Aviso", "Não foram encontradas alterações pendentes para salvar.", "info");
             setUnsavedChanges(false);
             return;
         }
 
-        // 1. Prepara o objeto com todas as alterações de dados.
         const updatesForFirebase = {};
+        const historyChangesForPush = {};
+
         pendingChanges.forEach(change => {
+            // **CORREÇÃO PRINCIPAL**: Cria um objeto plano para o update.
+            // A chave é o caminho completo para o dado (ex: "planilhas/minhaplanilha/chunk_0/10/5")
+            // e o valor é o novo dado. Isso garante que apenas os campos especificados sejam alterados.
             updatesForFirebase[change.path] = change.value;
+
+            // Para o histórico, não podemos usar '/' na chave. Substituímos por um separador seguro.
+            const historyPathKey = change.path.replace(/\//g, '___');
+            historyChangesForPush[historyPathKey] = change.value;
         });
 
-        // 2. Envia o pacote de atualizações para o Firebase.
+        // 1. Aplica as alterações na base de dados principal usando a atualização multi-path
         await update(ref(database, `users/${user.uid}`), updatesForFirebase);
 
-        // 3. Cria um novo timestamp.
         const timestamp = Date.now();
-        
-        // 4. ATUALIZA o nó 'UltimasAlteracoes' com o novo timestamp.
-        // O 'set' aqui substitui completamente o nó antigo, sinalizando a mudança.
+        // 2. Adiciona as alterações ao histórico para outros clientes sincronizarem
+        const historyRef = ref(database, `users/${user.uid}/historico_alteracoes/${planilhaNome}`);
+        await push(historyRef, { timestamp, changes: historyChangesForPush });
+
+        // 3. Atualiza o timestamp principal de alterações
         const timestampRef = ref(database, `users/${user.uid}/UltimasAlteracoes/${planilhaNome}`);
         await set(timestampRef, { [timestamp]: timestamp });
 
-        // 5. Limpa as alterações pendentes locais e atualiza o estado da UI.
+        // 4. Limpa as alterações pendentes locais e atualiza o timestamp local
         await deleteItem(`pending_changes_${planilhaNome}`);
         await setItem(`timestamp_local_change_${planilhaNome}`, timestamp);
 
         setUnsavedChanges(false);
-        Swal.fire(await window.getTranslation('swal_success_title'), await window.getTranslation('swal_save_success_text'), "success");
+        Swal.fire("Sucesso!", "Suas alterações foram salvas com sucesso no servidor.", "success");
 
     } catch (error) {
         console.error("Erro ao salvar alterações no Firebase:", error);
-        Swal.fire(await window.getTranslation('swal_error_title'), await window.getTranslation('swal_save_error_text'), "error");
+        Swal.fire("Erro", "Ocorreu um problema ao salvar suas alterações. Tente novamente.", "error");
     }
 }
 
 
 /**
- * Registra uma alteração para ser enviada posteriormente. (sem alterações)
+ * Registra uma alteração para ser enviada posteriormente.
  */
 async function logLocalChange(planilhaNome, path, value) {
     const changes = await getItem(`pending_changes_${planilhaNome}`) || [];
@@ -159,24 +165,21 @@ async function logLocalChange(planilhaNome, path, value) {
     setUnsavedChanges(true);
 }
 
-// --- Funções de Ação do Usuário (Remover, Fundir) - (sem alterações) ---
+// --- Funções de Ação do Usuário (Remover, Fundir) ---
 
 async function removerPalavrasSelecionadas() {
     const palavrasParaRemover = window.selectedEvocacoes || [];
     if (palavrasParaRemover.length === 0) {
-        Swal.fire(await window.getTranslation('swal_attention_title'), await window.getTranslation('swal_select_word_to_remove_text'), "warning");
+        Swal.fire("Atenção", "Selecione pelo menos uma palavra para remover.", "warning");
         return;
     }
     const urlParams = new URLSearchParams(window.location.search);
     const planilhaNome = urlParams.get("planilha");
     if (!planilhaNome) return;
+    const user = getUserFromSession();
     const CHUNK_SIZE = 500;
 
-    Swal.fire({ 
-        title: await window.getTranslation('swal_processing_title'), 
-        text: await window.getTranslation('swal_removing_words_text'), 
-        didOpen: () => Swal.showLoading() 
-    });
+    Swal.fire({ title: 'Processando...', text: 'Removendo palavras localmente.', didOpen: () => Swal.showLoading() });
 
     try {
         const storedData = await getItem(`planilha_${planilhaNome}`);
@@ -201,7 +204,7 @@ async function removerPalavrasSelecionadas() {
         });
 
         if (!hasChanges) {
-            Swal.fire(await window.getTranslation('swal_warning_title'), await window.getTranslation('swal_no_words_found_to_remove'), "info");
+            Swal.fire("Aviso", "Nenhuma das palavras selecionadas foi encontrada.", "info");
             return;
         }
         
@@ -209,58 +212,37 @@ async function removerPalavrasSelecionadas() {
         await setItem(`planilha_${planilhaNome}`, updatedData);
         
         Swal.fire({
-            title: await window.getTranslation('swal_removed_title'), 
-            text: await window.getTranslation('swal_words_removed_text'),
-            icon: 'success', 
-            confirmButtonText: await window.getTranslation('swal_understood_button')
-        });
+            title: 'Removido!', text: 'As palavras foram removidas localmente.',
+            icon: 'success', confirmButtonText: 'Entendido'
+        }).then(() => location.reload());
 
-        // Força a atualização da tabela na tela
-        window.dispatchEvent(new Event('atualizarTabelaEvocacoes'));
-        
     } catch (error) {
         console.error("Erro ao remover palavras:", error);
-        Swal.fire(await window.getTranslation('swal_error_title'), await window.getTranslation('swal_remove_error_text'), "error");
+        Swal.fire("Erro", "Ocorreu um problema ao remover as palavras.", "error");
     }
 }
 
 async function fundirPalavrasSelecionadas() {
   const palavrasSelecionadas = window.selectedEvocacoes || [];
   if (palavrasSelecionadas.length < 2) {
-    Swal.fire(await window.getTranslation('swal_attention_title'), await window.getTranslation('swal_select_words_to_merge_text'), "warning");
+    Swal.fire("Atenção", "Selecione pelo menos duas palavras para fundir.", "warning");
     return;
   }
-  
-  const title = await window.getTranslation('swal_merge_words_title');
-  const inputLabel = await window.getTranslation('swal_merge_input_label');
-  const inputPlaceholder = await window.getTranslation('swal_merge_input_placeholder');
-  const validationMessage = await window.getTranslation('swal_validation_name_required');
-
   const { value: novoNomeRaw } = await Swal.fire({
-      title: title,
-      input: 'text',
-      inputLabel: inputLabel,
-      inputPlaceholder: inputPlaceholder,
-      showCancelButton: true,
-      inputValidator: (value) => {
-        if (!value) {
-            return validationMessage;
-        }
-      }
+      title: 'Fundir Palavras', input: 'text', inputLabel: 'Digite o nome para a nova palavra fundida',
+      inputPlaceholder: 'Ex: TRANSPORTE PÚBLICO', showCancelButton: true,
+      inputValidator: (value) => !value && 'Você precisa digitar um nome!'
   });
 
   if (!novoNomeRaw) return;
   const novoNome = novoNomeRaw.trim().toUpperCase();
   const urlParams = new URLSearchParams(window.location.search);
   const planilhaNome = urlParams.get("planilha");
-  if (!planilhaNome) return;
+  const user = getUserFromSession();
+  if (!planilhaNome || !user) return;
   const CHUNK_SIZE = 500;
 
-  Swal.fire({ 
-      title: await window.getTranslation('swal_processing_title'), 
-      text: await window.getTranslation('swal_merging_words_text'), 
-      didOpen: () => Swal.showLoading() 
-    });
+  Swal.fire({ title: 'Processando...', text: 'Fundindo palavras localmente.', didOpen: () => Swal.showLoading() });
 
   try {
     const storedData = await getItem(`planilha_${planilhaNome}`);
@@ -288,7 +270,7 @@ async function fundirPalavrasSelecionadas() {
     });
 
     if (!hasChanges) {
-        Swal.fire(await window.getTranslation('swal_warning_title'), await window.getTranslation('swal_no_words_found_to_merge'), "info");
+        Swal.fire("Aviso", "Nenhuma das palavras selecionadas foi encontrada.", "info");
         return;
     }
 
@@ -296,6 +278,7 @@ async function fundirPalavrasSelecionadas() {
     const novoLemaValor = palavrasSelecionadas.map(p => `${p} (${counts[p] || 0})`);
     lemasAtuais[novoNome] = novoLemaValor;
 
+    // Se o novo nome já existia como um lema, preserva o histórico anterior
     const lemaPath = `lematizacoes/${planilhaNome}/${novoNome}`;
     logPromises.push(logLocalChange(planilhaNome, lemaPath, novoLemaValor));
     
@@ -304,23 +287,18 @@ async function fundirPalavrasSelecionadas() {
     await setItem(`lemas_${planilhaNome}`, lemasAtuais);
     
     Swal.fire({
-        title: await window.getTranslation('swal_merged_title'), 
-        text: await window.getTranslation('swal_words_merged_text'),
-        icon: 'success', 
-        confirmButtonText: await window.getTranslation('swal_understood_button')
-    });
-
-    // Força a atualização da tabela na tela
-    window.dispatchEvent(new Event('atualizarTabelaEvocacoes'));
+        title: 'Fundido!', text: 'As palavras foram fundidas localmente.',
+        icon: 'success', confirmButtonText: 'Entendido'
+    }).then(() => location.reload());
 
   } catch (error) {
     console.error("Erro ao fundir palavras:", error);
-    Swal.fire(await window.getTranslation('swal_error_title'), await window.getTranslation('swal_merge_error_text'), "error");
+    Swal.fire("Erro", "Ocorreu um problema ao fundir as palavras.", "error");
   }
 }
 
-// --- Construção do Menu e Event Listeners (sem alterações) ---
-async function criarMenuLateral() {
+// --- Construção do Menu e Event Listeners ---
+function criarMenuLateral() {
   const menu = document.createElement("div");
   menu.classList.add("menu-lateral");
   const makeBtn = (label, iconClass, onClick) => {
@@ -334,15 +312,15 @@ async function criarMenuLateral() {
     return btn;
   };
 
-  const botaoSalvar = makeBtn(await window.getTranslation('menu_save'), "fa-solid fa-cloud-arrow-up", salvarAlteracoes);
+  const botaoSalvar = makeBtn("Salvar", "fa-solid fa-cloud-arrow-up", salvarAlteracoes);
   botaoSalvar.id = 'botao-salvar';
-  const botaoRemover = makeBtn(await window.getTranslation('menu_remove'), "fas fa-trash", removerPalavrasSelecionadas);
-  const botaoFundir  = makeBtn(await window.getTranslation('menu_merge'),  "fas fa-compress", fundirPalavrasSelecionadas);
-  const botaoFusoes  = makeBtn(await window.getTranslation('menu_show_merges'),  "fas fa-random", () => {
+  const botaoRemover = makeBtn("Remover", "fas fa-trash", removerPalavrasSelecionadas);
+  const botaoFundir  = makeBtn("Fundir",  "fas fa-compress", fundirPalavrasSelecionadas);
+  const botaoFusoes  = makeBtn("Fusões",  "fas fa-random", () => {
     window.filtroFusoes = true;
     window.dispatchEvent(new CustomEvent("atualizarTabelaEvocacoes"));
   });
-  const botaoExibir  = makeBtn(await window.getTranslation('menu_show_all'), "fas fa-eye", () => {
+  const botaoExibir  = makeBtn("Exibir todas", "fas fa-eye", () => {
     window.filtroFusoes = false;
     window.dispatchEvent(new CustomEvent("atualizarTabelaEvocacoes"));
   });
@@ -369,6 +347,7 @@ window.addEventListener("DOMContentLoaded", () => {
   const urlParams = new URLSearchParams(window.location.search);
   const planilhaNome = urlParams.get("planilha");
 
+  // Escuta o evento de 'atualizacao.js' para checar as alterações locais
   window.addEventListener('checarAlteracoesLocais', () => {
       if(planilhaNome) checarAlteracoesPendentes(planilhaNome);
   });

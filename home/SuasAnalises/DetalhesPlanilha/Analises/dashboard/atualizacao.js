@@ -2,11 +2,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.3/firebase
 import { getDatabase, ref, get, query, orderByChild, startAt } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
 import firebaseConfig from '/firebase.js';
 
-// Importa a biblioteca SweetAlert2
-const script = document.createElement('script');
-script.src = "https://cdn.jsdelivr.net/npm/sweetalert2@11";
-document.head.appendChild(script);
-
 // Inicialização do Firebase
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
@@ -17,6 +12,10 @@ const STORE_NAME = 'planilhas';
 
 // --- Funções do IndexedDB (Banco de Dados Local) ---
 
+/**
+ * Abre e, se necessário, cria a base de dados local IndexedDB.
+ * @returns {Promise<IDBDatabase>} A instância da base de dados.
+ */
 function openDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, 1);
@@ -31,6 +30,11 @@ function openDB() {
   });
 }
 
+/**
+ * Obtém um item do IndexedDB.
+ * @param {string} key A chave do item a ser obtido.
+ * @returns {Promise<any>} O valor do item ou null se não for encontrado.
+ */
 async function getItem(key) {
     const db = await openDB();
     const transaction = db.transaction(STORE_NAME, 'readonly');
@@ -42,107 +46,34 @@ async function getItem(key) {
     });
 }
 
+/**
+ * Define um item no IndexedDB.
+ * @param {string} key A chave do item.
+ * @param {any} value O valor a ser guardado.
+ * @returns {Promise<void>}
+ */
 async function setItem(key, value) {
     const db = await openDB();
     const transaction = db.transaction(STORE_NAME, 'readwrite');
     transaction.objectStore(STORE_NAME).put({ key, value });
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         transaction.oncomplete = () => resolve();
-        transaction.onerror = (event) => reject(event.target.error);
     });
 }
 
-// --- Lógica Principal de Sincronização e Download ---
+// --- Lógica Principal de Sincronização ---
 
+/**
+ * Obtém os dados do utilizador a partir da sessionStorage.
+ * @returns {object|null} O objeto do utilizador ou null.
+ */
 function getUserFromSession() {
     const userData = sessionStorage.getItem('user');
     return userData ? JSON.parse(userData) : null;
 }
 
 /**
- * Baixa a planilha completa do Firebase, salva localmente e recarrega a página.
- * @param {object} user - O objeto do usuário autenticado.
- * @param {string} planilhaNome - O nome da planilha a ser baixada.
- */
-async function baixarPlanilhaInicial(user, planilhaNome) {
-    console.log(`Planilha "${planilhaNome}" não encontrada localmente. Baixando do Firebase...`);
-    
-    Swal.fire({
-        title: await window.getTranslation('preparing_analy'),
-        text: await window.getTranslation('download_analy'),
-        
-        allowOutsideClick: false,
-        didOpen: () => {
-            Swal.showLoading();
-        }
-    });
-
-    try {
-        const planilhaRef = ref(database, `/users/${user.uid}/planilhas/${planilhaNome}`);
-        const snapshotPlanilha = await get(planilhaRef);
-
-        if (!snapshotPlanilha.exists()) {
-            throw new Error(`Planilha "${planilhaNome}" não encontrada no Firebase.`);
-        }
-
-        let planilhaCompleta = [];
-        snapshotPlanilha.forEach(chunkSnapshot => {
-            planilhaCompleta = planilhaCompleta.concat(chunkSnapshot.val());
-        });
-        await setItem(`planilha_${planilhaNome}`, planilhaCompleta);
-        console.log(`Planilha "${planilhaNome}" salva localmente.`);
-
-        const remoteTimestampRef = ref(database, `/users/${user.uid}/UltimasAlteracoes/${planilhaNome}`);
-        const snapshotTimestamp = await get(remoteTimestampRef);
-        if (snapshotTimestamp.exists()) {
-            const remoteData = snapshotTimestamp.val();
-            const remoteTimestamp = parseInt(Object.keys(remoteData)[0]);
-            await setItem(`timestamp_local_change_${planilhaNome}`, remoteTimestamp);
-        }
-        
-        Swal.close();
-        
-        // Exibe um alerta de sucesso e, ao confirmar, recarrega a página.
-        await Swal.fire({
-            title: await window.getTranslation('ready'),
-            text: `Os dados de "${planilhaNome}" foram preparados. A página será recarregada para carregar os novos dados.`,
-            text: await window.getTranslation('data_loaded'),
-            icon: "success",
-            confirmButtonText: "Ok"
-        }).then(() => {
-            location.reload(); // FORÇA O F5 NA PÁGINA
-        });
-
-    } catch (error) {
-        console.error("Erro ao baixar dados iniciais:", error);
-        Swal.fire("Erro no Download", `Não foi possível baixar os dados da análise: ${error.message}`, "error");
-    }
-}
-
-/**
- * Função principal que verifica se a planilha existe localmente e decide se baixa ou sincroniza.
- * @param {object} user O objeto do utilizador autenticado.
- * @param {string} planilhaNome O nome da planilha a ser sincronizada.
- */
-async function verificarEProcessarPlanilha(user, planilhaNome) {
-    try {
-        const dadosLocais = await getItem(`planilha_${planilhaNome}`);
-
-        if (!dadosLocais) {
-            // Se não existir localmente, baixa pela primeira vez.
-            await baixarPlanilhaInicial(user, planilhaNome);
-        } else {
-            // Se já existir, apenas procede com a sincronização de alterações (sem recarregar).
-            await sincronizarDados(user, planilhaNome);
-        }
-    } catch (error) {
-        console.error("Erro no processo de verificação da planilha:", error);
-        Swal.fire("Erro Crítico", "Ocorreu um problema ao acessar os dados da análise.", "error");
-    }
-}
-
-/**
- * Compara timestamps e inicia a sincronização de diferenças.
+ * Função principal que compara timestamps e inicia a sincronização de diferenças.
  * @param {object} user O objeto do utilizador autenticado.
  * @param {string} planilhaNome O nome da planilha a ser sincronizada.
  */
@@ -154,6 +85,7 @@ async function sincronizarDados(user, planilhaNome) {
 
         if (!snapshot.exists()) {
             console.log("Nenhum timestamp remoto encontrado. Sem necessidade de sincronizar.");
+            // Mesmo sem timestamp remoto, precisamos checar se há alterações locais para enviar
             window.dispatchEvent(new Event('checarAlteracoesLocais'));
             return;
         }
@@ -166,7 +98,6 @@ async function sincronizarDados(user, planilhaNome) {
             await aplicarAlteracoesRemotas(user, planilhaNome, localTimestamp, remoteTimestamp);
         } else {
             console.log("Dados locais estão atualizados.");
-            // Dispara o evento para scripts que precisam saber que a verificação terminou (como evocacoes.js)
             window.dispatchEvent(new Event('checarAlteracoesLocais'));
         }
 
@@ -205,9 +136,11 @@ async function aplicarAlteracoesRemotas(user, planilhaNome, localTimestamp, remo
             const entry = childSnapshot.val();
             const changes = entry.changes;
 
+            // **CORREÇÃO DA LEITURA DO HISTÓRICO**
             for (const pathKey in changes) {
                 changesApplied = true;
                 const value = changes[pathKey];
+                // Decodifica o caminho, trocando o separador '___' de volta para '/'
                 const pathParts = pathKey.split('___');
                 
                 const type = pathParts[0];
@@ -224,6 +157,7 @@ async function aplicarAlteracoesRemotas(user, planilhaNome, localTimestamp, remo
                     }
 
                 } else if (type === 'lematizacoes') {
+                    // Reconstrói a chave do lema, que pode conter '/'
                     const lemaKey = pathParts.slice(2).join('/');
                     localLemas[lemaKey] = value;
                 }
@@ -236,11 +170,11 @@ async function aplicarAlteracoesRemotas(user, planilhaNome, localTimestamp, remo
             await setItem(`timestamp_local_change_${planilhaNome}`, remoteTimestamp);
 
             Swal.fire({
-                title: await window.getTranslation('update_spreedsheet'),
-                text: await window.getTranslation('update_spreedsheet_text'),
+                title: "Planilha Atualizada!",
+                text: "Novas alterações do servidor foram aplicadas. A página será recarregada.",
                 icon: "info",
                 confirmButtonText: "Ok"
-            }).then(() => location.reload()); // Recarrega também ao aplicar atualizações
+            }).then(() => location.reload());
         } else {
             await setItem(`timestamp_local_change_${planilhaNome}`, remoteTimestamp);
         }
@@ -261,6 +195,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
     
-    // Inicia o processo de verificação para a planilha atual
-    verificarEProcessarPlanilha(user, planilhaNome);
+    setTimeout(() => {
+        sincronizarDados(user, planilhaNome);
+    }, 500);
 });
