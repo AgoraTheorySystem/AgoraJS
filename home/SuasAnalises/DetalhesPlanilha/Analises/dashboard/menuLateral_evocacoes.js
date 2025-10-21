@@ -114,29 +114,20 @@ async function salvarAlteracoes() {
         const historyChangesForPush = {};
 
         pendingChanges.forEach(change => {
-            // **CORREÇÃO PRINCIPAL**: Cria um objeto plano para o update.
-            // A chave é o caminho completo para o dado (ex: "planilhas/minhaplanilha/chunk_0/10/5")
-            // e o valor é o novo dado. Isso garante que apenas os campos especificados sejam alterados.
             updatesForFirebase[change.path] = change.value;
-
-            // Para o histórico, não podemos usar '/' na chave. Substituímos por um separador seguro.
             const historyPathKey = change.path.replace(/\//g, '___');
             historyChangesForPush[historyPathKey] = change.value;
         });
 
-        // 1. Aplica as alterações na base de dados principal usando a atualização multi-path
         await update(ref(database, `users/${user.uid}`), updatesForFirebase);
 
         const timestamp = Date.now();
-        // 2. Adiciona as alterações ao histórico para outros clientes sincronizarem
         const historyRef = ref(database, `users/${user.uid}/historico_alteracoes/${planilhaNome}`);
         await push(historyRef, { timestamp, changes: historyChangesForPush });
 
-        // 3. Atualiza o timestamp principal de alterações
         const timestampRef = ref(database, `users/${user.uid}/UltimasAlteracoes/${planilhaNome}`);
         await set(timestampRef, { [timestamp]: timestamp });
 
-        // 4. Limpa as alterações pendentes locais e atualiza o timestamp local
         await deleteItem(`pending_changes_${planilhaNome}`);
         await setItem(`timestamp_local_change_${planilhaNome}`, timestamp);
 
@@ -248,6 +239,39 @@ async function fundirPalavrasSelecionadas() {
     const storedData = await getItem(`planilha_${planilhaNome}`);
     if (!storedData) throw new Error("Planilha não encontrada.");
 
+    // --- CÁLCULO DAS CONTAGENS DAS PALAVRAS ORIGINAIS ---
+    const header = storedData[0];
+    const rows = storedData.slice(1);
+    const contagensOriginais = {};
+    palavrasSelecionadas.forEach(p => {
+        contagensOriginais[p] = { total: 0, ego: 0, alter: 0 };
+    });
+
+    for (const row of rows) {
+        for (let j = 0; j < header.length; j++) {
+            const coluna = header[j].toUpperCase();
+            if (/^EVOC[1-9]$|^EVOC10$/.test(coluna)) {
+                const palavra = String(row[j] || "").trim().toUpperCase();
+                if (palavrasSelecionadas.includes(palavra)) {
+                    contagensOriginais[palavra].total++;
+                    if (/^EVOC[1-5]$/.test(coluna)) {
+                        contagensOriginais[palavra].ego++;
+                    } else {
+                        contagensOriginais[palavra].alter++;
+                    }
+                }
+            }
+        }
+    }
+
+    const newCounts = { total: 0, ego: 0, alter: 0 };
+    palavrasSelecionadas.forEach(p => {
+        newCounts.total += contagensOriginais[p].total;
+        newCounts.ego += contagensOriginais[p].ego;
+        newCounts.alter += contagensOriginais[p].alter;
+    });
+    // --- FIM DO CÁLCULO ---
+
     let hasChanges = false;
     const counts = {};
     palavrasSelecionadas.forEach(p => counts[p] = 0);
@@ -275,10 +299,17 @@ async function fundirPalavrasSelecionadas() {
     }
 
     const lemasAtuais = await getItem(`lemas_${planilhaNome}`) || {};
-    const novoLemaValor = palavrasSelecionadas.map(p => `${p} (${counts[p] || 0})`);
+    
+    // --- MODIFICAÇÃO DO OBJETO DE LEMA ---
+    const novoLemaValor = {
+        origem: palavrasSelecionadas.map(p => `${p} (${counts[p] || 0})`),
+        total: newCounts.total,
+        ego: newCounts.ego,
+        alter: newCounts.alter
+    };
     lemasAtuais[novoNome] = novoLemaValor;
-
-    // Se o novo nome já existia como um lema, preserva o histórico anterior
+    // --- FIM DA MODIFICAÇÃO ---
+    
     const lemaPath = `lematizacoes/${planilhaNome}/${novoNome}`;
     logPromises.push(logLocalChange(planilhaNome, lemaPath, novoLemaValor));
     
@@ -296,6 +327,7 @@ async function fundirPalavrasSelecionadas() {
     Swal.fire("Erro", "Ocorreu um problema ao fundir as palavras.", "error");
   }
 }
+
 
 // --- Construção do Menu e Event Listeners ---
 function criarMenuLateral() {

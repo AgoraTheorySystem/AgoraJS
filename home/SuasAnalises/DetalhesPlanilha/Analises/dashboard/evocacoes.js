@@ -1,6 +1,7 @@
 import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-database.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.3/firebase-app.js";
 import firebaseConfig from '/firebase.js';
+import { verificarEProcessarPlanilha } from "./atualizacao.js";
 
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
@@ -10,7 +11,8 @@ let currentPage = 1;
 let allWords = [];
 let currentLematizacoes = {};
 let currentSearch = "";
-let currentSortColumn = null;
+// Define a ordenação inicial padrão
+let currentSortColumn = "total";
 let currentSortDirection = "desc";
 
 const DB_NAME = 'agoraDB';
@@ -92,6 +94,9 @@ function updateSelectedContainer() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+  // Garante que os dados estão baixados e sincronizados ANTES de tentar ler
+  await verificarEProcessarPlanilha();
+
   const urlParams = new URLSearchParams(window.location.search);
   const planilhaNome = urlParams.get("planilha");
   if (!planilhaNome) {
@@ -115,7 +120,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
     currentLematizacoes = await getItem(`lemas_${planilhaNome}`) || {};
-    processarTabela(data);
+    await processarTabela(data);
   } catch (error) {
     console.error("Erro ao carregar dados locais:", error);
     Swal.fire({ 
@@ -126,10 +131,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
-function processarTabela(data) {
+async function processarTabela(data) {
   const header = data[0];
   const rows = data.slice(1);
 
+  // 1. Recalcula contagens da planilha atual
   const palavraContagem = {};
   for (const row of rows) {
     for (let j = 0; j < header.length; j++) {
@@ -150,9 +156,33 @@ function processarTabela(data) {
     }
   }
 
-  allWords = Object.entries(palavraContagem);
+  // 2. Mescla com os totais corretos das fusões E REMOVE AS ORIGINAIS
+  const finalContagem = { ...palavraContagem };
+  Object.entries(currentLematizacoes).forEach(([palavra, lema]) => {
+      const isNewFormat = lema && typeof lema === 'object' && !Array.isArray(lema) && lema.origem;
+      if (isNewFormat) {
+          // Sobrescreve ou cria a entrada para a palavra fundida com os totais corretos
+          finalContagem[palavra] = {
+              total: lema.total !== undefined ? lema.total : (finalContagem[palavra]?.total || 0),
+              ego: lema.ego !== undefined ? lema.ego : (finalContagem[palavra]?.ego || 0),
+              alter: lema.alter !== undefined ? lema.alter : (finalContagem[palavra]?.alter || 0),
+          };
+          
+          // Remove as palavras de origem da lista final
+          lema.origem.forEach(palavraOriginal => {
+              // Extrai o nome da palavra (ex: "TEMPO" de "TEMPO (190)")
+              const nomeOriginal = palavraOriginal.split(' (')[0].trim().toUpperCase();
+              if (finalContagem[nomeOriginal]) {
+                  delete finalContagem[nomeOriginal];
+              }
+          });
+      }
+  });
+
+  allWords = Object.entries(finalContagem);
   renderTabela();
 }
+
 
 async function renderTabela() {
   const termo = currentSearch;
@@ -163,7 +193,7 @@ async function renderTabela() {
   if (window.filtroFusoes) {
     lista = lista.filter(([palavra]) => {
       const lema = currentLematizacoes[palavra];
-      return Array.isArray(lema) && lema.length > 0;
+      return lema && (Array.isArray(lema) || (typeof lema === 'object' && lema.origem));
     });
   }
 
@@ -211,7 +241,18 @@ async function renderTabela() {
     <tbody>
       ${pageWords.map(([palavra, contagem]) => {
         const palavraDestacada = termo ? palavra.replace(regexHighlight, `<mark>$1</mark>`) : palavra;
-        const lema = currentLematizacoes[palavra] || "";
+        const lema = currentLematizacoes[palavra];
+        
+        let fusaoDisplay = "";
+        if (lema) {
+            const isNewFormat = typeof lema === 'object' && !Array.isArray(lema) && lema.origem;
+            if (isNewFormat) {
+                fusaoDisplay = lema.origem.join(", ");
+            } else if (Array.isArray(lema)) {
+                fusaoDisplay = lema.join(", ");
+            }
+        }
+        
         return `
           <tr>
             <td><input type="checkbox"></td>
@@ -219,7 +260,7 @@ async function renderTabela() {
             <td>${contagem.total}</td>
             <td>${contagem.alter}</td>
             <td>${contagem.ego}</td>
-            <td>${Array.isArray(lema) ? lema.join(", ") : lema}</td>
+            <td>${fusaoDisplay}</td>
           </tr>
         `;
       }).join("")}
@@ -376,3 +417,4 @@ window.addEventListener("atualizarTabelaEvocacoes", () => {
   const ev = document.getElementById("link-evocacoes");
   if (ev) ev.classList.add("active");
 })();
+

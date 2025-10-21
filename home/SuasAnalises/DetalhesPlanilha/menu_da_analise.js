@@ -1,4 +1,9 @@
-document.addEventListener('DOMContentLoaded', function () {
+import { verificarEProcessarPlanilha } from './Analises/dashboard/atualizacao.js';
+
+document.addEventListener('DOMContentLoaded', async function () {
+    // Roda a verificação de dados assim que a página de menu é carregada
+    await verificarEProcessarPlanilha();
+
     // Pega a string de consulta da URL
     const queryString = window.location.search;
     // Cria uma instância de URLSearchParams para manipular os parâmetros
@@ -34,4 +39,3 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
-
