@@ -20,6 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let filteredData = [];
   let headerData = [];
   let tableData = [];
+  let currentLemas = {};
   let currentQuery = "";
   let currentPage = 1;
   const rowsPerPage = 10;
@@ -71,6 +72,37 @@ document.addEventListener("DOMContentLoaded", () => {
       return [];
     }
   }
+
+  function applyLemas(sheetData, lemas) {
+      if (!lemas || Object.keys(lemas).length === 0) {
+          return sheetData;
+      }
+
+      // Cria um mapa reverso: { PALAVRA_ORIGINAL: PALAVRA_FUNDIDA }
+      const reverseLemaMap = {};
+      for (const [palavraFundida, dataLema] of Object.entries(lemas)) {
+          if (dataLema && Array.isArray(dataLema.origem)) {
+              dataLema.origem.forEach(origemStr => {
+                  const palavraOriginal = origemStr.split(' (')[0].trim().toUpperCase();
+                  reverseLemaMap[palavraOriginal] = palavraFundida.toUpperCase();
+              });
+          }
+      }
+      
+      if (Object.keys(reverseLemaMap).length === 0) {
+        return sheetData;
+      }
+
+      // Mapeia os dados da planilha, substituindo as palavras
+      return sheetData.map((row, rowIndex) => {
+          if (rowIndex === 0) return row; // Mantém o cabeçalho
+          return row.map(cell => {
+              const valor = String(cell || "").trim().toUpperCase();
+              return reverseLemaMap[valor] || cell;
+          });
+      });
+  }
+
 
   const escapeRegExp = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -182,17 +214,14 @@ document.addEventListener("DOMContentLoaded", () => {
   async function downloadPlanilha() {
     try {
         showLoading(true);
-        const planilhaData = await loadFromIndexedDB(planilhaNome);
-        if (planilhaData.length === 0) {
-            alert("Não foi possível encontrar os dados da planilha para download.");
-            return;
-        }
-
-        const worksheet = XLSX.utils.aoa_to_sheet(planilhaData);
+        // Para o download, usamos os dados já transformados com as fusões
+        const dataToDownload = [headerData, ...tableData];
+        
+        const worksheet = XLSX.utils.aoa_to_sheet(dataToDownload);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Dados");
 
-        XLSX.writeFile(workbook, `${planilhaNome}.xlsx`);
+        XLSX.writeFile(workbook, `${planilhaNome}_socioeconomico.xlsx`);
     } catch (error) {
         console.error("Erro ao gerar o arquivo XLSX:", error);
         alert("Ocorreu um erro ao tentar baixar a planilha.");
@@ -226,10 +255,14 @@ document.addEventListener("DOMContentLoaded", () => {
     showLoading(true);
     try {
       data = await loadFromIndexedDB(planilhaNome);
+      currentLemas = await getItem(`lemas_${planilhaNome}`) || {};
+
       if (data.length === 0) return;
 
-      headerData = data[0];
-      tableData = data.slice(1);
+      const dataComLemas = applyLemas(data, currentLemas);
+
+      headerData = dataComLemas[0];
+      tableData = dataComLemas.slice(1);
       filteredData = tableData;
 
       renderTableHeader();

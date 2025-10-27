@@ -226,7 +226,6 @@ async function aplicarAlteracoesRemotas(user, planilhaNome, localTimestamp, remo
         let localSheet = await getItem(`planilha_${planilhaNome}`);
         let localLemas = await getItem(`lemas_${planilhaNome}`) || {};
         let changesApplied = false;
-        const CHUNK_SIZE = 500;
 
         snapshot.forEach(childSnapshot => {
             const entry = childSnapshot.val();
@@ -238,20 +237,41 @@ async function aplicarAlteracoesRemotas(user, planilhaNome, localTimestamp, remo
                 const pathParts = pathKey.split('___');
                 const type = pathParts[0];
 
-                if (type === 'planilhas' && localSheet) {
-                    const [, , chunkName, rowIndexInChunk, cellIndex] = pathParts;
-                    if(!chunkName || !rowIndexInChunk || !cellIndex) continue;
-                    const chunkIndex = parseInt(chunkName.split('_')[1]);
-                    const overallRowIndex = chunkIndex * CHUNK_SIZE + parseInt(rowIndexInChunk);
-                    
-                    if (!localSheet[overallRowIndex]) {
-                        localSheet[overallRowIndex] = [];
-                    }
-                    localSheet[overallRowIndex][parseInt(cellIndex)] = value;
-
-                } else if (type === 'lematizacoes') {
+                if (type === 'lematizacoes') {
                     const lemaKey = pathParts.slice(2).join('/');
-                    localLemas[lemaKey] = value;
+                    if (value === null) {
+                        delete localLemas[lemaKey];
+                    } else {
+                        localLemas[lemaKey] = value;
+                    }
+                } else if (type === 'remocoes') { 
+                    const [ , planilha, ] = pathParts;
+                    if (planilha === planilhaNome) {
+                        const palavrasRemovidas = value; 
+                        if (Array.isArray(palavrasRemovidas) && localSheet) {
+                            localSheet = localSheet.map((row, rowIndex) => {
+                                if (rowIndex === 0) return row; // Keep header
+                                return row.map(cell => {
+                                    const valor = String(cell || "").trim().toUpperCase();
+                                    return palavrasRemovidas.includes(valor) ? "VAZIO" : cell;
+                                });
+                            });
+                        }
+                    }
+                } else if (type === 'fusao_evocacao') {
+                    const [ , planilha, ] = pathParts;
+                    if (planilha === planilhaNome) {
+                        const { novoNome, palavrasOrigem } = value;
+                        if (novoNome && Array.isArray(palavrasOrigem) && localSheet) {
+                            localSheet = localSheet.map((row, rowIndex) => {
+                                if (rowIndex === 0) return row; // Keep header
+                                return row.map(cell => {
+                                    const valor = String(cell || "").trim().toUpperCase();
+                                    return palavrasOrigem.includes(valor) ? novoNome : cell;
+                                });
+                            });
+                        }
+                    }
                 }
             }
         });
@@ -302,4 +322,5 @@ export async function verificarEProcessarPlanilha() {
         Swal.fire("Erro Crítico", "Ocorreu um problema ao acessar os dados da análise.", "error");
     }
 }
+
 

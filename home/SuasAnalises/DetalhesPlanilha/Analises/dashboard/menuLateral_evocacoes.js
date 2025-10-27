@@ -114,12 +114,19 @@ async function salvarAlteracoes() {
         const historyChangesForPush = {};
 
         pendingChanges.forEach(change => {
-            updatesForFirebase[change.path] = change.value;
+            // Apenas adicione alterações de 'dados' diretos ao lote de atualização principal
+            if (change.type === 'data') {
+                updatesForFirebase[change.path] = change.value;
+            }
+
+            // Todas as alterações (ações e dados) vão para o histórico
             const historyPathKey = change.path.replace(/\//g, '___');
             historyChangesForPush[historyPathKey] = change.value;
         });
 
-        await update(ref(database, `users/${user.uid}`), updatesForFirebase);
+        if (Object.keys(updatesForFirebase).length > 0) {
+            await update(ref(database, `users/${user.uid}`), updatesForFirebase);
+        }
 
         const timestamp = Date.now();
         const historyRef = ref(database, `users/${user.uid}/historico_alteracoes/${planilhaNome}`);
@@ -144,13 +151,13 @@ async function salvarAlteracoes() {
 /**
  * Registra uma alteração para ser enviada posteriormente.
  */
-async function logLocalChange(planilhaNome, path, value) {
+async function logLocalChange(planilhaNome, path, value, type = 'data') {
     const changes = await getItem(`pending_changes_${planilhaNome}`) || [];
     const existingIndex = changes.findIndex(c => c.path === path);
     if (existingIndex > -1) {
-        changes[existingIndex].value = value;
+        changes[existingIndex] = { path, value, type };
     } else {
-        changes.push({ path, value });
+        changes.push({ path, value, type });
     }
     await setItem(`pending_changes_${planilhaNome}`, changes);
     setUnsavedChanges(true);
@@ -167,8 +174,6 @@ async function removerPalavrasSelecionadas() {
     const urlParams = new URLSearchParams(window.location.search);
     const planilhaNome = urlParams.get("planilha");
     if (!planilhaNome) return;
-    const user = getUserFromSession();
-    const CHUNK_SIZE = 500;
 
     Swal.fire({ title: 'Processando...', text: 'Removendo palavras localmente.', didOpen: () => Swal.showLoading() });
 
@@ -178,29 +183,41 @@ async function removerPalavrasSelecionadas() {
 
         let hasChanges = false;
         const logPromises = [];
+        const lemasAtuais = await getItem(`lemas_${planilhaNome}`) || {};
 
         const updatedData = storedData.map((row, rowIndex) => {
-            return row.map((cell, cellIndex) => {
+            if (rowIndex === 0) return row; // Manter o cabeçalho
+            return row.map(cell => {
                 const valor = String(cell || "").trim().toUpperCase();
                 if (palavrasParaRemover.includes(valor)) {
                     hasChanges = true;
-                    const chunkIndex = Math.floor(rowIndex / CHUNK_SIZE);
-                    const rowIndexInChunk = rowIndex % CHUNK_SIZE;
-                    const path = `planilhas/${planilhaNome}/chunk_${chunkIndex}/${rowIndexInChunk}/${cellIndex}`;
-                    logPromises.push(logLocalChange(planilhaNome, path, "VAZIO"));
                     return "VAZIO";
                 }
                 return cell;
             });
         });
-
+        
         if (!hasChanges) {
             Swal.fire("Aviso", "Nenhuma das palavras selecionadas foi encontrada.", "info");
             return;
         }
         
+        // Adiciona um registro único da remoção para o histórico.
+        const remocaoPath = `remocoes/${planilhaNome}/${Date.now()}`;
+        logPromises.push(logLocalChange(planilhaNome, remocaoPath, palavrasParaRemover, 'action'));
+
+        // Também remove as palavras se elas forem chaves de lematização (fusões)
+        palavrasParaRemover.forEach(palavra => {
+            if(lemasAtuais[palavra]) {
+                delete lemasAtuais[palavra];
+                const lemaPath = `lematizacoes/${planilhaNome}/${palavra}`;
+                logPromises.push(logLocalChange(planilhaNome, lemaPath, null, 'data')); // null indica exclusão na sincronização
+            }
+        });
+        
         await Promise.all(logPromises);
         await setItem(`planilha_${planilhaNome}`, updatedData);
+        await setItem(`lemas_${planilhaNome}`, lemasAtuais);
         
         Swal.fire({
             title: 'Removido!', text: 'As palavras foram removidas localmente.',
@@ -229,15 +246,21 @@ async function fundirPalavrasSelecionadas() {
   const novoNome = novoNomeRaw.trim().toUpperCase();
   const urlParams = new URLSearchParams(window.location.search);
   const planilhaNome = urlParams.get("planilha");
-  const user = getUserFromSession();
-  if (!planilhaNome || !user) return;
-  const CHUNK_SIZE = 500;
+  if (!planilhaNome) return;
+
 
   Swal.fire({ title: 'Processando...', text: 'Fundindo palavras localmente.', didOpen: () => Swal.showLoading() });
 
   try {
     const storedData = await getItem(`planilha_${planilhaNome}`);
     if (!storedData) throw new Error("Planilha não encontrada.");
+
+    let hasChanges = false;
+    const logPromises = [];
+    
+    // Contagem de ocorrências para o lema
+    const counts = {};
+    palavrasSelecionadas.forEach(p => counts[p] = 0);
 
     // --- CÁLCULO DAS CONTAGENS DAS PALAVRAS ORIGINAIS ---
     const header = storedData[0];
@@ -272,25 +295,17 @@ async function fundirPalavrasSelecionadas() {
     });
     // --- FIM DO CÁLCULO ---
 
-    let hasChanges = false;
-    const counts = {};
-    palavrasSelecionadas.forEach(p => counts[p] = 0);
-    const logPromises = [];
-
     const updatedData = storedData.map((row, rowIndex) => {
-      return row.map((cell, cellIndex) => {
-        const valor = String(cell || "").trim().toUpperCase();
-        if (palavrasSelecionadas.includes(valor)) {
-            hasChanges = true;
-            counts[valor]++;
-            const chunkIndex = Math.floor(rowIndex / CHUNK_SIZE);
-            const rowIndexInChunk = rowIndex % CHUNK_SIZE;
-            const path = `planilhas/${planilhaNome}/chunk_${chunkIndex}/${rowIndexInChunk}/${cellIndex}`;
-            logPromises.push(logLocalChange(planilhaNome, path, novoNome));
-            return novoNome;
-        }
-        return cell;
-      });
+        if (rowIndex === 0) return row; // Manter o cabeçalho
+        return row.map(cell => {
+            const valor = String(cell || "").trim().toUpperCase();
+            if (palavrasSelecionadas.includes(valor)) {
+                hasChanges = true;
+                counts[valor]++;
+                return novoNome;
+            }
+            return cell;
+        });
     });
 
     if (!hasChanges) {
@@ -300,6 +315,13 @@ async function fundirPalavrasSelecionadas() {
 
     const lemasAtuais = await getItem(`lemas_${planilhaNome}`) || {};
     
+    const fusaoPath = `fusao_evocacao/${planilhaNome}/${Date.now()}`;
+    const fusaoValue = {
+        novoNome: novoNome,
+        palavrasOrigem: palavrasSelecionadas
+    };
+    logPromises.push(logLocalChange(planilhaNome, fusaoPath, fusaoValue, 'action'));
+    
     // --- MODIFICAÇÃO DO OBJETO DE LEMA ---
     const novoLemaValor = {
         origem: palavrasSelecionadas.map(p => `${p} (${counts[p] || 0})`),
@@ -308,10 +330,18 @@ async function fundirPalavrasSelecionadas() {
         alter: newCounts.alter
     };
     lemasAtuais[novoNome] = novoLemaValor;
+
+    palavrasSelecionadas.forEach(p => {
+        if(lemasAtuais[p]){
+            delete lemasAtuais[p];
+            const lemaPath = `lematizacoes/${planilhaNome}/${p}`;
+            logPromises.push(logLocalChange(planilhaNome, lemaPath, null, 'data'));
+        }
+    });
     // --- FIM DA MODIFICAÇÃO ---
     
     const lemaPath = `lematizacoes/${planilhaNome}/${novoNome}`;
-    logPromises.push(logLocalChange(planilhaNome, lemaPath, novoLemaValor));
+    logPromises.push(logLocalChange(planilhaNome, lemaPath, novoLemaValor, 'data'));
     
     await Promise.all(logPromises);
     await setItem(`planilha_${planilhaNome}`, updatedData);
@@ -384,3 +414,5 @@ window.addEventListener("DOMContentLoaded", () => {
       if(planilhaNome) checarAlteracoesPendentes(planilhaNome);
   });
 });
+
+
