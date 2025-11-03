@@ -52,6 +52,74 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
   }
 
+  /**
+   * Aplica as lematizações (fusões e remoções) aos dados brutos da planilha.
+   * @param {Array<Array<string>>} sheetData - Os dados brutos da planilha.
+   * @param {Object} lemas - O objeto de lematizações (fusões/remoções).
+   * @returns {Array<Array<string>>} Os dados da planilha processados.
+   */
+  function applyLemas(sheetData, lemas) {
+      if (!lemas || Object.keys(lemas).length === 0) {
+          console.log("Formar Ágoras: Sem lemas, retornando dados brutos.");
+          return sheetData;
+      }
+
+      const reverseLemaMap = {}; // Mapa: "ORIGEM_UPPER" -> "FUNDIDA_UPPER"
+      const deletedWords = new Set(); // Set: "REMOVIDA_UPPER"
+
+      for (const [palavraFundida, dataLema] of Object.entries(lemas)) {
+          const palavraFundidaUpper = palavraFundida.toUpperCase();
+
+          if (dataLema === null) { // Marcação de deleção
+              deletedWords.add(palavraFundidaUpper);
+              continue;
+          }
+          
+          // Verifica se é o formato novo (objeto com propriedade 'origem')
+          const isNewFormat = dataLema && typeof dataLema === 'object' && !Array.isArray(dataLema) && dataLema.origem;
+          if (isNewFormat) {
+                // Palavra fundida existe, então suas origens devem ser mapeadas para ela
+              dataLema.origem.forEach(origemStr => {
+                  const palavraOriginal = origemStr.split(' (')[0].trim().toUpperCase();
+                  if (palavraOriginal) {
+                      reverseLemaMap[palavraOriginal] = palavraFundidaUpper;
+                  }
+              });
+          }
+      }
+      
+      if (Object.keys(reverseLemaMap).length === 0 && deletedWords.size === 0) {
+          console.log("Formar Ágoras: Lemas encontrados, mas nenhum mapa reverso ou deleção aplicável.");
+          return sheetData;
+      }
+
+      console.log(`Formar Ágoras: Aplicando lemas: ${Object.keys(reverseLemaMap).length} mapeamentos, ${deletedWords.size} deleções.`);
+
+      // Mapeia os dados da planilha, substituindo as palavras
+      return sheetData.map((row, rowIndex) => {
+          if (rowIndex === 0) return row; // Mantém o cabeçalho
+          if (!Array.isArray(row)) return row; // Mantém linhas inválidas
+
+          return row.map(cell => {
+              const valor = String(cell || "").trim().toUpperCase();
+              if (!valor) return cell; // Retorna célula original se vazia
+
+              // 1. Checa se é uma palavra de origem (ex: "TESTE")
+              const palavraFundida = reverseLemaMap[valor];
+              if (palavraFundida) {
+                  return palavraFundida; // Retorna a palavra fundida (ex: "TESTE 2")
+              }
+              
+              // 2. Checa se a própria palavra foi marcada para deleção
+              if (deletedWords.has(valor)) {
+                  return "VAZIO";
+              }
+              
+              // 3. Senão, retorna a célula original
+              return cell;
+          });
+      });
+  }
 
   // Armazena a palavra selecionada em cada um dos 5 níveis
   const selectedWords = Array(5).fill(null);
@@ -149,22 +217,32 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Inicializa cada planilha (nível), carregando dados e configurando filtros/paginação
   function initPlanilha(container, planilhaNome, level) {
     let headerData = [];
-    let tableData = [];
+    let tableData = []; // Armazena os dados JÁ PROCESSADOS com lemas
+    let currentLemas = {}; // Armazena os lemas carregados
     const rowsPerPage = 15;
     let currentPage = 1;
     let currentSearch = "";
 
-    // Busca os dados brutos no IndexedDB
+    // Busca os dados brutos no IndexedDB, aplica lemas e retorna
     async function loadData() {
         const key = `planilha_${planilhaNome}`;
+        const lemasKey = `lemas_${planilhaNome}`; // CHAVE DOS LEMAS
         try {
             const raw = await getItem(key);
-            return raw || [];
+            const lemas = await getItem(lemasKey) || {}; // CARREGA OS LEMAS
+            
+            if (!raw || raw.length === 0) return [[], {}]; // Retorna dados vazios se não houver planilha
+            
+            // APLICA AS LEMATIZAÇÕES IMEDIATAMENTE
+            const processedData = applyLemas(raw, lemas); 
+            
+            return [processedData, lemas]; // Retorna dados processados e lemas
         } catch (error) {
             console.error(error);
-            return [];
+            return [[], {}];
         }
     }
+
 
     // Calcula frequência das palavras no intervalo (Ego: EVOC1–5 ou Alter: EVOC6–10),
     // aplicando filtros de nível anterior, exclusão de "VAZIO" e termos já selecionados,
@@ -184,37 +262,50 @@ document.addEventListener("DOMContentLoaded", async () => {
         .filter(o => pattern.test(o.col))
         .map(o => o.i);
 
-      // Filtra linhas que contenham todas as palavras selecionadas nos níveis anteriores
+      // tableData JÁ VEM PROCESSADO com lemas aplicados
       let rows = tableData;
+      
+      // Filtra linhas que contenham todas as palavras selecionadas nos níveis anteriores
       if (level > 1) {
-        for (let l = 1; l < level; l++) {
-          if (!selectedWords[l - 1]) return [];
+        // Pega as palavras selecionadas ANTES do nível atual
+        const palavrasFiltroAnterior = selectedWords.slice(0, level - 1).filter(Boolean);
+        
+        if (palavrasFiltroAnterior.length > 0) {
+            rows = rows.filter(row => {
+                if (!Array.isArray(row)) return false;
+                // Coleta todas as evocações (já processadas) desta linha
+                const evocValues = new Set(indices.map(j => String(row[j] || "").trim().toUpperCase()));
+                // Verifica se TODAS as palavras do filtro anterior estão presentes nas evocações desta linha
+                return palavrasFiltroAnterior.every(palavraFiltro => evocValues.has(palavraFiltro));
+            });
         }
-        rows = rows.filter(row =>
-          selectedWords
-            .slice(0, level - 1)
-            .every(w =>
-              indices.some(j => String(row[j] || "").trim() === w)
-            )
-        );
       }
 
-      // Lista de termos a excluir: "VAZIO" e palavras já selecionadas em níveis anteriores
+      // Lista de termos a excluir: "VAZIO" E palavras já selecionadas em níveis anteriores
       const exclude = selectedWords
         .slice(0, level - 1)
         .filter(Boolean)
         .map(w => w.toUpperCase());
+      exclude.push("VAZIO"); // Adiciona "VAZIO" à exclusão
 
       // Conta frequências
       const freq = {};
       rows.forEach(row => {
+        if (!Array.isArray(row)) return; // Checagem de segurança
+        
         indices.forEach(j => {
           const raw = String(row[j] || "").trim();
           if (!raw) return;
+          
           const upper = raw.toUpperCase();
-          if (upper === "VAZIO") return;
-          if (exclude.includes(upper)) return;
+          
+          // Se a palavra estiver na lista de exclusão (selecionadas anteriores ou "VAZIO"), pula
+          if (exclude.includes(upper)) return; 
+          
+          // Se o usuário estiver pesquisando E a palavra não bate, pula
           if (currentSearch && !raw.toLowerCase().includes(currentSearch.toLowerCase())) return;
+          
+          // Adiciona à frequência
           freq[raw] = (freq[raw] || 0) + 1;
         });
       });
@@ -274,12 +365,12 @@ document.addEventListener("DOMContentLoaded", async () => {
           const selected = selectedWords[level - 1];
         if (selected) {
           container.tbody.querySelectorAll("tr").forEach(r => {
-            const word = r.querySelector("td")?.textContent;
-            if (word === selected) {
+            const wordInRow = r.querySelector("td")?.textContent;
+            if (wordInRow === selected) {
               r.classList.add("selected-word");
             }
           });
-}
+        }
           // Ao clicar, marca-se como palavra selecionada no nível,
           // limpa-se seleções abaixo e refaz tabelas dos níveis superiores
           tr.addEventListener("click", () => {
@@ -339,15 +430,20 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Processo inicial de carregamento de dados e renderização
     container.loading.style.display = "block";
-    loadData().then(data => {
-        if (data.length < 2) {
-          container.loading.style.display = "none";
-          return;
-        }
-        headerData = data[0];
-        tableData = data.slice(1);
-        renderTableHeader();
-        renderTable(1);
+    loadData().then(([data, lemas]) => { // Recebe os dados JÁ PROCESSADOS e os lemas
+      if (data.length < 2) {
+        container.loading.style.display = "none";
+        return;
+      }
+      headerData = data[0];
+      tableData = data.slice(1);
+      currentLemas = lemas; // Salva os lemas carregados
+      
+      renderTableHeader();
+      renderTable(1);
+      container.loading.style.display = "none";
+    }).catch(err => {
+        console.error("Falha no loadData:", err);
         container.loading.style.display = "none";
     });
 
