@@ -81,7 +81,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 /**
- * Processa os dados brutos da planilha, calcula frequências (f, evoc1-10)
+ * Processa os dados brutos da planilha, calcula frequências (f, evoc1-10, OME)
  * e aplica as lematizações (fusões).
  */
 async function processarTabela(data) {
@@ -101,7 +101,9 @@ async function processarTabela(data) {
         // Inicializa o objeto de contagem se a palavra for nova
         if (!palavraContagem[palavra]) {
           palavraContagem[palavra] = {
-            f: 0, ome: '', // OME fica em branco
+            f: 0,
+            weightedSum: 0, // Soma ponderada para cálculo do OME
+            ome: 0,
             evoc1: 0, evoc2: 0, evoc3: 0, evoc4: 0, evoc5: 0,
             evoc6: 0, evoc7: 0, evoc8: 0, evoc9: 0, evoc10: 0
           };
@@ -111,12 +113,26 @@ async function processarTabela(data) {
         palavraContagem[palavra].f++;
         
         // Incrementa a frequência da EVOC* específica
-        const evocNum = coluna.replace('EVOC', ''); // "1", "2", ..., "10"
+        const evocNum = parseInt(coluna.replace('EVOC', ''), 10); // 1, 2, ..., 10
         const evocKey = `evoc${evocNum}`; // "evoc1", "evoc2", ... "evoc10"
+
+        // Adiciona o rank (1, 2, ..., 10) à soma ponderada
+        palavraContagem[palavra].weightedSum += evocNum;
+        
         if (palavraContagem[palavra].hasOwnProperty(evocKey)) {
           palavraContagem[palavra][evocKey]++;
         }
       }
+    }
+  }
+
+  // 1.5. Calcula o OME para todas as palavras brutas (antes das fusões)
+  for (const palavra in palavraContagem) {
+    const contagem = palavraContagem[palavra];
+    if (contagem.f > 0) {
+      contagem.ome = (contagem.weightedSum / contagem.f);
+    } else {
+      contagem.ome = 0;
     }
   }
 
@@ -127,7 +143,10 @@ async function processarTabela(data) {
     if (isNewFormat) {
       // Pega a contagem da própria palavra fundida (se ela já existir)
       const newCounts = finalContagem[palavraFundida] || {
-        f: 0, ome: '', evoc1: 0, evoc2: 0, evoc3: 0, evoc4: 0, evoc5: 0,
+        f: 0,
+        weightedSum: 0,
+        ome: 0,
+        evoc1: 0, evoc2: 0, evoc3: 0, evoc4: 0, evoc5: 0,
         evoc6: 0, evoc7: 0, evoc8: 0, evoc9: 0, evoc10: 0
       };
 
@@ -137,6 +156,7 @@ async function processarTabela(data) {
         if (finalContagem[nomeOriginal]) {
           // Soma as contagens da palavra original na palavra fundida
           newCounts.f += finalContagem[nomeOriginal].f;
+          newCounts.weightedSum += finalContagem[nomeOriginal].weightedSum; // Soma as somas ponderadas
           for (let i = 1; i <= 10; i++) {
             newCounts[`evoc${i}`] += finalContagem[nomeOriginal][`evoc${i}`];
           }
@@ -144,6 +164,13 @@ async function processarTabela(data) {
           delete finalContagem[nomeOriginal];
         }
       });
+      
+      // RECALCULA O OME para a palavra fundida com os totais somados
+      if (newCounts.f > 0) {
+          newCounts.ome = newCounts.weightedSum / newCounts.f;
+      } else {
+          newCounts.ome = 0;
+      }
       
       // Atribui as contagens somadas à palavra fundida
       finalContagem[palavraFundida] = newCounts;
@@ -172,9 +199,8 @@ async function renderTabela() {
         valA = palavraA;
         valB = palavraB;
       } else if (currentSortColumn === "ome") {
-        // Não ordenar por OME, usar 'f' como fallback
-        valA = contA['f'];
-        valB = contB['f'];
+        valA = contA['ome'] || 0; // Usa o OME calculado
+        valB = contB['ome'] || 0; // Usa o OME calculado
       } else {
         valA = contA[currentSortColumn];
         valB = contB[currentSortColumn];
@@ -222,7 +248,7 @@ async function renderTabela() {
           <tr>
             <td data-label="Termo">${palavraDestacada}</td>
             <td data-label="f">${contagem.f}</td>
-            <td data-label="OME">${contagem.ome}</td> <!-- Vazio -->
+            <td data-label="OME">${contagem.ome ? contagem.ome.toFixed(2) : '0.00'}</td>
             <td data-label="1º">${contagem.evoc1}</td>
             <td data-label="2º">${contagem.evoc2}</td>
             <td data-label="3º">${contagem.evoc3}</td>
@@ -254,7 +280,8 @@ async function renderTabela() {
         currentSortDirection = currentSortDirection === "asc" ? "desc" : "asc";
       } else {
         currentSortColumn = col;
-        currentSortDirection = (col === "palavra") ? "asc" : "desc"; // Palavra asc, números desc
+        // Palavra ordena ASC, números ordenam DESC (ou ASC para OME)
+        currentSortDirection = (col === "palavra" || col === "ome") ? "asc" : "desc";
       }
       renderTabela();
     });
@@ -319,3 +346,4 @@ document.getElementById("busca-palavra")?.addEventListener("input", (e) => {
   currentPage = 1;
   renderTabela();
 });
+
