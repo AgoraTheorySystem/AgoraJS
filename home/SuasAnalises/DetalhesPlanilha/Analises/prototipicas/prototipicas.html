@@ -1,20 +1,74 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="icon" type="image/png" href="/assets/icon.png">
-        <link href="/assets/hamburguer.css" rel="stylesheet">
-        <script src="/MenuLateral.js" type="module" defer></script>
-        <!--
-        <link href="menu_da_analise.css" rel="stylesheet">
-        <script src="menu_da_analise.js" type="module" defer></script>
-        -->
-        <title>Ágora</title>
-      </head>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="/assets/icon.png">
+  
+  <!-- CSS -->
+  <link href="/assets/hamburguer.css" rel="stylesheet">
+  <link href="prototipicas.css" rel="stylesheet">
+  <link href="../dashboard/menu.css" rel="stylesheet">
+  
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
+  <script src="/traducao.js" type="module" defer></script>
+  <script src="/MenuLateral.js" type="module" defer></script>
+  <script src="../dashboard/atualizacao.js" type="module" defer></script>
+  <script src="prototipicas.js" type="module" defer></script>
+  <script src="../dashboard/menu.js" type="module" defer></script>
+
+  <title>Ágora - Análise Prototípica</title>
+</head>
 
 <body>
-PROTOTIPICAS
+  <main>
+    <!-- Banner Superior -->
+    <div class="top-barra-planilha">
+      <div class="barra-conteudo card-banner">
+        <div class="barra-logo">
+          <img src="/assets/tipo_de_analise_ prototipica.png" alt="Logo Ágora">
+          <div class="titulo-site" data-translate="prototipicas_methodologies">METODOLOGIA<br>PROTOTÍPICAS</div>
+        </div>
+        <div class="barra-planilha" id="nome-da-planilha"></div>
+      </div>
+    </div>
+    
+    <!-- Menu de Navegação -->
+    <div class="container">
+      <div class="menu">
+        <a class="menu_analises" data-translate="analysis_menu">Menu Das Análises</a>
+        <a href="../prototipicas/prototipicas.html?planilha=" data-translate="prototipicas">Prototípicas</a>
+      </div>
+    </div>
+
+    <!-- Filtro de Busca -->
+    <div class="filter-container">
+      <input type="text" id="busca-palavra" data-translate-placeholder="search_word_placeholder" placeholder="Buscar palavra...">
+    </div>
+
+    <!-- Container da Tabela -->
+    <div class="conteudo-principal">
+      <div id="tabela-prototipicas" class="table-container">
+        <!-- A tabela será gerada pelo prototipicas.js -->
+      </div>
+      <div id="pagination" class="pagination">
+        <!-- A paginação será gerada pelo prototipicas.js -->
+      </div>
+    </div>
+
+    <!-- Indicador de Loading -->
+    <div id="loading" aria-live="polite" aria-busy="true">
+      <figure class="loader">
+        <div class="dot white"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </figure>
+    </div>
+  </main>
 </body>
 
 </html>

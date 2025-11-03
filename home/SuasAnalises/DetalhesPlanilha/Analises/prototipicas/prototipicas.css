@@ -1,0 +1,149 @@
+/* Importa estilos base de evocacoes.css */
+@import url("../dashboard/evocacoes.css");
+
+/* Remove estilos que não queremos */
+.menu-lateral,
+.menu-botao,
+#seta-salvar,
+#popup-salvar,
+#selected-evocacoes,
+tbody tr.selected {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* Ajusta o layout principal para preencher o espaço */
+.table-container,
+.filter-container,
+.pagination,
+.conteudo-principal {
+  margin-left: auto !important;
+  margin-right: auto !important;
+  max-width: 1200px !important;
+  width: 95% !important;
+}
+
+.conteudo-principal {
+    background-color: #f4f7f6;
+    border-radius: 16px;
+    padding: 20px;
+    margin-top: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Estilização da Tabela (baseado na imagem) */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 14px;
+  min-width: 0; /* Reseta o min-width de evocacoes.css */
+}
+
+thead {
+  background-color: #f1f1f1; /* Header cinza */
+  color: #333; /* Texto escuro no header */
+}
+
+th, td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #e8e8e8; /* Linha sutil */
+}
+
+th {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+
+/* Alinhamento da tabela da imagem */
+th:not(:first-child),
+td:not(:first-child) {
+  text-align: center;
+}
+
+td:first-child {
+  font-weight: 500;
+  color: #111;
+}
+
+tbody tr:nth-child(even) {
+  background-color: transparent; /* Remove zebrado */
+}
+
+tbody tr:hover {
+  background-color: #f9f9f9; /* Hover sutil */
+}
+
+/* Remove checkbox e coluna de fusão */
+th:first-child, td:first-child {
+  padding-left: 15px; /* Ajuste para compensar checkbox removido */
+}
+
+th:last-child, td:last-child {
+  padding-right: 15px;
+}
+
+/* Estilos de Ordenação */
+th.sortable::after {
+  content: ' ';
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-bottom: 4px solid #aaa;
+  margin-left: 5px;
+  opacity: 0.5;
+  vertical-align: middle;
+}
+th.sortable.active-asc::after {
+  border-bottom: 0;
+  border-top: 4px solid #333;
+  opacity: 1;
+}
+th.sortable.active-desc::after {
+  border-bottom: 4px solid #333;
+  border-top: 0;
+  opacity: 1;
+}
+
+/* Responsividade da Tabela */
+@media (max-width: 900px) {
+  .table-container {
+    overflow-x: auto; /* Permite scroll horizontal na tabela */
+  }
+  
+  table {
+    min-width: 800px; /* Força um tamanho mínimo para a tabela */
+  }
+
+  .filter-container {
+    max-width: 100%;
+  }
+
+  .pagination {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 600px) {
+  .conteudo-principal {
+    padding: 10px;
+  }
+
+  th, td {
+    padding: 10px 8px;
+    font-size: 13px;
+  }
+
+  table {
+     min-width: 700px;
+  }
+}
