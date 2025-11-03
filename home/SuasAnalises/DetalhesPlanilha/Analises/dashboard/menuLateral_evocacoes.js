@@ -150,40 +150,53 @@ async function salvarAlteracoes() {
             return;
         }
 
-        console.log("Alterações pendentes a serem salvas:", JSON.stringify(pendingChanges, null, 2)); // Log detalhado
+        // *** LOG DE DEBUG ADICIONADO ***
+        console.log("--- [INÍCIO SALVAR] Alterações Pendentes Carregadas ---");
+        console.log(JSON.stringify(pendingChanges, null, 2));
+        // *** FIM DO LOG ***
 
         const updatesForFirebase = {};
         const historyChangesForPush = {}; // Mantém todas as alterações para o histórico
 
         pendingChanges.forEach(change => {
             // Atualiza diretamente apenas nós de 'lematizacoes'
-            if (change.path.startsWith(`lematizacoes/${planilhaNome}/`)) {
-                 const firebasePath = change.path; // Usar path direto se não houver '___'
+            if (change.type === 'data' && change.path.startsWith(`lematizacoes/${planilhaNome}/`)) {
+                 const firebasePath = change.path; // Usar path direto
                  updatesForFirebase[firebasePath] = change.value; // value pode ser null para exclusão
             }
              // Todas as alterações (incluindo ações) vão para o histórico
-             // Usar '___' para evitar que o Firebase interprete como caminhos aninhados na chave do histórico
              const historyPathKey = change.path.replace(/\//g, '___');
              historyChangesForPush[historyPathKey] = { value: change.value, type: change.type }; // Inclui o tipo no histórico
         });
 
+        // *** LOG DE DEBUG ADICIONADO ***
+        console.log("--- [SALVAR] Objeto de 'update' para Firebase ---");
+        console.log(JSON.stringify(updatesForFirebase, null, 2));
+        console.log("--- [SALVAR] Objeto de 'history' para Firebase ---");
+        console.log(JSON.stringify(historyChangesForPush, null, 2));
+        // *** FIM DO LOG ***
+
         // Aplica as atualizações diretas (lematizações)
         if (Object.keys(updatesForFirebase).length > 0) {
-            console.log("Atualizando nós de lematização diretamente:", updatesForFirebase);
+            console.log("Executando 'update' direto no Firebase para lemas...");
             await update(ref(database, `users/${user.uid}`), updatesForFirebase);
+            console.log("'Update' de lemas concluído.");
         }
 
         // Adiciona um único registro no histórico com todas as alterações deste lote
         const timestamp = Date.now();
         const historyRef = ref(database, `users/${user.uid}/historico_alteracoes/${planilhaNome}`);
-        console.log("Registrando no histórico:", { timestamp, changes: historyChangesForPush });
+        console.log("Executando 'push' para o histórico...");
         await push(historyRef, { timestamp, changes: historyChangesForPush });
+        console.log("'Push' para o histórico concluído.");
 
 
         // Atualiza o timestamp geral de modificação da planilha
         const timestampRef = ref(database, `users/${user.uid}/UltimasAlteracoes/${planilhaNome}`);
+        console.log("Executando 'set' do timestamp principal...");
          // Usa set para garantir que apenas o último timestamp exista
         await set(timestampRef, { [timestamp]: timestamp });
+        console.log("'Set' do timestamp concluído.");
 
 
         // Limpa as alterações pendentes locais e atualiza o timestamp local
@@ -237,6 +250,11 @@ async function logLocalChange(planilhaNome, path, value, type = 'data') {
 
 // --- Funções de Ação do Usuário (Remover, Fundir) ---
 
+/**
+ * LÓGICA ATUALIZADA (V2 - Recursiva)
+ * Remove as palavras selecionadas.
+ * Se uma palavra selecionada for uma fusão, remove recursivamente ela e todas as suas palavras de origem.
+ */
 async function removerPalavrasSelecionadas() {
     // Traduções
     const attentionTitle = await window.getTranslation('swal_attention_title');
@@ -251,9 +269,8 @@ async function removerPalavrasSelecionadas() {
     const errorTitle = await window.getTranslation('swal_error_title');
     const removeErrorMsg = await window.getTranslation('swal_remove_error_text');
 
-
-    const palavrasParaRemover = window.selectedEvocacoes || [];
-    if (palavrasParaRemover.length === 0) {
+    const selecaoInicial = window.selectedEvocacoes || [];
+    if (selecaoInicial.length === 0) {
         Swal.fire(attentionTitle, selectWordMsg, "warning");
         return;
     }
@@ -265,7 +282,6 @@ async function removerPalavrasSelecionadas() {
          return;
     }
 
-
     Swal.fire({ title: processingTitle, text: removingText, didOpen: () => Swal.showLoading(), allowOutsideClick: false });
 
     try {
@@ -275,18 +291,55 @@ async function removerPalavrasSelecionadas() {
            throw new Error(`Planilha "${planilhaNome}" não encontrada ou vazia no armazenamento local.`);
         }
 
-
-        let hasChanges = false;
-        const logPromises = [];
         const lemasKey = `lemas_${planilhaNome}`;
         const lemasAtuais = await getItem(lemasKey) || {};
 
+        // --- INÍCIO DA LÓGICA MODIFICADA (V2) ---
+        // 1. Criar uma lista expandida de todas as palavras a serem removidas (incluindo originais de fusões)
+        const todasPalavrasParaRemover = new Set(selecaoInicial); // Começa com o que o usuário selecionou
+        
+        // Usamos um array como fila para processar recursivamente as fusões
+        const filaParaProcessar = [...selecaoInicial]; 
+
+        while (filaParaProcessar.length > 0) {
+            const palavra = filaParaProcessar.shift(); // Pega o próximo item da fila
+
+            // Verifica se a palavra (seja a inicial ou uma original) é uma fusão
+            if (lemasAtuais.hasOwnProperty(palavra)) {
+                const lema = lemasAtuais[palavra];
+
+                // Se for fusão, adiciona suas palavras de origem à lista de remoção E à fila de processamento
+                if (lema && lema.origem && Array.isArray(lema.origem)) {
+                    lema.origem.forEach(palavraOriginalComContagem => {
+                        // Extrai apenas o nome da palavra (ex: "OPORTUNIDADE" de "OPORTUNIDADE (159)")
+                        const nomeOriginal = palavraOriginalComContagem.split(' (')[0].trim().toUpperCase();
+                        if (nomeOriginal && !todasPalavrasParaRemover.has(nomeOriginal)) {
+                            todasPalavrasParaRemover.add(nomeOriginal); // Adiciona à lista de remoção
+                            filaParaProcessar.push(nomeOriginal);   // Adiciona à fila para checar se *ela* é uma fusão
+                        }
+                    });
+                }
+                
+                // Agenda a remoção desta fusão (que acabamos de processar) do objeto de lemas
+                delete lemasAtuais[palavra]; // Remove a fusão do objeto de lemas
+                const lemaPath = `lematizacoes/${planilhaNome}/${palavra}`;
+                // *** CORREÇÃO: Await sequencial para evitar race condition ***
+                await logLocalChange(planilhaNome, lemaPath, null, 'data'); // Loga a deleção do lema
+            }
+        }
+        // --- FIM DA LÓGICA MODIFICADA (V2) ---
+
+        const listaFinalParaRemover = [...todasPalavrasParaRemover]; // Converte o Set para Array
+        let hasChanges = false;
+
+        // 2. Atualiza a planilha, removendo TODAS as palavras da lista expandida
         const updatedData = storedData.map((row, rowIndex) => {
             if (rowIndex === 0) return row; // Manter o cabeçalho
              if (!Array.isArray(row)) return row;
             return row.map(cell => {
                 const valor = String(cell || "").trim().toUpperCase();
-                if (palavrasParaRemover.includes(valor)) {
+                // Usa a lista expandida para verificar a remoção
+                if (listaFinalParaRemover.includes(valor)) {
                     hasChanges = true;
                     return "VAZIO";
                 }
@@ -300,21 +353,16 @@ async function removerPalavrasSelecionadas() {
             return;
         }
 
-        const remocaoPath = `remocoes/${planilhaNome}/${Date.now()}`;
-        logPromises.push(logLocalChange(planilhaNome, remocaoPath, [...palavrasParaRemover], 'action'));
+        // 3. Loga a ação de remoção com a lista expandida
+        // *** CORREÇÃO AQUI: Usando crypto.randomUUID() para garantir path único ***
+        const remocaoPath = `remocoes/${planilhaNome}/${crypto.randomUUID()}`;
+        // *** CORREÇÃO: Await sequencial para evitar race condition ***
+        await logLocalChange(planilhaNome, remocaoPath, listaFinalParaRemover, 'action');
 
-
-        palavrasParaRemover.forEach(palavra => {
-            if(lemasAtuais.hasOwnProperty(palavra)) {
-                delete lemasAtuais[palavra];
-                const lemaPath = `lematizacoes/${planilhaNome}/${palavra}`;
-                logPromises.push(logLocalChange(planilhaNome, lemaPath, null, 'data'));
-            }
-        });
-
-        await Promise.all(logPromises);
-        await setItem(storedDataKey, updatedData);
-        await setItem(lemasKey, lemasAtuais);
+        // 4. Salva os dados atualizados (planilha e lemas)
+        // await Promise.all(logPromises); // <-- REMOVIDO
+        await setItem(storedDataKey, updatedData); // Salva a planilha com todas as palavras removidas
+        await setItem(lemasKey, lemasAtuais); // Salva os lemas (sem a fusão "Teste 2")
 
         // Limpa a seleção local após a operação
         window.selectedEvocacoes = [];
@@ -325,8 +373,6 @@ async function removerPalavrasSelecionadas() {
         }).then(() => {
             // Recarrega a página para mostrar o estado atualizado do IndexedDB
             location.reload();
-             // Alternativa sem reload (se evocacoes.js estiver ouvindo):
-             // window.dispatchEvent(new CustomEvent("atualizarTabelaEvocacoes"));
         });
 
     } catch (error) {
@@ -455,7 +501,8 @@ async function fundirPalavrasSelecionadas() {
 
     const lemasAtuais = await getItem(lemasKey) || {};
 
-    const fusaoPath = `fusao_evocacao/${planilhaNome}/${Date.now()}`;
+    // *** CORREÇÃO AQUI: Usando crypto.randomUUID() para garantir path único ***
+    const fusaoPath = `fusao_evocacao/${planilhaNome}/${crypto.randomUUID()}`;
     const fusaoValue = {
         novoNome: novoNome,
         palavrasOrigem: [...palavrasSelecionadas]
@@ -606,4 +653,5 @@ window.addEventListener("DOMContentLoaded", async () => {
       checarAlteracoesPendentes(planilhaNome);
   });
 });
+
 

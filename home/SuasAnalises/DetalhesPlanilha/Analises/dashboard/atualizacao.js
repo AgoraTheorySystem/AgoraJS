@@ -178,17 +178,17 @@ async function baixarPlanilhaInicial(user, planilhaNome) {
         let remoteTimestamp = 0; // Padrão 0 se não existir
         if (snapshotTimestamp.exists()) {
             const remoteData = snapshotTimestamp.val();
-            // Pega a chave (timestamp) do primeiro (e único) item
-            const timestampKey = Object.keys(remoteData)[0];
-            remoteTimestamp = parseInt(timestampKey, 10) || 0; // Converte para número, fallback 0
+            // *** CORREÇÃO APLICADA AQUI ***
+            // Pega todas as chaves (timestamps), converte para número, e pega o MAIOR
+            const remoteTimestampKeys = Object.keys(remoteData);
+            remoteTimestamp = Math.max(...remoteTimestampKeys.map(k => parseInt(k, 10))) || 0;
         }
-         // Salva o timestamp local APENAS se ele foi encontrado remotamente
+         
          if (remoteTimestamp > 0) {
             await setItem(`timestamp_local_change_${planilhaNome}`, remoteTimestamp);
             console.log(`Timestamp inicial (${remoteTimestamp}) de "${planilhaNome}" salvo localmente.`);
          } else {
             console.log(`Nenhum timestamp remoto encontrado para "${planilhaNome}". Timestamp local não definido.`);
-            // Opcional: remover timestamp local se não houver remoto? Ou manter 0? Manter 0 é mais seguro.
             await setItem(`timestamp_local_change_${planilhaNome}`, 0);
          }
 
@@ -235,9 +235,13 @@ async function sincronizarDados(user, planilhaNome) {
         }
 
         const remoteData = snapshot.val();
-        const remoteTimestampKey = Object.keys(remoteData)[0]; // A chave é o timestamp
-        const remoteTimestamp = parseInt(remoteTimestampKey, 10) || 0;
-        console.log(`[Sync ${planilhaNome}] Timestamp remoto: ${remoteTimestamp}`);
+        
+        // *** CORREÇÃO APLICADA AQUI ***
+        // Pega todas as chaves (timestamps), converte para número, e pega o MAIOR
+        const remoteTimestampKeys = Object.keys(remoteData);
+        const remoteTimestamp = Math.max(...remoteTimestampKeys.map(k => parseInt(k, 10))) || 0;
+        
+        console.log(`[Sync ${planilhaNome}] Timestamp remoto (mais recente): ${remoteTimestamp}`);
 
         if (remoteTimestamp > localTimestamp) {
             console.log(`[Sync ${planilhaNome}] Dados remotos (${remoteTimestamp}) mais recentes que locais (${localTimestamp}). Aplicando alterações...`);
@@ -422,4 +426,3 @@ export async function verificarEProcessarPlanilha() {
         Swal.fire("Erro Crítico", "Ocorreu um problema ao acessar ou sincronizar os dados da análise.", "error");
     }
 }
-
