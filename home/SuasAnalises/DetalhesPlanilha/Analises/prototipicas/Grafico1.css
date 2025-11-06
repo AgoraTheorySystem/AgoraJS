@@ -1,0 +1,110 @@
+/* Importa estilos base */
+@import url("prototipicas.css");
+
+/* Container principal para o gráfico */
+.conteudo-principal {
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  margin-top: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Controles para as linhas de corte */
+.controles-grafico {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.input-group label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #555;
+  margin-bottom: 4px;
+}
+
+.input-group input {
+  font-size: 14px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  width: 120px;
+}
+
+/* Botão de alternar visualização */
+.view-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #2b6f69;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  margin-left: auto; /* Joga para a direita */
+}
+
+.view-toggle-btn:hover {
+  background-color: #1e4d4a;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.view-toggle-btn img {
+  width: 16px;
+  height: 16px;
+  filter: invert(100%);
+}
+
+
+/* Container do Chart.js */
+.chart-container {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  height: 600px; /* Altura fixa para o gráfico */
+  position: relative;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .chart-container {
+    height: 500px; /* Altura menor em telas pequenas */
+  }
+
+  .controles-grafico {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .input-group {
+    width: 100%;
+  }
+
+  .input-group input {
+    width: 100%;
+  }
+
+  .view-toggle-btn {
+    margin-left: 0;
+    justify-content: center;
+  }
+}
