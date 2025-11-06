@@ -10,12 +10,12 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
-/* Controles para as linhas de corte */
+/* Controles (agora apenas com o título e o botão de voltar) */
 .controles-grafico {
   display: flex;
   flex-wrap: wrap;
   gap: 15px;
-  justify-content: center;
+  justify-content: space-between; /* Alinha título à esquerda e botão à direita */
   align-items: center;
   padding: 10px;
   background-color: #f9f9f9;
@@ -23,17 +23,39 @@
   margin-bottom: 20px;
 }
 
+/* Header do Gráfico (Título e Subtítulo) */
+.chart-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.chart-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.chart-header p {
+  margin: 4px 0 0;
+  font-size: 1rem;
+  color: #555;
+}
+
+
+/* Inputs de OME/Freq Adicionados */
 .input-group {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  gap: 4px;
 }
 
 .input-group label {
   font-size: 12px;
   font-weight: 500;
   color: #555;
-  margin-bottom: 4px;
 }
 
 .input-group input {
@@ -41,8 +63,9 @@
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 6px;
-  width: 120px;
+  width: 140px; /* Largura fixa para os inputs */
 }
+
 
 /* Botão de alternar visualização */
 .view-toggle-btn {
@@ -60,7 +83,7 @@
   cursor: pointer;
   transition: background-color 0.2s, box-shadow 0.2s;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  margin-left: auto; /* Joga para a direita */
+  margin-left: auto; /* Mantém o botão à direita */
 }
 
 .view-toggle-btn:hover {
@@ -93,14 +116,23 @@
   .controles-grafico {
     flex-direction: column;
     align-items: stretch;
+    gap: 12px;
+  }
+
+  .chart-header {
+    align-items: center;
+    text-align: center;
   }
 
   .input-group {
     width: 100%;
+    align-items: center;
   }
 
   .input-group input {
-    width: 100%;
+    width: 80%;
+    max-width: 250px;
+    text-align: center;
   }
 
   .view-toggle-btn {

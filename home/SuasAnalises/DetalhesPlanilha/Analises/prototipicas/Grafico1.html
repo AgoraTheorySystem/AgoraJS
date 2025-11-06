@@ -12,9 +12,8 @@
   <link href="../dashboard/menu.css" rel="stylesheet">
   
   <!-- Scripts -->
-  <!-- Chart.js e plugin de anotação -->
+  <!-- Chart.js (Plugin de anotação removido, não é mais necessário) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0/dist/chartjs-plugin-annotation.min.js" defer></script>
   
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
   <script src="/traducao.js" type="module" defer></script>
@@ -23,7 +22,7 @@
   <script src="./Grafico1.js" type="module" defer></script>
   <script src="../dashboard/menu.js" type="module" defer></script>
 
-  <title>Ágora - Gráfico Prototípico</title>
+  <title>Ágora - Gráfico de Distribuição</title>
 </head>
 
 <body>
@@ -44,7 +43,7 @@
       <div class="menu">
         <a class="menu_analises" data-translate="analysis_menu">Menu Das Análises</a>
         <a href="../prototipicas/prototipicas.html?planilha=" data-translate="prototipicas">Prototípicas</a>
-        <a href="../prototipicas/Grafico1.html?planilha=" data-translate="Grafico1">Grafico 1</a>
+        <a href="../prototipicas/Grafico1.html?planilha=" data-translate="Grafico1">Distribuição dos Termos</a>
         <a href="../prototipicas/Grafico2.html?planilha=" data-translate="Grafico2">Grafico 2</a>
       </div>
     </div>
@@ -52,20 +51,29 @@
     <!-- Container do Gráfico -->
     <div class="conteudo-principal">
       
-      <!-- Controles e Link de Volta -->
+      <!-- Controles e Link de Volta (Controles de OME/Freq removidos) -->
       <div class="controles-grafico">
+        <!-- Título e Subtítulo do Gráfico -->
+        <div class="chart-header">
+          <h2 id="chart-title">Distribuição dos Termos</h2>
+          <p id="chart-subtitle">Calculando...</p>
+        </div>
+
+        <!-- Filtros Adicionados -->
         <div class="input-group">
-          <label for="freq-corte">Frequência Média (Corte X):</label>
-          <input type="number" id="freq-corte" step="1">
+          <label for="freq-filtro-min">Frequência (>=):</label>
+          <input type="number" id="freq-filtro-min" step="1" placeholder="Freq. Mín.">
         </div>
         <div class="input-group">
-          <label for="ome-corte">OME Média (Corte Y):</label>
-          <input type="number" id="ome-corte" step="0.1">
+          <label for="freq-filtro-max">Frequência (<=):</label>
+          <input type="number" id="freq-filtro-max" step="1" placeholder="Freq. Máx.">
         </div>
-        <a href="prototipicas.html" id="btn-voltar-tabela" class="view-toggle-btn">
-          <img src="/assets/icone_suas_analises.png" alt="Ver Tabela">
-          Ver Tabela
-        </a>
+
+        <!-- Botão modificado para Download -->
+        <button id="btn-download-grafico" class="view-toggle-btn">
+          <img src="/assets/icon_download.png" alt="Baixar Gráfico">
+          Baixar Gráfico
+        </button>
       </div>
 
       <!-- Canvas do Gráfico -->

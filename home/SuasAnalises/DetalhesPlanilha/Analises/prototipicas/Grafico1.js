@@ -33,15 +33,15 @@ async function getItem(key) {
 // --- Lógica Principal ---
 
 document.addEventListener("DOMContentLoaded", async () => {
-  // Garante que Chart.js e o plugin estejam carregados
-  if (typeof Chart === 'undefined' || typeof ChartAnnotation === 'undefined') {
-    console.error("Chart.js ou chartjs-plugin-annotation não carregados.");
+  // Garante que Chart.js esteja carregado
+  if (typeof Chart === 'undefined') {
+    console.error("Chart.js não carregado.");
     Swal.fire('Erro Crítico', 'Não foi possível carregar a biblioteca de gráficos.', 'error');
     return;
   }
-
-  // Registra o plugin de anotação
-  Chart.register(ChartAnnotation);
+  
+  // Plugin de anotação não é mais necessário para este gráfico
+  // Chart.register(ChartAnnotation); 
 
   await verificarEProcessarPlanilha();
 
@@ -85,16 +85,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       text: await window.getTranslation('evocations_data_load_error')
     });
   }
-
-  // Adiciona listeners aos inputs para atualizar o gráfico
-  document.getElementById('freq-corte').addEventListener('change', updateChartLines);
-  document.getElementById('ome-corte').addEventListener('change', updateChartLines);
   
-  // Adiciona o link de volta correto
-  const btnVoltar = document.getElementById('btn-voltar-tabela');
-  if (btnVoltar) {
-      btnVoltar.href = `prototipicas.html?planilha=${encodeURIComponent(planilhaNome)}`;
+  // Adiciona o link de volta (agora botão de download)
+  const btnDownload = document.getElementById('btn-download-grafico');
+  if (btnDownload) {
+      btnDownload.addEventListener('click', baixarGrafico);
   }
+
+  // Adiciona listeners aos filtros
+  document.getElementById('freq-filtro-min')?.addEventListener('input', () => iniciarGrafico(allWordsData));
+  document.getElementById('freq-filtro-max')?.addEventListener('input', () => iniciarGrafico(allWordsData));
 });
 
 /**
@@ -165,48 +165,67 @@ async function processarDados(data, currentLematizacoes) {
 }
 
 /**
- * Inicia e renderiza o gráfico de dispersão.
+ * Inicia e renderiza o gráfico de distribuição (Frequência vs Ranking).
  */
 function iniciarGrafico(allWords) {
   const ctx = document.getElementById('graficoPrototipico').getContext('2d');
 
-  if (allWords.length === 0) {
+  if (!allWords || allWords.length === 0) {
     console.warn("Nenhum dado para exibir no gráfico.");
     return;
   }
 
-  // 1. Calcular médias
-  const totalFrequencia = allWords.reduce((sum, [, stats]) => sum + stats.f, 0);
-  const totalOme = allWords.reduce((sum, [, stats]) => sum + stats.ome * stats.f, 0); // OME média ponderada pela frequência
-  
-  const freqMedia = totalFrequencia / allWords.length;
-  const omeMedio = (totalFrequencia > 0) ? (totalOme / totalFrequencia) : 0;
-  
-  // 2. Preencher inputs
-  const freqInput = document.getElementById('freq-corte');
-  const omeInput = document.getElementById('ome-corte');
-  freqInput.value = Math.round(freqMedia); // Frequência média arredondada
-  omeInput.value = omeMedio.toFixed(2); // OME média com 2 casas
+  // 1. Ler valores dos filtros
+  const freqMin = parseFloat(document.getElementById('freq-filtro-min')?.value) || 0;
+  const freqMax = parseFloat(document.getElementById('freq-filtro-max')?.value) || Infinity;
 
-  // 3. Formatar dados para o gráfico
-  const dataPoints = allWords.map(([palavra, stats]) => ({
-    x: stats.f,      // Frequência no eixo X
-    y: stats.ome,    // OME no eixo Y
-    label: palavra   // Rótulo para o tooltip
+  // 2. Filtrar os dados ANTES de ordenar
+  const filteredWords = allWords.filter(([, stats]) => {
+    const freqMatch = stats.f >= freqMin && (stats.f <= freqMax || freqMax === Infinity);
+    return freqMatch;
+  });
+
+  // 3. Ordenar por frequência (maior primeiro) para obter o ranking
+  const sortedWords = filteredWords.sort(([, statsA], [, statsB]) => statsB.f - statsA.f);
+  
+  const totalTermos = sortedWords.length;
+  const maxFreq = totalTermos > 0 ? sortedWords[0][1].f : 0;
+
+  // 4. Atualizar Título e Subtítulo
+  const titleEl = document.getElementById('chart-title');
+  const subtitleEl = document.getElementById('chart-subtitle');
+  if (titleEl) titleEl.textContent = 'Distribuição dos Termos';
+  if (subtitleEl) {
+    if (totalTermos > 0) {
+      subtitleEl.textContent = `Exibindo ${totalTermos} termo(s) filtrado(s)`;
+    } else {
+      subtitleEl.textContent = 'Nenhum termo corresponde aos filtros';
+    }
+  }
+  
+  // 5. Formatar dados para o gráfico (x: Rank, y: Frequência)
+  const dataPoints = sortedWords.map(([palavra, stats], index) => ({
+    x: index + 1,  // Rank (iniciando em 1)
+    y: stats.f,    // Frequência
+    label: palavra // Rótulo para o tooltip
   }));
 
-  // 4. Criar o gráfico
+  // 6. Criar o gráfico
+  if (myChart) {
+    myChart.destroy(); // Destrói gráfico anterior se existir
+  }
+  
   myChart = new Chart(ctx, {
-    type: 'scatter',
+    type: 'scatter', // Gráfico de dispersão (pontos)
     data: {
       datasets: [{
-        label: 'Termos Evocados',
+        label: 'Termos',
         data: dataPoints,
-        backgroundColor: 'rgba(43, 111, 105, 0.7)', // Cor do ponto
-        borderColor: 'rgba(43, 111, 105, 1)',
-        borderWidth: 1,
-        pointRadius: 5,
-        pointHoverRadius: 8
+        backgroundColor: 'rgba(230, 0, 0, 0.7)', // Pontos vermelhos (como na referência)
+        borderColor: 'rgba(230, 0, 0, 1)',
+        pointRadius: 3,
+        pointHoverRadius: 5,
+        borderWidth: 0 // Sem linha conectando os pontos
       }]
     },
     options: {
@@ -216,16 +235,20 @@ function iniciarGrafico(allWords) {
         x: {
           type: 'linear',
           position: 'bottom',
+          min: 1, // Eixo X começa em 1 (Ranking 1)
+          // max: totalTermos, // Deixa o Chart.js definir o máximo dinamicamente
           title: {
             display: true,
-            text: 'Frequência (f)',
+            text: 'Ranking',
             font: { size: 14, weight: 'bold' }
           }
         },
         y: {
+          min: 0, // Eixo Y começa em 0 (ou 1 se preferir)
+          // max: maxFreq, // Deixa o Chart.js calcular o máximo
           title: {
             display: true,
-            text: 'Ordem Média de Evocação (OME)',
+            text: 'Frequência',
             font: { size: 14, weight: 'bold' }
           }
         }
@@ -235,99 +258,47 @@ function iniciarGrafico(allWords) {
           callbacks: {
             label: function(context) {
               const d = context.raw;
-              return `${d.label}: (f: ${d.x}, OME: ${d.y.toFixed(2)})`;
+              return `${d.label}: (Ranking: ${d.x}, Frequência: ${d.y})`;
             }
           }
         },
         legend: {
-          display: false // Esconde a legenda do dataset
-        },
-        // Plugin de anotação para as linhas e rótulos
-        annotation: {
-          annotations: createAnnotations(freqMedia, omeMedio)
+          display: false // Esconde a legenda (como na referência)
         }
+        // Remove o plugin 'annotation'
       }
     }
   });
 }
 
 /**
- * Cria as linhas e rótulos dos quadrantes.
+ * Função para baixar o gráfico como PNG.
  */
-function createAnnotations(freqCorte, omeCorte) {
-  // Ajusta a posição dos rótulos para ficarem dentro dos quadrantes
-  const maxOme = myChart ? myChart.scales.y.max : omeCorte * 2;
-  const maxFreq = myChart ? myChart.scales.x.max : freqCorte * 2;
+function baixarGrafico() {
+  if (!myChart) {
+    console.error("Gráfico não inicializado.");
+    return;
+  }
+  const urlParams = new URLSearchParams(window.location.search);
+  const planilhaNome = urlParams.get("planilha") || "grafico";
   
-  return {
-    // Linha Vertical (Frequência)
-    freqLine: {
-      type: 'line',
-      xMin: freqCorte,
-      xMax: freqCorte,
-      borderColor: 'rgba(255, 99, 132, 0.8)',
-      borderWidth: 2,
-      borderDash: [6, 6]
-    },
-    // Linha Horizontal (OME)
-    omeLine: {
-      type: 'line',
-      yMin: omeCorte,
-      yMax: omeCorte,
-      borderColor: 'rgba(255, 99, 132, 0.8)',
-      borderWidth: 2,
-      borderDash: [6, 6]
-    },
-    // Quadrante 1: Núcleo Central (Baixo OME, Alta Freq)
-    labelNucleo: {
-      type: 'label',
-      xValue: (freqCorte + maxFreq) / 2,
-      yValue: (myChart.scales.y.min + omeCorte) / 2,
-      content: 'NÚCLEO CENTRAL',
-      color: 'rgba(0, 0, 0, 0.3)',
-      font: { size: 16, weight: 'bold' }
-    },
-    // Quadrante 2: Elementos de Contraste (Alto OME, Baixa Freq)
-    labelContraste: {
-      type: 'label',
-      xValue: (myChart.scales.x.min + freqCorte) / 2,
-      yValue: (omeCorte + maxOme) / 2,
-      content: 'ELEMENTOS DE CONTRASTE',
-      color: 'rgba(0, 0, 0, 0.3)',
-      font: { size: 16, weight: 'bold' }
-    },
-    // Quadrante 3: 1ª Periferia (Baixo OME, Baixa Freq)
-    labelPeriferia1: {
-      type: 'label',
-      xValue: (myChart.scales.x.min + freqCorte) / 2,
-      yValue: (myChart.scales.y.min + omeCorte) / 2,
-      content: 'PERIFERIA',
-      color: 'rgba(0, 0, 0, 0.3)',
-      font: { size: 16, weight: 'bold' }
-    },
-    // Quadrante 4: 2ª Periferia (Alto OME, Alta Freq)
-    labelPeriferia2: {
-      type: 'label',
-      xValue: (freqCorte + maxFreq) / 2,
-      yValue: (omeCorte + maxOme) / 2,
-      content: 'PERIFERIA',
-      color: 'rgba(0, 0, 0, 0.3)',
-      font: { size: 16, weight: 'bold' }
-    }
-  };
+  // Define o fundo do canvas como branco para o download
+  const canvas = myChart.canvas;
+  const ctx = canvas.getContext('2d');
+  ctx.save();
+  ctx.globalCompositeOperation = 'destination-over';
+  ctx.fillStyle = 'white';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.restore();
+  
+  const dataURL = myChart.toBase64Image();
+  const link = document.createElement('a');
+  link.href = dataURL;
+  link.download = `Grafico_Distribuicao_${planilhaNome}.png`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
-/**
- * Atualiza as linhas de corte no gráfico quando os valores dos inputs mudam.
- */
-function updateChartLines() {
-  if (!myChart) return;
 
-  const freqCorte = parseFloat(document.getElementById('freq-corte').value) || 0;
-  const omeCorte = parseFloat(document.getElementById('ome-corte').value) || 0;
-
-  // Atualiza as anotações
-  myChart.options.plugins.annotation.annotations = createAnnotations(freqCorte, omeCorte);
-  
-  myChart.update();
-}
+// Funções 'updateChartLines' e 'createAnnotations' removidas pois não são mais necessárias
