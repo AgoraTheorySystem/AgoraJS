@@ -8,21 +8,22 @@
   
   <!-- CSS -->
   <link href="/assets/hamburguer.css" rel="stylesheet">
-  <link href="Grafico1.css" rel="stylesheet">
+  <link href="Grafico1.css" rel="stylesheet"> <!-- CSS unificado -->
   <link href="../dashboard/menu.css" rel="stylesheet">
   
   <!-- Scripts -->
-  <!-- Chart.js (Plugin de anotação removido, não é mais necessário) -->
+  <!-- Chart.js e Plugin de Anotação (necessário para o Gráfico OME) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/1.4.0/chartjs-plugin-annotation.min.js" defer></script>
   
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
   <script src="/traducao.js" type="module" defer></script>
   <script src="/MenuLateral.js" type="module" defer></script>
   <script src="../dashboard/atualizacao.js" type="module" defer></script>
-  <script src="./Grafico1.js" type="module" defer></script>
+  <script src="./Grafico1.js" type="module" defer></script> <!-- JS unificado -->
   <script src="../dashboard/menu.js" type="module" defer></script>
 
-  <title>Ágora - Gráfico de Distribuição</title>
+  <title>Ágora - Dashboard Prototípico</title>
 </head>
 
 <body>
@@ -43,43 +44,121 @@
       <div class="menu">
         <a class="menu_analises" data-translate="analysis_menu">Menu Das Análises</a>
         <a href="../prototipicas/prototipicas.html?planilha=" data-translate="prototipicas">Prototípicas</a>
-        <a href="../prototipicas/Grafico1.html?planilha=" data-translate="Grafico1">Distribuição dos Termos</a>
-        <a href="../prototipicas/Grafico2.html?planilha=" data-translate="Grafico2">Grafico 2</a>
+        <!-- Link Ativo -->
+        <a href="../prototipicas/Grafico1.html?planilha=" data-translate="Grafico1" class="active">Gráficos</a>
       </div>
     </div>
 
-    <!-- Container do Gráfico -->
+    <!-- Container Principal dos Gráficos -->
     <div class="conteudo-principal">
       
-      <!-- Controles e Link de Volta (Controles de OME/Freq removidos) -->
-      <div class="controles-grafico">
-        <!-- Título e Subtítulo do Gráfico -->
-        <div class="chart-header">
-          <h2 id="chart-title">Distribuição dos Termos</h2>
-          <p id="chart-subtitle">Calculando...</p>
+      <!-- Bloco: Gráfico 1 - Distribuição dos Termos (Freq vs Rank) -->
+      <div class="chart-block">
+        <div class="controles-grafico">
+          <div class="chart-header">
+            <h2 id="chart-title-dist">Distribuição dos Termos (Freq. vs. Rank)</h2>
+            <p id="chart-subtitle-dist">Calculando...</p>
+          </div>
+          <!-- Filtros para o Gráfico 1 -->
+          <div class="chart-filters">
+            <div class="input-group">
+              <label for="freq-filtro-min-dist">Frequência (>=):</label>
+              <input type="number" id="freq-filtro-min-dist" step="1" placeholder="Freq. Mín.">
+            </div>
+            <div class="input-group">
+              <label for="freq-filtro-max-dist">Frequência (<=):</label>
+              <input type="number" id="freq-filtro-max-dist" step="1" placeholder="Freq. Máx.">
+            </div>
+          </div>
+          <button id="btn-download-grafico-dist" class="view-toggle-btn">
+            <img src="/assets/icon_download.png" alt="Baixar Gráfico">
+            Baixar Gráfico
+          </button>
         </div>
-
-        <!-- Filtros Adicionados -->
-        <div class="input-group">
-          <label for="freq-filtro-min">Frequência (>=):</label>
-          <input type="number" id="freq-filtro-min" step="1" placeholder="Freq. Mín.">
+        <div class="chart-container">
+          <canvas id="graficoPrototipicoDist"></canvas>
         </div>
-        <div class="input-group">
-          <label for="freq-filtro-max">Frequência (<=):</label>
-          <input type="number" id="freq-filtro-max" step="1" placeholder="Freq. Máx.">
-        </div>
-
-        <!-- Botão modificado para Download -->
-        <button id="btn-download-grafico" class="view-toggle-btn">
-          <img src="/assets/icon_download.png" alt="Baixar Gráfico">
-          Baixar Gráfico
-        </button>
       </div>
 
-      <!-- Canvas do Gráfico -->
-      <div class="chart-container">
-        <canvas id="graficoPrototipico"></canvas>
+      <!-- Bloco: Gráfico 2 - Top N Termos -->
+      <div class="chart-block">
+        <div class="controles-grafico">
+          <div class="chart-header">
+            <h2 id="chart-title-top-n">Termos Mais Frequentes</h2>
+            <p id="chart-subtitle-top-n">Exibindo os termos com maior frequência total.</p>
+          </div>
+          <!-- Filtros para o Gráfico 2 -->
+          <div class="chart-filters">
+            <div class="input-group">
+              <label for="top-n-select">Exibir Top:</label>
+              <select id="top-n-select" class="chart-select">
+                <option value="10">10</option>
+                <option value="15" selected>15</option>
+                <option value="20">20</option>
+                <option value="30">30</option>
+              </select>
+            </div>
+          </div>
+          <button id="btn-download-grafico-top-n" class="view-toggle-btn">
+            <img src="/assets/icon_download.png" alt="Baixar Gráfico">
+            Baixar Gráfico
+          </button>
+        </div>
+        <div class="chart-container" style="height: 500px;"> <!-- Altura menor para gráfico de barras -->
+          <canvas id="graficoTopN"></canvas>
+        </div>
       </div>
+
+      <!-- Bloco: Gráfico 3 - Quatro Casas (OME) -->
+      <div class="chart-block">
+        <div class="controles-grafico">
+          <div class="chart-header">
+            <h2 id="chart-title-ome">Gráfico de Quatro Casas (Freq. vs. OME)</h2>
+            <p id="chart-subtitle-ome">Calculando...</p>
+          </div>
+          <!-- Filtros para o Gráfico 3 -->
+          <div class="chart-filters">
+            <div class="input-group">
+              <label for="freq-filtro-min-ome">Frequência Mín. (>=):</label>
+              <input type="number" id="freq-filtro-min-ome" step="1" placeholder="Freq. Mín." value="10">
+            </div>
+            <div class="input-group">
+                <label for="ome-filtro-min-ome">OME Mín. (>=):</label>
+                <input type="number" id="ome-filtro-min-ome" step="0.1" placeholder="OME Mín.">
+            </div>
+            <div class="input-group">
+                <label for="ome-filtro-max-ome">OME Máx. (<=):</label>
+                <input type="number" id="ome-filtro-max-ome" step="0.1" placeholder="OME Máx.">
+            </div>
+          </div>
+          <button id="btn-download-grafico-ome" class="view-toggle-btn">
+            <img src="/assets/icon_download.png" alt="Baixar Gráfico">
+            Baixar Gráfico
+          </button>
+        </div>
+        <div class="chart-container">
+          <canvas id="graficoOME"></canvas>
+        </div>
+      </div>
+
+      <!-- Bloco: Gráfico 4 - Análise de Posição (Rank) -->
+      <div class="chart-block">
+        <div class="controles-grafico">
+          <div class="chart-header">
+            <h2 id="chart-title-rank">Análise de Posição (Top 5 Termos)</h2>
+            <p id="chart-subtitle-rank">Frequência dos termos por ordem de evocação (1ª a 10ª posição).</p>
+          </div>
+          <!-- Sem filtros aqui, é baseado nos Top 5 gerais -->
+          <button id="btn-download-grafico-rank" class="view-toggle-btn">
+            <img src="/assets/icon_download.png" alt="Baixar Gráfico">
+            Baixar Gráfico
+          </button>
+        </div>
+        <div class="chart-container" style="height: 500px;">
+          <canvas id="graficoRank"></canvas>
+        </div>
+      </div>
+
     </div>
 
     <!-- Indicador de Loading -->

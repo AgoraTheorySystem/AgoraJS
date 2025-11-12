@@ -1,21 +1,33 @@
 /* Importa estilos base */
 @import url("prototipicas.css");
 
-/* Container principal para o gráfico */
+/* Container principal para o dashboard */
 .conteudo-principal {
-  background-color: #ffffff;
+  background-color: #f4f7f6; /* Fundo geral cinza claro */
   border-radius: 16px;
   padding: 20px;
   margin-top: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: none; /* Remove sombra externa, os blocos internos terão */
+  display: flex;
+  flex-direction: column;
+  gap: 30px; /* Espaço entre os blocos de gráfico */
 }
 
-/* Controles (agora apenas com o título e o botão de voltar) */
+/* Novo: Bloco individual para cada gráfico */
+.chart-block {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+}
+
+/* Controles */
 .controles-grafico {
   display: flex;
   flex-wrap: wrap;
   gap: 15px;
-  justify-content: space-between; /* Alinha título à esquerda e botão à direita */
+  justify-content: space-between;
   align-items: center;
   padding: 10px;
   background-color: #f9f9f9;
@@ -28,6 +40,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  flex-grow: 1; /* Ocupa espaço disponível */
 }
 
 .chart-header h2 {
@@ -39,12 +52,21 @@
 
 .chart-header p {
   margin: 4px 0 0;
-  font-size: 1rem;
+  font-size: 0.9rem; /* Subtítulo menor */
   color: #555;
+  line-height: 1.4;
 }
 
+/* Container dos Filtros */
+.chart-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  flex-grow: 2; /* Ocupa mais espaço que o título */
+  justify-content: flex-start;
+}
 
-/* Inputs de OME/Freq Adicionados */
+/* Inputs de Filtro */
 .input-group {
   display: flex;
   flex-direction: column;
@@ -58,16 +80,18 @@
   color: #555;
 }
 
-.input-group input {
+.input-group input,
+.input-group select.chart-select {
   font-size: 14px;
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 6px;
   width: 140px; /* Largura fixa para os inputs */
+  background-color: #fff;
+  font-family: 'Inter', sans-serif;
 }
 
-
-/* Botão de alternar visualização */
+/* Botão de Download */
 .view-toggle-btn {
   display: inline-flex;
   align-items: center;
@@ -83,7 +107,7 @@
   cursor: pointer;
   transition: background-color 0.2s, box-shadow 0.2s;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  margin-left: auto; /* Mantém o botão à direita */
+  margin-left: 10px; 
 }
 
 .view-toggle-btn:hover {
@@ -103,40 +127,58 @@
   width: 100%;
   max-width: 1100px;
   margin: 0 auto;
-  height: 600px; /* Altura fixa para o gráfico */
+  height: 600px; /* Altura padrão para gráficos de dispersão */
   position: relative;
 }
 
 /* Responsividade */
-@media (max-width: 768px) {
-  .chart-container {
-    height: 500px; /* Altura menor em telas pequenas */
-  }
-
+@media (max-width: 1100px) {
   .controles-grafico {
     flex-direction: column;
     align-items: stretch;
     gap: 12px;
   }
-
+  
   .chart-header {
     align-items: center;
     text-align: center;
   }
 
+  .chart-filters {
+    justify-content: center;
+  }
+
   .input-group {
-    width: 100%;
+    width: 45%;
+    min-width: 160px;
     align-items: center;
   }
 
-  .input-group input {
-    width: 80%;
+  .input-group input,
+  .input-group select.chart-select {
+    width: 100%;
     max-width: 250px;
     text-align: center;
   }
-
+  
   .view-toggle-btn {
     margin-left: 0;
     justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .chart-container {
+    height: 500px; /* Altura menor em telas pequenas */
+  }
+}
+
+@media (max-width: 480px) {
+  .chart-filters {
+    flex-direction: column;
+    align-items: center;
+  }
+  .input-group {
+    width: 100%;
   }
 }
