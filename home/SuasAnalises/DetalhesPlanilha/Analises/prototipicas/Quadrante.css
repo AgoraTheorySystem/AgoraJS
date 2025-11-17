@@ -1,0 +1,165 @@
+/* Importa estilos base */
+@import url("prototipicas.css");
+
+/* Container principal para o dashboard */
+.conteudo-principal {
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  margin-top: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Controles de Filtro (f e OME) */
+.controles-quadrante {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border: 1px solid #eee;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.input-group label {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.input-group input {
+  font-size: 16px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  width: 100px;
+  text-align: center;
+}
+
+/* Grid dos 4 Quadrantes */
+.quadrante-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto; /* Duas linhas */
+  border-top: 2px solid #333;
+  border-left: 2px solid #333;
+  background-color: #fdfdfd;
+}
+
+.quadrante {
+  border-bottom: 2px solid #333;
+  border-right: 2px solid #333;
+  padding: 15px;
+  min-height: 300px;
+  max-height: 600px; /* Altura máxima com scroll */
+  overflow-y: auto; /* Adiciona scroll se a lista for longa */
+}
+
+/* Títulos dos Quadrantes */
+.quadrante-titulo {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #111;
+  margin: 0 0 15px 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #ccc;
+  text-align: center;
+}
+
+/* Lista de Termos */
+.quadrante-lista {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  color: #444;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.quadrante-lista li {
+  padding: 2px 0;
+}
+
+/* Estilização específica dos títulos conforme os prints */
+/* Título do Q1 (Sup-Esq) e Q2 (Sup-Dir) */
+#quadrante-sup-esq {
+  border-bottom: 1px dashed #999; /* Linha tracejada horizontal (OME) */
+}
+#quadrante-sup-dir {
+  border-bottom: 1px dashed #999;
+}
+#quadrante-sup-esq .quadrante-titulo,
+#quadrante-sup-dir .quadrante-titulo {
+  border-bottom: none; /* Remove a borda do título */
+  margin-bottom: 0;
+  padding-bottom: 0;
+  text-align: left; /* Alinha à esquerda como no print */
+  padding-left: 5px;
+}
+
+/* Título do Q3 (Inf-Esq) e Q4 (Inf-Dir) */
+#quadrante-inf-esq .quadrante-titulo,
+#quadrante-inf-dir .quadrante-titulo {
+  display: none; /* Oculta os títulos inferiores (f < 3) */
+}
+
+/* Linha vertical (Frequência) */
+#quadrante-sup-esq, #quadrante-inf-esq {
+  border-right: 1px dashed #999; /* Linha tracejada vertical (f) */
+}
+
+/* Controles de Percentual (baseado no print) */
+.controles-percentual {
+  margin-top: 15px;
+  padding: 15px;
+  background-color: #f0f0f0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #555;
+}
+
+.controles-percentual input {
+  width: 60px;
+  font-size: 1rem;
+  padding: 5px;
+  text-align: center;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .quadrante-grid {
+    grid-template-columns: 1fr; /* Coluna única em telas menores */
+    grid-template-rows: auto auto auto auto;
+  }
+  
+  /* Remove as bordas tracejadas verticais em coluna única */
+  #quadrante-sup-esq, #quadrante-inf-esq {
+    border-right: 2px solid #333;
+  }
+
+  .quadrante {
+    min-height: 200px;
+    max-height: 400px;
+  }
+
+  .controles-quadrante {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

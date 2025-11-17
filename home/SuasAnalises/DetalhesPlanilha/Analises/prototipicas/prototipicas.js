@@ -39,25 +39,29 @@ async function getItem(key) {
 // --- Lógica Principal ---
 
 document.addEventListener("DOMContentLoaded", async () => {
-  // Garante que os dados estão baixados e sincronizados ANTES de tentar ler
-  await verificarEProcessarPlanilha();
-
-  const urlParams = new URLSearchParams(window.location.search);
-  const planilhaNome = urlParams.get("planilha");
-  if (!planilhaNome) {
-    Swal.fire({
-      icon: 'error',
-      title: await window.getTranslation('swal_error_title'),
-      text: await window.getTranslation('dashboard_sheet_param_missing')
-    });
-    return;
-  }
-
-  // Atualiza nome da planilha no banner
-  const nomeEl = document.getElementById("nome-da-planilha");
-  if (nomeEl && planilhaNome) nomeEl.textContent = planilhaNome.toUpperCase();
+  // --- CORREÇÃO: Mostrar indicador de loading ---
+  const loadingDiv = document.getElementById("loading");
+  if (loadingDiv) loadingDiv.style.display = 'block'; // Mostrar loading
 
   try {
+    // Garante que os dados estão baixados e sincronizados ANTES de tentar ler
+    await verificarEProcessarPlanilha();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const planilhaNome = urlParams.get("planilha");
+    if (!planilhaNome) {
+      Swal.fire({
+        icon: 'error',
+        title: await window.getTranslation('swal_error_title'),
+        text: await window.getTranslation('dashboard_sheet_param_missing')
+      });
+      return; // Sai se não houver planilha
+    }
+
+    // Atualiza nome da planilha no banner
+    const nomeEl = document.getElementById("nome-da-planilha");
+    if (nomeEl && planilhaNome) nomeEl.textContent = planilhaNome.toUpperCase();
+
     // Carrega a planilha e as lematizações do armazenamento local (IndexedDB)
     const data = await getItem(`planilha_${planilhaNome}`);
     if (!data || data.length === 0) {
@@ -66,10 +70,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         title: await window.getTranslation('swal_error_title'),
         text: await window.getTranslation('evocations_no_data_found')
       });
-      return;
+      return; // Sai se não houver dados
     }
     currentLematizacoes = await getItem(`lemas_${planilhaNome}`) || {};
     await processarTabela(data);
+
   } catch (error) {
     console.error("Erro ao carregar dados locais:", error);
     Swal.fire({
@@ -77,6 +82,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       title: await window.getTranslation('swal_error_title'),
       text: await window.getTranslation('evocations_data_load_error')
     });
+  } finally {
+    // --- CORREÇÃO: Esconder indicador de loading ---
+    if (loadingDiv) loadingDiv.style.display = 'none'; // Esconder loading
   }
 });
 
@@ -346,4 +354,3 @@ document.getElementById("busca-palavra")?.addEventListener("input", (e) => {
   currentPage = 1;
   renderTabela();
 });
-

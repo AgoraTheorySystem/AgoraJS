@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="/assets/icon.png">
+  
+  <!-- CSS -->
+  <link href="/assets/hamburguer.css" rel="stylesheet">
+  <link href="Quadrante.css" rel="stylesheet"> <!-- CSS novo -->
+  <link href="../dashboard/menu.css" rel="stylesheet">
+  
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
+  <script src="/traducao.js" type="module" defer></script>
+  <script src="/MenuLateral.js" type="module" defer></script>
+  <script src="../dashboard/atualizacao.js" type="module" defer></script>
+  <script src="Quadrante.js" type="module" defer></script> <!-- JS novo -->
+  <script src="../dashboard/menu.js" type="module" defer></script>
+
+  <title>Ágora - Análise de Quadrantes</title>
+</head>
+
+<body>
+  <main>
+    <!-- Banner Superior -->
+    <div class="top-barra-planilha">
+      <div class="barra-conteudo card-banner">
+        <div class="barra-logo">
+          <img src="/assets/tipo_de_analise_ prototipica.png" alt="Logo Ágora">
+          <div class="titulo-site" data-translate="prototipicas_methodologies">METODOLOGIA<br>PROTOTÍPICAS</div>
+        </div>
+        <div class="barra-planilha" id="nome-da-planilha"></div>
+      </div>
+    </div>
+    
+    <!-- Menu de Navegação -->
+    <div class="container">
+      <div class="menu">
+        <a class="menu_analises" data-translate="analysis_menu">Menu Das Análises</a>
+        <a href="../prototipicas/prototipicas.html?planilha=" data-translate="prototipicas">Prototípicas</a>
+        <a href="../prototipicas/Grafico1.html?planilha=" data-translate="Grafico1">Gráficos</a>
+        <!-- Link Ativo -->
+        <a href="../prototipicas/Quadrante.html?planilha=" data-translate="Quadrante" class="active">Quadrantes</a>
+      </div>
+    </div>
+
+    <!-- Container dos Filtros -->
+    <div class="conteudo-principal">
+      <div class="controles-quadrante">
+        <div class="input-group">
+          <label for="filtro-freq">f >=</label>
+          <input type="number" id="filtro-freq" value="3" step="1" min="1">
+        </div>
+        <div class="input-group">
+          <label for="filtro-ome">OME <</label>
+          <input type="number" id="filtro-ome" value="5.5" step="0.1" min="0">
+        </div>
+      </div>
+
+      <!-- Container dos Quadrantes -->
+      <div class="quadrante-grid">
+        
+        <!-- Quadrante 1: Núcleo Central (Alta Freq, Baixa OME) -->
+        <div class="quadrante" id="quadrante-sup-esq">
+          <h3 class="quadrante-titulo" id="titulo-sup-esq">OME < 5.5</h3>
+          <ul class="quadrante-lista" id="lista-sup-esq">
+            <!-- Termos vêm do JS -->
+          </ul>
+        </div>
+        
+        <!-- Quadrante 2: Contraste (Alta Freq, Alta OME) -->
+        <div class="quadrante" id="quadrante-sup-dir">
+          <h3 class="quadrante-titulo" id="titulo-sup-dir">OME >= 5.5</h3>
+          <ul class="quadrante-lista" id="lista-sup-dir">
+            <!-- Termos vêm do JS -->
+          </ul>
+        </div>
+        
+        <!-- Quadrante 3: Periferia (Baixa Freq, Baixa OME) -->
+        <div class="quadrante" id="quadrante-inf-esq">
+          <h3 class="quadrante-titulo" id="titulo-inf-esq">f < 3</h3>
+          <ul class="quadrante-lista" id="lista-inf-esq">
+            <!-- Termos vêm do JS -->
+          </ul>
+        </div>
+        
+        <!-- Quadrante 4: Contraste (Baixa Freq, Alta OME) -->
+        <div class="quadrante" id="quadrante-inf-dir">
+          <h3 class="quadrante-titulo" id="titulo-inf-dir">f < 3</h3>
+          <ul class="quadrante-lista" id="lista-inf-dir">
+            <!-- Termos vêm do JS -->
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- Contagem de Percentual (como no print) -->
+      <div class="controles-percentual">
+        <input type="number" id="input-percentual" value="1" min="1">
+        <span id="label-percentual">(%) ≅ 0.00 (abs)</span>
+      </div>
+
+    </div>
+
+    <!-- Indicador de Loading -->
+    <div id="loading" aria-live="polite" aria-busy="true">
+      <figure class="loader">
+        <div class="dot white"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </figure>
+    </div>
+  </main>
+</body>
+
+</html>
