@@ -1,11 +1,18 @@
-/* ===== Variáveis ===== */
+/* ===== Variáveis de Design ===== */
 :root {
-  --largura-menu: 85px;           
-  --offset-conteudo: 25px;        
+  --menu-desktop-width: 80px;
+  --menu-desktop-width-hover: 240px;
+  --menu-mobile-height: 75px;
+  --menu-bg: #0e6f66;
+  --menu-bg-hover: #0a5a54;
+  --menu-icon-color: #0e6f66;
+  --menu-icon-bg: #ffffff;
+  --menu-text-color: #ffffff;
+  --menu-save-color: #ffc107;
   
-  --menu-top-vh: 13;              
-  --menu-padding-top: 20px;       
-  --icon-size: 42px;              
+  --content-padding: 20px;
+  --transition-speed: 0.3s;
+  --transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* === Estilo global === */
@@ -19,8 +26,19 @@ body {
   margin: 0;
   padding: 20px;
   color: #333;
+  /* MODIFICADO: Adiciona padding na DIREITA para o menu desktop */
+  padding-right: calc(var(--menu-desktop-width) + var(--content-padding));
+  /* Preserva o padding-left original para o menu hamburguer global (se houver) */
+  padding-left: 100px; /* Ajuste este valor se o menu global for maior */
+  transition: padding-right var(--transition-speed) var(--transition-timing);
 }
 
+/* MODIFICADO: Ajuste de padding quando o menu está expandido (controlado por JS) */
+body.evocacoes-menu-expanded {
+  padding-right: calc(var(--menu-desktop-width-hover) + var(--content-padding));
+}
+
+/* --- Banners e Menus Superiores --- */
 .top-barra-planilha {
   padding: 20px 0;
   display: flex;
@@ -42,9 +60,6 @@ body {
 .barra-logo {
   display: flex;
   align-items: center;
-  background: transparent;
-  padding: 12px 20px;
-  border-radius: 20px;
   gap: 15px;
 }
 .barra-logo img {
@@ -63,12 +78,11 @@ body {
   font-size: 1.4rem;
   font-weight: bold;
   color: white;
-  background: transparent;
-  padding: 0;
   text-transform: uppercase;
   white-space: nowrap;
 }
-header.barra-externa nav.menu {
+/* Menu de Navegação Superior (Dashboard, Socio, etc.) */
+.container .menu {
   background-color: #2b6f69;
   border-radius: 36px;
   display: flex;
@@ -80,7 +94,7 @@ header.barra-externa nav.menu {
   max-width: 1000px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.3);
 }
-header.barra-externa nav.menu a {
+.container .menu a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -95,103 +109,259 @@ header.barra-externa nav.menu a {
   line-height: 1;
   transition: color 0.2s;
 }
-header.barra-externa nav.menu a:hover { background: none; color: #FFD600; }
-header.barra-externa nav.menu a.active { background: none !important; color: #FFD600 !important; }
+.container .menu a:hover { background: none; color: #FFD600; }
+.container .menu a.active { background: none !important; color: #FFD600 !important; }
 
-/* === MENU LATERAL === */
+/* === MENU LATERAL (DESKTOP) === */
 .menu-lateral {
   position: fixed;
-  top: calc(var(--menu-top-vh) * 1vh) !important; 
-  left: 0;
-  transform: none !important;                     
-  height: auto;
-  max-height: 90vh;
-  margin-top: 0;
-  width: var(--largura-menu);
-  background-color: #0e6f66;
+  top: 0;
+  /* MODIFICADO: Posição na direita */
+  right: 0;
+  left: auto;
+  height: 100vh;
+  width: var(--menu-desktop-width);
+  background: var(--menu-bg);
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: var(--menu-padding-top);
-  gap: 25px;
-  border-top-right-radius: 15px;
-  border-bottom-right-radius: 15px;
-  transition: width 0.3s ease;
-  z-index: 10;
-  overflow-y: auto;
+  /* MODIFICADO: Padding-top ajustado, não precisa desviar do hamburguer */
+  padding-top: 20px; 
+  gap: 10px;
+  z-index: 1000;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: width var(--transition-speed) var(--transition-timing);
+  /* MODIFICADO: Transformação inicial para sair pela direita */
+  transform: translateX(100%);
+  animation: slideInFromRight 0.5s var(--transition-timing) forwards;
+}
+
+/* Animação de entrada */
+@keyframes slideInFromRight {
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* MODIFICADO: Classe .expanded controla a largura */
+.menu-lateral.expanded {
+  width: var(--menu-desktop-width-hover);
 }
 
 .menu-botao {
   display: flex;
-  flex-direction: column;
+  flex-direction: row; /* Ícone ao lado do texto */
   align-items: center;
   background: none;
   border: none;
   cursor: pointer;
-  color: white;
-  font-weight: bold;
-  font-size: 12px;
-  text-align: center;
-  width: calc(var(--largura-menu) - 20px);
-  white-space: normal;
-  transition: transform 0.3s ease, font-size 0.3s ease, opacity 0.3s ease;
+  color: var(--menu-text-color);
+  font-weight: 500;
+  font-size: 15px;
+  text-align: left;
+  width: 100%;
+  height: 60px;
+  /* REMOVIDO: Padding e Gap daqui */
+  white-space: nowrap;
+  border-radius: 0;
+  transition: background-color 0.2s ease;
 }
-.menu-botao:hover { transform: scale(1.1); }
+
+/* NOVO: Estilo para menu NÃO expandido */
+.menu-lateral:not(.expanded) .menu-botao {
+   width: var(--menu-desktop-width);
+   padding: 0;
+   justify-content: center;
+   gap: 0;
+}
+
+/* NOVO: Estilo para menu EXPANDIDO */
+.menu-lateral.expanded .menu-botao {
+  padding: 0 20px; /* Alinha ícone */
+  gap: 18px; /* Espaço entre ícone e texto */
+  justify-content: flex-start;
+}
+
+
+.menu-botao:hover {
+  background-color: var(--menu-bg-hover);
+}
+
 .menu-botao .icone-circulo {
-  background-color: white;
+  background-color: var(--menu-icon-bg);
   border-radius: 50%;
-  width: var(--icon-size);
-  height: var(--icon-size);
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 5px;
+  flex-shrink: 0; /* Impede que o ícone encolha */
   transition: background-color 0.3s ease;
+  margin-left: 0; /* Ajuste para alinhamento */
 }
+
+/* NOVO: Garante que o ícone não tenha margin extra quando recolhido */
+.menu-lateral:not(.expanded) .menu-botao .icone-circulo {
+  margin: 0;
+}
+
 .menu-botao .icone-circulo i {
   font-size: 18px;
-  color: #2e7d32;
+  color: var(--menu-icon-color);
   transition: color 0.3s ease;
 }
 
-/* ESTILOS PARA O BOTÃO SALVAR PENDENTE */
+.menu-botao .menu-texto {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-10px);
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+  transition-delay: 0.1s;
+  /* ADICIONADO: Remove o texto do layout quando recolhido */
+  display: none; 
+}
+
+/* MODIFICADO: Classe .expanded controla o texto */
+.menu-lateral.expanded .menu-botao .menu-texto {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+  /* ADICIONADO: Traz o texto de volta ao layout ao expandir */
+  display: block; 
+}
+
+/* ESTADO DE SALVAR PENDENTE (DESKTOP) */
+.menu-botao.salvar-pendente {
+  color: var(--menu-save-color);
+  font-weight: 700;
+}
 .menu-botao.salvar-pendente .icone-circulo {
-  background-color: #ffc107;
+  background-color: var(--menu-save-color);
   animation: pulse 1.5s infinite;
 }
-.menu-botao.salvar-pendente .icone-circulo i { color: #333; }
-.menu-botao.salvar-pendente span { color: #ffc107; }
-
-@keyframes pulse {
-  0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7); }
-  70% { box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+.menu-botao.salvar-pendente .icone-circulo i {
+  color: #333;
 }
 
-/* ESTADO PADRÃO DO BOTÃO */
-.menu-botao.sem-alteracoes {
-  opacity: 0.6;
-  cursor: default;
+/* === MENU LATERAL (MOBILE) === */
+.menu-lateral-mobile {
+  display: none; /* Escondido por padrão */
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100vw;
+  height: var(--menu-mobile-height);
+  background: var(--menu-bg);
+  flex-direction: row;
+  align-items: stretch; /* Estica botões para preencher altura */
+  justify-content: center;
+  padding: 5px 0;
+  gap: 4px;
+  z-index: 1000;
+  box-shadow: 0 -4px 10px rgba(0,0,0,0.15);
+  overflow-x: auto; /* Permite scroll horizontal se não couber */
+  overflow-y: hidden;
 }
-.menu-botao.sem-alteracoes:hover { transform: none; }
+
+/* Botão no menu mobile */
+.menu-lateral-mobile .menu-botao {
+  flex-direction: column; /* Ícone em cima, texto embaixo */
+  flex: 1 1 0; /* Permite encolher e crescer */
+  min-width: 60px; /* Largura mínima por botão */
+  max-width: 100px;
+  height: 100%;
+  padding: 8px 4px;
+  font-size: 10px;
+  justify-content: center;
+  gap: 4px;
+  border-radius: 8px;
+}
+
+.menu-lateral-mobile .menu-botao .icone-circulo {
+  width: 36px;
+  height: 36px;
+  margin-bottom: 0;
+}
+
+.menu-lateral-mobile .menu-botao .icone-circulo i {
+  font-size: 16px;
+}
+
+.menu-lateral-mobile .menu-botao .menu-texto {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition: none;
+  white-space: normal; /* Permite quebra de linha */
+  line-height: 1.2;
+}
+
+/* ESTADO DE SALVAR PENDENTE (MOBILE) */
+.menu-lateral-mobile .menu-botao.salvar-pendente {
+   animation: pulse-mobile 1.5s infinite;
+   background-color: var(--menu-bg-hover);
+}
+@keyframes pulse-mobile {
+  0% { background-color: var(--menu-bg-hover); }
+  50% { background-color: var(--menu-save-color); }
+  100% { background-color: var(--menu-bg-hover); }
+}
+.menu-lateral-mobile .menu-botao.sem-alteracoes {
+  opacity: 0.7;
+}
+
+
+/* === AJUSTES DE CONTEÚDO (PUSH) === */
+/* Seletores de conteúdo principal que precisam ser empurrados */
+.conteudo-verde,
+.filter-container,
+.pagination {
+  /* MODIFICADO: margin-right para empurrar do menu da direita */
+  margin-right: calc(var(--menu-desktop-width) + var(--content-padding));
+  margin-left: auto; /* Centraliza o conteúdo que sobra */
+  max-width: calc(100% - (var(--menu-desktop-width) + 100px + var(--content-padding) * 2)); /* 100px = padding-left do body */
+  transition: margin-right var(--transition-speed) var(--transition-timing), 
+              max-width var(--transition-speed) var(--transition-timing);
+}
+
+/* MODIFICADO: Ajuste quando o menu desktop está expandido (controlado por JS) */
+body.evocacoes-menu-expanded .conteudo-verde,
+body.evocacoes-menu-expanded .filter-container,
+body.evocacoes-menu-expanded .pagination {
+  margin-right: calc(var(--menu-desktop-width-hover) + var(--content-padding));
+  max-width: calc(100% - (var(--menu-desktop-width-hover) + 100px + var(--content-padding) * 2)); /* 100px = padding-left do body */
+}
 
 /* SETA INDICADORA */
 #seta-salvar {
   position: fixed;
-  left: calc(var(--largura-menu) + 10px);
-  top: calc( (var(--menu-top-vh) * 1vh) + var(--menu-padding-top) + (var(--icon-size) / 2) ) !important;
+  /* MODIFICADO: Posição relativa à direita */
+  right: calc(var(--menu-desktop-width) + 10px);
+  left: auto;
+  top: 30px; /* Posição ajustada para o primeiro botão */
   color: white;
   font-size: 24px;
   display: none;
   z-index: 10;
-  animation: bounce-horizontal 2s infinite;
+  /* MODIFICADO: Animação invertida */
+  animation: bounce-horizontal-right 2s infinite;
   text-shadow: 0 0 10px rgba(0,0,0,0.5);
+  transition: right var(--transition-speed) var(--transition-timing);
+  /* MODIFICADO: Inverte o ícone da seta */
+  transform: scaleX(-1);
+}
+/* MODIFICADO: Controlado por JS */
+body.evocacoes-menu-expanded #seta-salvar {
+  right: calc(var(--menu-desktop-width-hover) + 10px);
 }
 #seta-salvar.show { display: block; }
-@keyframes bounce-horizontal {
-  0%, 20%, 50%, 80%, 100% { transform: translateX(0); }
-  40% { transform: translateX(-10px); }
-  60% { transform: translateX(-5px); }
+
+/* MODIFICADO: Animação para a direita */
+@keyframes bounce-horizontal-right {
+  0%, 20%, 50%, 80%, 100% { transform: translateX(0) scaleX(-1); }
+  40% { transform: translateX(10px) scaleX(-1); }
+  60% { transform: translateX(5px) scaleX(-1); }
 }
 
 /* POPUP DE AVISO */
@@ -212,34 +382,117 @@ header.barra-externa nav.menu a.active { background: none !important; color: #FF
   align-items: center;
   gap: 10px;
 }
-#popup-salvar.show { bottom: 20px; }
+#popup-salvar.show { 
+  bottom: 20px; 
+  /* MODIFICADO: Ajusta no mobile para não cobrir o menu */
+}
 
-/* === TABELA === */
+
+/* === TABELA E PAGINAÇÃO (Estilos existentes) === */
 .table-container {
   overflow-x: auto;
-  max-width: calc(100% - (var(--largura-menu) + 40px));
-  margin: 20px auto 0 calc(var(--largura-menu) + var(--offset-conteudo));
+  width: 100%; /* O margin-left e max-width cuidam do posicionamento */
+  margin-top: 20px;
+  margin-right: auto;
+  /* NOVO: Adicionado para o novo design da tabela */
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 table {
   width: 100%;
-  border-collapse: collapse;
+  /* MUDADO: border-collapse para separate para melhor controle */
+  border-collapse: separate;
+  border-spacing: 0;
   background-color: #fff;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-  border-radius: 10px;
-  overflow: hidden;
   font-size: 14px;
-  min-width: 700px;
+  min-width: 800px; /* Largura mínima para scroll */
+  /* Removido: border-radius e overflow, movido para .table-container */
 }
-thead { background-color: #3f51b5; color: #fff; }
-th, td {
-  padding: 10px 12px;
+thead { 
+  /* MUDADO: Cabeçalho moderno */
+  background-color: #f8f9fa; 
+  color: #495057; 
+}
+thead tr {
+  /* ADICIONADO: Borda inferior forte para o header */
+  border-bottom: 2px solid #dee2e6;
+}
+th {
+  /* ADICIONADO: Estilo de header moderno */
+  padding: 12px 15px;
   text-align: left;
-  border-bottom: 1px solid #eee;
+  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  border-bottom: none; /* Borda agora está no thead tr */
 }
-tbody tr:hover { background-color: #e3f2fd; }
-tbody tr:nth-child(even) { background-color: #f9f9f9; }
 
-/* === PAGINAÇÃO === */
+/* === MELHORIA DE UX: CHECKBOX === */
+thead th:first-child,
+tbody td:first-child {
+  width: 60px; /* Largura fixa para o checkbox */
+  text-align: center;
+  vertical-align: middle;
+}
+
+tbody td:first-child {
+  padding-left: 10px; /* Ajusta padding */
+  padding-right: 10px;
+}
+
+tbody tr input[type="checkbox"] {
+  width: 1.25rem; /* Tamanho maior */
+  height: 1.25rem;
+  accent-color: #0e6f66; /* Cor do tema */
+  cursor: pointer;
+  vertical-align: middle; /* Alinha no meio da célula */
+}
+/* === FIM DA MELHORIA DE UX === */
+
+
+td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #eee; /* Linha sutil entre as linhas */
+}
+
+/* A última linha de cada corpo não precisa de borda inferior */
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+tbody tr {
+  /* ADICIONADO: Transição suave de hover */
+  transition: background-color 0.15s ease-in-out;
+  background-color: #fff; /* Garante que todas comecem brancas */
+  /* ADICIONADO: Cursor pointer para a linha toda */
+  cursor: pointer;
+}
+
+/* MUDADO: Efeito hover agora é AZUL, como pedido */
+tbody tr:hover { 
+  background-color: #e3f2fd; /* Azul claro para hover */
+}
+
+/* CORREÇÃO APLICADA: Zebra striping removido */
+tbody tr:nth-child(even) { 
+  background-color: #fff; /* Garantir que todos sejam brancos */
+}
+
+/* ADICIONADO: Estilo de seleção (azul mais escuro) */
+tbody tr.selected,
+tr.selected { 
+  background-color: #cce5ff !important; /* Era #e3f2fd */
+}
+/* ADICIONADO: Estilo de hover em linha selecionada (azul mais escuro ainda) */
+tbody tr.selected:hover,
+tr.selected:hover {
+  background-color: #b3d7ff !important; /* Era #d4ecfc */
+}
+
+
 .pagination {
   display: flex;
   justify-content: center;
@@ -247,7 +500,8 @@ tbody tr:nth-child(even) { background-color: #f9f9f9; }
   gap: 8px;
   margin-top: 20px;
   flex-wrap: wrap;
-  margin-left: calc(var(--largura-menu) + var(--offset-conteudo));
+  width: 100%;
+  margin-right: auto;
 }
 .pagination button,
 .page-btn {
@@ -275,12 +529,12 @@ tbody tr:nth-child(even) { background-color: #f9f9f9; }
   color: white;
 }
 
-/* === CAMPO DE BUSCA === */
+/* === CAMPO DE BUSCA (Estilos existentes) === */
 .filter-container {
-  max-width: 800px;
   width: 100%;
-  padding: 0 15px;
-  margin: 20px auto 0 calc(var(--largura-menu) + var(--offset-conteudo));
+  padding: 0;
+  margin-top: 20px;
+  margin-right: auto;
 }
 .filter-container input {
   width: 100%;
@@ -296,7 +550,7 @@ tbody tr:nth-child(even) { background-color: #f9f9f9; }
   border-color: #3f51b5;
 }
 
-/* === LOADING === */
+/* === LOADING (Estilos existentes) === */
 #loading {
   display: none;
   position: absolute;
@@ -331,10 +585,8 @@ tbody tr:nth-child(even) { background-color: #f9f9f9; }
   66% { opacity: 0; }
 }
 
-/* === Painel de selecionados === */
+/* === Painel de selecionados (Estilos existentes) === */
 #selected-evocacoes {
-  margin: 20px auto 0 calc(var(--largura-menu) + var(--offset-conteudo));
-  max-width: calc(100% - (var(--largura-menu) + 40px));
   background-color: #e3f2fd;
   padding: 10px;
   border-radius: 8px;
@@ -377,18 +629,19 @@ tbody tr:nth-child(even) { background-color: #f9f9f9; }
 th.sortable::after {
   content: ' ⇅';
   font-size: 12px;
-  color: #ddd;
+  color: #aaa; /* Cor mais sutil */
 }
-th.sortable.active-asc::after { content: ' ↑'; color: #fff; }
-th.sortable.active-desc::after { content: ' ↓'; color: #fff; }
+th.sortable.active-asc::after { content: ' ↑'; color: #333; }
+th.sortable.active-desc::after { content: ' ↓'; color: #333; }
 
 .conteudo-verde {
-  max-width: calc(100% - (var(--largura-menu) + 40px));
-  margin: 20px auto 40px calc(var(--largura-menu) + var(--offset-conteudo));
+  margin-top: 20px;
+  margin-right: auto;
   background: #0e6f66;
   border-radius: 14px;
   padding: 14px 16px 18px;
   box-shadow: 0 6px 22px rgba(0,0,0,.15);
+  width: 100%;
 }
 .conteudo-verde #selected-evocacoes {
   background: rgba(255,255,255,0.08);
@@ -408,7 +661,7 @@ th.sortable.active-desc::after { content: ' ↓'; color: #fff; }
 }
 .conteudo-verde .pagination { margin: 18px 0 0 0; }
 
-/* === Estados utilitários === */
+/* === Estados utilitários (Estilos existentes) === */
 #cancelRemovalBtn {
   margin: 10px 0 0 0;
   border-color: rgb(255, 90, 90);
@@ -416,7 +669,7 @@ th.sortable.active-desc::after { content: ' ↓'; color: #fff; }
   color: white;
   font-weight: bold;
 }
-.selected { background-color: #cce5ff !important; }
+/* .selected { background-color: #cce5ff !important; } */ /* Removido !important */
 .destaque {
   color: #0d47a1;
   font-weight: bold;
@@ -425,76 +678,80 @@ th.sortable.active-desc::after { content: ' ↓'; color: #fff; }
   border-radius: 3px;
 }
 
-/* Tablets */
-@media (max-width: 800px) {
-    .menu-botao {
-        font-size: 11px;
-    }
-}
+/* === RESPONSIVIDADE === */
 
-@media (max-width: 600px) {
-    :root {
-        --largura-menu: 65px; 
-        --menu-top-vh: 65;
-        --menu-padding-top: 20px;
-        --icon-size: 42px;
-    }
-    .menu-botao {
-        font-size: 11px;
-        width: 60px; 
-    }
-}
-
-@media (max-width: 400px) {
-    body { padding: 10px; }
-    :root {
-        --largura-menu: 60px;
-        --menu-top-vh: 65;
-        --menu-padding-top: 18px;
-        --icon-size: 42px;
-    }
-    .menu-botao { font-size: 10px; width: 55px; }
-    .pagination button, .page-btn { padding: 6px 10px; font-size: 12px; }
-}
-
-@media (orientation: landscape) and (max-height: 480px) {
-  :root {
-    --largura-menu: 50px;
-    --menu-top-vh: 20;
-    --menu-padding-top: 10px;
-    --icon-size: 50px;
-  }
-  .menu-botao { font-size: 9px; width: 45px; }
-}
-
-@media screen and (min-width: 768px) and (max-width: 834px)
-  and (orientation: portrait) {
-  :root { --menu-top-vh: 58; }
-}
-
-.titulo-site {
-    font-size: 1rem; 
-    white-space: normal; 
+@media (max-width: 768px) {
+  body {
+    /* MODIFICADO: Padding da direita removido, padding-left original mantido */
+    padding-left: 100px; /* Padding original para menu hamburguer */
+    padding-right: 15px;
+    padding-bottom: calc(var(--menu-mobile-height) + 20px); /* Espaço para o menu mobile inferior */
   }
 
-@media (max-width: 576px) {
-  .barra-conteudo.card-banner {
-    flex-direction: column; 
-    padding: 12px 15px;
+  /* MODIFICADO: Desliga o push do menu desktop */
+  body.evocacoes-menu-expanded {
+    padding-right: 15px;
+  }
+  
+  /* Esconde menu desktop, mostra menu mobile */
+  .menu-lateral {
+    display: none;
+  }
+  .menu-lateral-mobile {
+    display: flex;
+  }
+
+  /* Reseta os margins do conteúdo */
+  .conteudo-verde,
+  .filter-container,
+  .pagination,
+  .table-container {
+    /* MODIFICADO: margin-right resetado */
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .table-container {
+    overflow-x: auto;
+  }
+
+  table {
+    min-width: 700px; /* Garante que a tabela tenha scroll se necessário */
+  }
+
+  .barra-conteudo.card-banner,
+  .container .menu {
+    flex-direction: column;
+    padding: 15px;
     text-align: center;
+    gap: 10px;
   }
+  
   .barra-logo {
     flex-direction: column;
-    text-align: center;
     gap: 5px;
   }
+  
+  .titulo-site {
+    font-size: 1.1rem;
+    white-space: normal;
+  }
+  
   .barra-planilha {
     font-size: 1.2rem;
     margin-top: 10px;
-    white-space: normal; 
+    white-space: normal;
+  }
+
+  /* Esconde indicadores de "salvar" do desktop */
+  #seta-salvar {
+    display: none !important;
+  }
+  
+  #popup-salvar.show {
+     bottom: calc(var(--menu-mobile-height) + 15px);
   }
 }
-
-
-
-

@@ -144,7 +144,8 @@ async function processarTabela(data) {
         const palavra = String(row[j] || "").trim().toUpperCase();
         if (!palavra || palavra === "VAZIO") continue;
         if (!palavraContagem[palavra]) {
-          palavraContagem[palavra] = { total: 0, ego: 0, alter: 0 };
+          // MODIFICADO: Adiciona positividade e categoria
+          palavraContagem[palavra] = { total: 0, ego: 0, alter: 0, positividade: '', categoria: '' };
         }
         palavraContagem[palavra].total++;
         if (/^EVOC[1-5]$/.test(coluna)) {
@@ -162,17 +163,24 @@ async function processarTabela(data) {
       const isNewFormat = lema && typeof lema === 'object' && !Array.isArray(lema) && lema.origem;
       if (isNewFormat) {
           // Sobrescreve ou cria a entrada para a palavra fundida com os totais corretos
+          // MODIFICADO: Adiciona positividade e categoria
           finalContagem[palavra] = {
               total: lema.total !== undefined ? lema.total : (finalContagem[palavra]?.total || 0),
               ego: lema.ego !== undefined ? lema.ego : (finalContagem[palavra]?.ego || 0),
               alter: lema.alter !== undefined ? lema.alter : (finalContagem[palavra]?.alter || 0),
+              positividade: lema.positividade !== undefined ? lema.positividade : (finalContagem[palavra]?.positividade || ''),
+              categoria: lema.categoria !== undefined ? lema.categoria : (finalContagem[palavra]?.categoria || '')
           };
           
           // Remove as palavras de origem da lista final
           lema.origem.forEach(palavraOriginal => {
               // Extrai o nome da palavra (ex: "TEMPO" de "TEMPO (190)")
               const nomeOriginal = palavraOriginal.split(' (')[0].trim().toUpperCase();
-              if (finalContagem[nomeOriginal]) {
+              
+              // *** CORREÇÃO APLICADA AQUI ***
+              // Só deleta se a palavra original NÃO FOR a própria palavra-lema
+              // Isso previne que um lema de metadados (ex: "TESTE") se auto-delete.
+              if (nomeOriginal !== palavra && finalContagem[nomeOriginal]) {
                   delete finalContagem[nomeOriginal];
               }
           });
@@ -235,6 +243,10 @@ async function renderTabela() {
         <th data-col="total" class="sortable">${header_total_qty}</th>
         <th data-col="alter" class="sortable">${header_alter_qty}</th>
         <th data-col="ego" class="sortable">${header_ego_qty}</th>
+        <!-- COLUNAS ADICIONADAS -->
+        <th data-col="positividade" class="sortable">Positividade</th>
+        <th data-col="categoria" class="sortable">Categoria</th>
+        <!-- FIM DAS COLUNAS ADICIONADAS -->
         <th>${header_merges}</th>
       </tr>
     </thead>
@@ -243,16 +255,22 @@ async function renderTabela() {
         const palavraDestacada = termo ? palavra.replace(regexHighlight, `<mark>$1</mark>`) : palavra;
         const lema = currentLematizacoes[palavra];
         
+        // CORREÇÃO APLICADA AQUI
         let fusaoDisplay = "";
-        if (lema) {
-            const isNewFormat = typeof lema === 'object' && !Array.isArray(lema) && lema.origem;
-            if (isNewFormat) {
-                fusaoDisplay = lema.origem.join(", ");
-            } else if (Array.isArray(lema)) {
-                fusaoDisplay = lema.join(", ");
+        if (lema && typeof lema === 'object' && lema.origem && Array.isArray(lema.origem)) {
+            
+            // Verifica se é uma "fusão real" (mais de 1 origem, ou 1 origem DIFERENTE da palavra)
+            const eUmaFusaoReal = lema.origem.length > 1 || 
+                               (lema.origem.length === 1 && lema.origem[0].split(' (')[0].trim().toUpperCase() !== palavra);
+
+            if (eUmaFusaoReal) {
+                 fusaoDisplay = lema.origem.join(", ");
             }
+            // Se não for uma fusão real (ex: "TEMPO" com origem ["TEMPO (190)"]), 
+            // fusaoDisplay continua "", o que é o correto.
         }
         
+        // MODIFICADO: Adiciona células para positividade e categoria
         return `
           <tr>
             <td><input type="checkbox"></td>
@@ -260,6 +278,8 @@ async function renderTabela() {
             <td>${contagem.total}</td>
             <td>${contagem.alter}</td>
             <td>${contagem.ego}</td>
+            <td>${contagem.positividade || ''}</td>
+            <td>${contagem.categoria || ''}</td>
             <td>${fusaoDisplay}</td>
           </tr>
         `;
@@ -310,21 +330,63 @@ async function renderTabela() {
     });
   });
 
+  // *** LÓGICA DE CLIQUE NA LINHA ATUALIZADA ***
   table.querySelectorAll('tbody tr').forEach((tr, idx) => {
     const checkbox = tr.querySelector('input[type="checkbox"]');
     const palavra = pageWords[idx][0];
-    checkbox.checked = window.selectedEvocacoes.includes(palavra);
-    checkbox.addEventListener('change', () => {
-      if (checkbox.checked) {
-        if (!window.selectedEvocacoes.includes(palavra)) {
-          window.selectedEvocacoes.push(palavra);
+    
+    // Define o estado inicial da linha e do checkbox
+    const isSelected = window.selectedEvocacoes.includes(palavra);
+    checkbox.checked = isSelected;
+    tr.classList.toggle('selected', isSelected);
+
+    // Função centralizada para lidar com a seleção
+    const handleSelection = (isRowClick) => {
+        // Se foi um clique na linha, inverte o estado do checkbox
+        if (isRowClick) {
+            checkbox.checked = !checkbox.checked;
         }
-      } else {
-        window.selectedEvocacoes = window.selectedEvocacoes.filter(p => p !== palavra);
-      }
-      updateSelectedContainer();
+        
+        const isChecked = checkbox.checked; // Pega o estado ATUAL (novo ou o do clique)
+
+        if (isChecked) {
+            if (!window.selectedEvocacoes.includes(palavra)) {
+                window.selectedEvocacoes.push(palavra);
+            }
+        } else {
+            window.selectedEvocacoes = window.selectedEvocacoes.filter(p => p !== palavra);
+        }
+        
+        tr.classList.toggle('selected', isChecked);
+        updateSelectedContainer();
+        
+        // Sincroniza o checkbox "Selecionar Todos"
+        const selectAllCheckbox = table.querySelector('#select-all-checkbox');
+        if (selectAllCheckbox) {
+            const todasPalavrasVisiveis = pageWords.map(([p]) => p);
+            const todasSelecionadas = todasPalavrasVisiveis.every(p => window.selectedEvocacoes.includes(p));
+            const algumaSelecionada = todasPalavrasVisiveis.some(p => window.selectedEvocacoes.includes(p));
+            selectAllCheckbox.checked = todasSelecionadas;
+            selectAllCheckbox.indeterminate = !todasSelecionadas && algumaSelecionada;
+        }
+    };
+
+    // Listener para o checkbox (trigger padrão)
+    checkbox.addEventListener('change', () => {
+        handleSelection(false); // Não foi clique na linha
+    });
+
+    // Listener para a LINHA
+    tr.addEventListener('click', (e) => {
+        // Ignora o clique se foi DIRETAMENTE no checkbox (para não rodar a lógica duas vezes)
+        if (e.target.tagName === 'INPUT') {
+            return;
+        }
+        handleSelection(true); // Foi clique na linha
     });
   });
+  // *** FIM DA LÓGICA DE CLIQUE ***
+
 
   updateSelectedContainer();
   renderizarPaginacao(lista.length);
@@ -417,4 +479,3 @@ window.addEventListener("atualizarTabelaEvocacoes", () => {
   const ev = document.getElementById("link-evocacoes");
   if (ev) ev.classList.add("active");
 })();
-
