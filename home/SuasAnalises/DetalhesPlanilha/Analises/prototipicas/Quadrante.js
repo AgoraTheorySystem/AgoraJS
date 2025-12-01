@@ -2,7 +2,7 @@ import { verificarEProcessarPlanilha } from "../dashboard/atualizacao.js";
 
 const DB_NAME = 'agoraDB';
 const STORE_NAME = 'planilhas';
-let allWordsData = []; // Armazena [palavra, {dados}] - COMPARTILHADO
+let allWordsData = []; 
 
 // --- Funções do IndexedDB ---
 function openDB() {
@@ -64,17 +64,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     const currentLematizacoes = await getItem(`lemas_${planilhaNome}`) || {};
     
-    // Processa os dados (calcula f, ome, etc.) UMA VEZ
     allWordsData = await processarDados(data, currentLematizacoes);
     
-    // Inicia a renderização dos quadrantes
     renderizarQuadrantes();
     
-    // Adiciona listeners aos filtros
+    // Listeners
     document.getElementById('filtro-freq')?.addEventListener('input', renderizarQuadrantes);
     document.getElementById('filtro-ome')?.addEventListener('input', renderizarQuadrantes);
     document.getElementById('input-percentual')?.addEventListener('input', calcularPercentual);
-
 
   } catch (error) {
     console.error("Erro ao carregar dados locais:", error);
@@ -88,10 +85,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   showLoading(false);
 });
 
-/**
- * Processa os dados brutos, calcula f, ome e aplica lemas.
- * (Reutilizado de prototipicas.js)
- */
 async function processarDados(data, currentLematizacoes) {
   const header = data[0];
   const rows = data.slice(1);
@@ -105,10 +98,7 @@ async function processarDados(data, currentLematizacoes) {
         if (!palavra || palavra === "VAZIO") continue;
 
         if (!palavraContagem[palavra]) {
-          palavraContagem[palavra] = {
-            f: 0, weightedSum: 0, ome: 0
-            // Otimizado para não calcular evoc1-10 se não for necessário
-          };
+          palavraContagem[palavra] = { f: 0, weightedSum: 0, ome: 0 };
         }
         
         palavraContagem[palavra].f++;
@@ -127,9 +117,7 @@ async function processarDados(data, currentLematizacoes) {
   Object.entries(currentLematizacoes).forEach(([palavraFundida, lema]) => {
     const isNewFormat = lema && typeof lema === 'object' && !Array.isArray(lema) && lema.origem;
     if (isNewFormat) {
-      const newCounts = finalContagem[palavraFundida] || {
-        f: 0, weightedSum: 0, ome: 0
-      };
+      const newCounts = finalContagem[palavraFundida] || { f: 0, weightedSum: 0, ome: 0 };
 
       lema.origem.forEach(palavraOriginalComContagem => {
         const nomeOriginal = palavraOriginalComContagem.split(' (')[0].trim().toUpperCase();
@@ -145,35 +133,28 @@ async function processarDados(data, currentLematizacoes) {
     }
   });
 
-  // Retorna [ [palavra, {f, ome, ...}], ... ]
   return Object.entries(finalContagem);
 }
 
-
-/**
- * Renderiza os quatro quadrantes com base nos filtros
- */
 function renderizarQuadrantes() {
-  if (allWordsData.length === 0) return; // Não faz nada se não houver dados
+  if (allWordsData.length === 0) return;
 
-  // 1. Obter valores dos filtros
   const corteFreq = parseFloat(document.getElementById('filtro-freq').value) || 0;
   const corteOME = parseFloat(document.getElementById('filtro-ome').value) || 0;
 
-  // 2. Atualizar títulos dos quadrantes
-  document.getElementById('titulo-sup-esq').textContent = `OME < ${corteOME}`;
-  document.getElementById('titulo-sup-dir').textContent = `OME >= ${corteOME}`;
-  // Os títulos inferiores (f < corteFreq) estão ocultos via CSS, mas poderiam ser atualizados se visíveis
-  document.getElementById('titulo-inf-esq').textContent = `f < ${corteFreq}`;
-  document.getElementById('titulo-inf-dir').textContent = `f < ${corteFreq}`;
+  // --- Atualiza os cabeçalhos para serem EXPLICATIVOS ---
+  // Mostra 2 Badges: uma para Frequência e outra para OME
+  updateBadges('badges-sup-esq', `f ≥ ${corteFreq}`, `OME < ${corteOME}`);
+  updateBadges('badges-sup-dir', `f ≥ ${corteFreq}`, `OME ≥ ${corteOME}`);
+  
+  updateBadges('badges-inf-esq', `f < ${corteFreq}`, `OME < ${corteOME}`);
+  updateBadges('badges-inf-dir', `f < ${corteFreq}`, `OME ≥ ${corteOME}`);
 
-  // 3. Preparar listas para cada quadrante
-  const qSupEsq = []; // Núcleo Central: f >= corte, ome < corte
-  const qSupDir = []; // Contraste:     f >= corte, ome >= corte
-  const qInfEsq = []; // Periferia:     f < corte,  ome < corte
-  const qInfDir = []; // Contraste:     f < corte,  ome >= corte
+  const qSupEsq = []; 
+  const qSupDir = []; 
+  const qInfEsq = []; 
+  const qInfDir = []; 
 
-  // 4. Distribuir palavras
   for (const [palavra, stats] of allWordsData) {
     if (stats.f >= corteFreq) {
       if (stats.ome < corteOME) {
@@ -190,44 +171,66 @@ function renderizarQuadrantes() {
     }
   }
 
-  // 5. Ordenar listas (Ex: por OME no núcleo, por Frequência na periferia)
-  // Ordena pela Frequência (maior primeiro) e depois OME (menor primeiro)
-  const sortFunction = (a, b) => {
-    if (b.f !== a.f) {
-        return b.f - a.f; // Maior frequência primeiro
-    }
-    return a.ome - b.ome; // Menor OME (mais importante) primeiro
-  };
+  const sortFreqDesc = (a, b) => b.f - a.f || a.ome - b.ome;
+  
+  qSupEsq.sort(sortFreqDesc); 
+  qSupDir.sort(sortFreqDesc);
+  qInfEsq.sort(sortFreqDesc);
+  qInfDir.sort(sortFreqDesc);
 
-  qSupEsq.sort(sortFunction);
-  qSupDir.sort(sortFunction);
-  qInfEsq.sort(sortFunction);
-  qInfDir.sort(sortFunction);
-
-  // 6. Renderizar listas no HTML
   popularLista('lista-sup-esq', qSupEsq);
   popularLista('lista-sup-dir', qSupDir);
   popularLista('lista-inf-esq', qInfEsq);
   popularLista('lista-inf-dir', qInfDir);
 
-  // 7. Atualizar cálculo de percentual
   calcularPercentual();
 }
 
 /**
- * Preenche uma <ul> com a lista de palavras
+ * Atualiza os badges de regra no cabeçalho do card
  */
-function popularLista(elementId, lista) {
-  const ul = document.getElementById(elementId);
-  if (!ul) return;
-  ul.innerHTML = lista.map(item => `<li>${item.palavra}</li>`).join('');
+function updateBadges(containerId, textFreq, textOme) {
+    const container = document.getElementById(containerId);
+    if (container) {
+        container.innerHTML = `
+            <span class="regra-badge">${textFreq}</span>
+            <span class="regra-badge">${textOme}</span>
+        `;
+    }
 }
 
-/**
- * Calcula o percentual (como no print)
- */
+function popularLista(elementId, lista) {
+  const container = document.getElementById(elementId);
+  if (!container) return;
+  
+  container.innerHTML = ''; 
+  
+  if (lista.length === 0) {
+      container.innerHTML = `<div style="text-align:center; color:#999; padding:20px; font-style:italic; font-size:0.9rem;">Nenhum termo atende aos critérios.</div>`;
+      return;
+  }
+
+  lista.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'termo-row';
+      
+      div.innerHTML = `
+        <span class="termo-nome">${item.palavra}</span>
+        <div class="termo-metrics">
+            <span class="metric-box" title="Frequência Total">
+               <i class="fas fa-align-left"></i> ${item.f}
+            </span>
+            <span class="metric-box" title="Ordem Média de Evocação">
+               <i class="fas fa-sort-numeric-down"></i> ${item.ome.toFixed(2)}
+            </span>
+        </div>
+      `;
+      container.appendChild(div);
+  });
+}
+
 function calcularPercentual() {
-    const inputVal = parseFloat(document.getElementById('input-percentual').value) || 0;
+    const inputPercent = parseFloat(document.getElementById('input-percentual').value) || 0;
     const label = document.getElementById('label-percentual');
 
     if (allWordsData.length === 0) {
@@ -235,7 +238,6 @@ function calcularPercentual() {
         return;
     }
 
-    // Calcula o total de evocações (frequência total)
     const totalFrequencia = allWordsData.reduce((sum, [, stats]) => sum + stats.f, 0);
     
     if (totalFrequencia === 0) {
@@ -243,13 +245,10 @@ function calcularPercentual() {
         return;
     }
 
-    const percentual = (inputVal / totalFrequencia) * 100;
-    label.textContent = `(%) ≅ ${percentual.toFixed(2)} (abs)`;
+    const absValue = (inputPercent / 100) * totalFrequencia;
+    label.textContent = `(%) ≅ ${absValue.toFixed(2)} (abs)`;
 }
 
-/**
- * Controla o indicador de loading
- */
 function showLoading(isLoading) {
   const loadingEl = document.getElementById('loading');
   if (loadingEl) {

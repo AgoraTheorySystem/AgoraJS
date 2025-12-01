@@ -1,165 +1,291 @@
 /* Importa estilos base */
 @import url("prototipicas.css");
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-/* Container principal para o dashboard */
-.conteudo-principal {
-  background-color: #ffffff;
-  border-radius: 16px;
-  padding: 20px;
-  margin-top: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+:root {
+  --bg-page: #f0f2f5; /* Fundo geral mais escuro para contraste */
+  --bg-card: #ffffff;
+  --bg-list: #f1f5f9; /* Fundo da área de rolagem */
+  
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+  
+  /* Cores dos Quadrantes (Mais vibrantes/semânticas) */
+  --q-nucleo: #0d9488;    /* Teal */
+  --q-periferia: #d97706; /* Amber/Laranja */
+  --q-contraste: #f59e0b; /* Yellow/Gold */
+  --q-baixa: #64748b;     /* Slate/Gray */
+
+  /* Sombras para o efeito "Voando" */
+  --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-item: 0 2px 4px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.1);
+  --shadow-item-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
-/* Controles de Filtro (f e OME) */
-.controles-quadrante {
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-page);
+}
+
+.conteudo-principal {
+  margin-top: 20px;
+  background-color: transparent !important;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* --- BARRA DE CONTROLES --- */
+.controles-wrapper {
+  background-color: var(--bg-card);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: var(--shadow-card);
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
-  justify-content: flex-start;
-  align-items: center;
-  padding: 10px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  border: 1px solid #eee;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  border: 1px solid rgba(255,255,255,0.5);
+}
+
+.filtros-group {
+  display: flex;
+  gap: 24px;
 }
 
 .input-group {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 8px;
 }
 
 .input-group label {
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.input-group input {
-  font-size: 16px;
-  padding: 8px;
-  border: 1px solid #ccc;
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0 12px;
+  height: 44px;
+  transition: all 0.2s;
+}
+
+.input-wrapper:focus-within {
+  background: #fff;
+  border-color: var(--q-nucleo);
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+}
+
+.input-wrapper i {
+  color: #94a3b8;
+  font-size: 1rem;
+  margin-right: 10px;
+}
+
+.input-wrapper input {
+  border: none;
+  background: transparent;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-main);
+  width: 80px;
+  outline: none;
+}
+
+/* Calculadora Percentual */
+.controles-percentual {
+  border-left: 2px solid #e2e8f0;
+  padding-left: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.percentual-box {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0 14px;
+  height: 44px;
+  gap: 10px;
+}
+
+.percentual-box input {
+  width: 60px;
+  border: 1px solid #e2e8f0;
   border-radius: 6px;
-  width: 100px;
+  padding: 4px;
+  font-weight: 700;
   text-align: center;
+  color: var(--q-nucleo);
+  background: #f8fafc;
+  outline: none;
 }
 
-/* Grid dos 4 Quadrantes */
+.percentual-result {
+  font-size: 0.95rem;
+  color: var(--text-main);
+  font-weight: 600;
+  white-space: nowrap;
+  min-width: 140px;
+}
+
+/* --- GRID DOS QUADRANTES --- */
 .quadrante-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto auto; /* Duas linhas */
-  border-top: 2px solid #333;
-  border-left: 2px solid #333;
-  background-color: #fdfdfd;
+  gap: 24px;
+  min-height: 600px; 
 }
 
-.quadrante {
-  border-bottom: 2px solid #333;
-  border-right: 2px solid #333;
-  padding: 15px;
-  min-height: 300px;
-  max-height: 600px; /* Altura máxima com scroll */
-  overflow-y: auto; /* Adiciona scroll se a lista for longa */
+.quadrante-card {
+  background-color: var(--bg-card);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgba(0,0,0,0.05);
+  height: 100%;
 }
 
-/* Títulos dos Quadrantes */
-.quadrante-titulo {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #111;
-  margin: 0 0 15px 0;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #ccc;
-  text-align: center;
+/* Headers */
+.quadrante-header {
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  border-bottom: 1px solid #f1f5f9;
 }
 
-/* Lista de Termos */
-.quadrante-lista {
-  list-style: none;
-  padding: 0;
+.quadrante-header h3 {
   margin: 0;
-  color: #444;
-  font-size: 0.95rem;
-  line-height: 1.6;
-}
-
-.quadrante-lista li {
-  padding: 2px 0;
-}
-
-/* Estilização específica dos títulos conforme os prints */
-/* Título do Q1 (Sup-Esq) e Q2 (Sup-Dir) */
-#quadrante-sup-esq {
-  border-bottom: 1px dashed #999; /* Linha tracejada horizontal (OME) */
-}
-#quadrante-sup-dir {
-  border-bottom: 1px dashed #999;
-}
-#quadrante-sup-esq .quadrante-titulo,
-#quadrante-sup-dir .quadrante-titulo {
-  border-bottom: none; /* Remove a borda do título */
-  margin-bottom: 0;
-  padding-bottom: 0;
-  text-align: left; /* Alinha à esquerda como no print */
-  padding-left: 5px;
-}
-
-/* Título do Q3 (Inf-Esq) e Q4 (Inf-Dir) */
-#quadrante-inf-esq .quadrante-titulo,
-#quadrante-inf-dir .quadrante-titulo {
-  display: none; /* Oculta os títulos inferiores (f < 3) */
-}
-
-/* Linha vertical (Frequência) */
-#quadrante-sup-esq, #quadrante-inf-esq {
-  border-right: 1px dashed #999; /* Linha tracejada vertical (f) */
-}
-
-/* Controles de Percentual (baseado no print) */
-.controles-percentual {
-  margin-top: 15px;
-  padding: 15px;
-  background-color: #f0f0f0;
-  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-transform: uppercase;
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 1rem;
+  letter-spacing: 0.03em;
+}
+
+/* Badges de Regras (Autoexplicativo) */
+.regras-container {
+  display: flex;
+  gap: 6px;
+}
+
+.regra-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background-color: #f1f5f9;
+  color: var(--text-muted);
+  border: 1px solid #e2e8f0;
+}
+
+/* Cores Específicas - Bordas Laterais */
+#quadrante-sup-esq { border-top: 4px solid var(--q-nucleo); }
+#quadrante-sup-esq h3 { color: var(--q-nucleo); }
+
+#quadrante-sup-dir { border-top: 4px solid var(--q-periferia); }
+#quadrante-sup-dir h3 { color: var(--q-periferia); }
+
+#quadrante-inf-esq { border-top: 4px solid var(--q-contraste); }
+#quadrante-inf-esq h3 { color: var(--q-contraste); }
+
+#quadrante-inf-dir { border-top: 4px solid var(--q-baixa); }
+#quadrante-inf-dir h3 { color: var(--q-baixa); }
+
+
+/* Lista de Termos */
+.quadrante-body {
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+  background-color: var(--bg-list); /* Fundo cinza suave */
+  max-height: 500px;
+}
+
+/* Card do Termo ("Voando") */
+.termo-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow-item); /* Sombra para elevar */
+  border: 1px solid transparent;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.termo-row:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: var(--shadow-item-hover);
+  border-color: #cbd5e1;
+}
+
+.termo-nome {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text-main);
+  text-transform: uppercase;
+}
+
+.termo-metrics {
+  display: flex;
+  gap: 8px;
+}
+
+.metric-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
   font-weight: 600;
-  color: #555;
+  min-width: 70px;
+  justify-content: center;
 }
 
-.controles-percentual input {
-  width: 60px;
-  font-size: 1rem;
-  padding: 5px;
-  text-align: center;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+.metric-box i {
+  font-size: 0.7rem;
+  color: #94a3b8;
 }
-
 
 /* Responsividade */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .quadrante-grid {
-    grid-template-columns: 1fr; /* Coluna única em telas menores */
-    grid-template-rows: auto auto auto auto;
+    grid-template-columns: 1fr;
   }
-  
-  /* Remove as bordas tracejadas verticais em coluna única */
-  #quadrante-sup-esq, #quadrante-inf-esq {
-    border-right: 2px solid #333;
-  }
-
-  .quadrante {
-    min-height: 200px;
-    max-height: 400px;
-  }
-
-  .controles-quadrante {
+  .controles-wrapper {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+  }
+  .controles-percentual {
+    border-left: none;
+    border-top: 1px solid #e2e8f0;
+    padding-left: 0;
+    padding-top: 16px;
   }
 }
