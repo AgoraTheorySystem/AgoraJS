@@ -71,7 +71,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Listeners
     document.getElementById('filtro-freq')?.addEventListener('input', renderizarQuadrantes);
     document.getElementById('filtro-ome')?.addEventListener('input', renderizarQuadrantes);
-    document.getElementById('input-percentual')?.addEventListener('input', calcularPercentual);
+    // Alterado: Agora o input percentual dispara a renderização completa para filtrar os dados
+    document.getElementById('input-percentual')?.addEventListener('input', renderizarQuadrantes);
 
   } catch (error) {
     console.error("Erro ao carregar dados locais:", error);
@@ -139,14 +140,19 @@ async function processarDados(data, currentLematizacoes) {
 function renderizarQuadrantes() {
   if (allWordsData.length === 0) return;
 
+  // 1. Obtém o valor de corte direto do input (Frequência Menor)
+  const valorCorte = parseFloat(document.getElementById('input-percentual').value) || 0;
+  
+  // Atualiza label visualmente apenas para feedback
+  const label = document.getElementById('label-percentual');
+  if(label) label.textContent = `Remover f <= ${valorCorte}`;
+
   const corteFreq = parseFloat(document.getElementById('filtro-freq').value) || 0;
   const corteOME = parseFloat(document.getElementById('filtro-ome').value) || 0;
 
-  // --- Atualiza os cabeçalhos para serem EXPLICATIVOS ---
-  // Mostra 2 Badges: uma para Frequência e outra para OME
+  // --- Atualiza os cabeçalhos ---
   updateBadges('badges-sup-esq', `f ≥ ${corteFreq}`, `OME < ${corteOME}`);
   updateBadges('badges-sup-dir', `f ≥ ${corteFreq}`, `OME ≥ ${corteOME}`);
-  
   updateBadges('badges-inf-esq', `f < ${corteFreq}`, `OME < ${corteOME}`);
   updateBadges('badges-inf-dir', `f < ${corteFreq}`, `OME ≥ ${corteOME}`);
 
@@ -156,6 +162,11 @@ function renderizarQuadrantes() {
   const qInfDir = []; 
 
   for (const [palavra, stats] of allWordsData) {
+    // FILTRAGEM: Remove termos com frequência MENOR OU IGUAL ao valor definido no input
+    if (stats.f <= valorCorte) {
+        continue; 
+    }
+
     if (stats.f >= corteFreq) {
       if (stats.ome < corteOME) {
         qSupEsq.push({ palavra, ...stats });
@@ -182,8 +193,6 @@ function renderizarQuadrantes() {
   popularLista('lista-sup-dir', qSupDir);
   popularLista('lista-inf-esq', qInfEsq);
   popularLista('lista-inf-dir', qInfDir);
-
-  calcularPercentual();
 }
 
 /**
@@ -227,26 +236,6 @@ function popularLista(elementId, lista) {
       `;
       container.appendChild(div);
   });
-}
-
-function calcularPercentual() {
-    const inputPercent = parseFloat(document.getElementById('input-percentual').value) || 0;
-    const label = document.getElementById('label-percentual');
-
-    if (allWordsData.length === 0) {
-        label.textContent = `(%) ≅ 0.00 (abs)`;
-        return;
-    }
-
-    const totalFrequencia = allWordsData.reduce((sum, [, stats]) => sum + stats.f, 0);
-    
-    if (totalFrequencia === 0) {
-        label.textContent = `(%) ≅ 0.00 (abs)`;
-        return;
-    }
-
-    const absValue = (inputPercent / 100) * totalFrequencia;
-    label.textContent = `(%) ≅ ${absValue.toFixed(2)} (abs)`;
 }
 
 function showLoading(isLoading) {
