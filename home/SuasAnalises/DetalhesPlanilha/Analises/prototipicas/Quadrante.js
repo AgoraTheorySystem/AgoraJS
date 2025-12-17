@@ -145,7 +145,7 @@ function renderizarQuadrantes() {
   
   // Atualiza label visualmente apenas para feedback
   const label = document.getElementById('label-percentual');
-  if(label) label.textContent = `Remover f <= ${valorCorte}`;
+  if(label) label.textContent = `Frequencia Mínima <= ${valorCorte}`;
 
   const corteFreq = parseFloat(document.getElementById('filtro-freq').value) || 0;
   const corteOME = parseFloat(document.getElementById('filtro-ome').value) || 0;
