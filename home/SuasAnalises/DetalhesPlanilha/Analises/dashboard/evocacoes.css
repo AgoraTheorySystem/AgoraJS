@@ -367,7 +367,7 @@ body.evocacoes-menu-expanded #seta-salvar {
 /* POPUP DE AVISO */
 #popup-salvar {
   position: fixed;
-  bottom: -300px;
+  top: 20px;
   left: 50%;
   transform: translateX(-50%);
   background-color: #ffc107;
@@ -383,7 +383,7 @@ body.evocacoes-menu-expanded #seta-salvar {
   gap: 10px;
 }
 #popup-salvar.show { 
-  bottom: 20px; 
+  top: 20px; 
   /* MODIFICADO: Ajusta no mobile para não cobrir o menu */
 }
 
