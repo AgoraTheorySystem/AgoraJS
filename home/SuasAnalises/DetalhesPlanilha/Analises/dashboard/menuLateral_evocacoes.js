@@ -366,6 +366,8 @@ async function fundirPalavrasSelecionadas() {
     }
     
     const newCounts = { total: 0, ego: 0, alter: 0 };
+    const listaOrigensFinal = [];
+
     palavrasSelecionadas.forEach(p => {
         let contagem = contagensOriginais[p]; 
         if (lemasAtuais[p] && lemasAtuais[p].total !== undefined) {
@@ -374,6 +376,15 @@ async function fundirPalavrasSelecionadas() {
             contagem.alter = lemasAtuais[p].alter;
             contagem.positividade = lemasAtuais[p].positividade || '';
             contagem.categoria = lemasAtuais[p].categoria || '';
+            
+            // Melhoria: Se já tinha composição, herda as origens antigas (achatamento)
+            if (lemasAtuais[p].origem && Array.isArray(lemasAtuais[p].origem)) {
+                listaOrigensFinal.push(...lemasAtuais[p].origem);
+            } else {
+                listaOrigensFinal.push(`${p} (${contagem.total})`);
+            }
+        } else {
+            listaOrigensFinal.push(`${p} (${contagem.total})`);
         }
         newCounts.total += contagem.total;
         newCounts.ego += contagem.ego;
@@ -403,7 +414,7 @@ async function fundirPalavrasSelecionadas() {
     logPromises.push(logLocalChange(planilhaNome, fusaoPath, fusaoValue, 'action'));
 
     const novoLemaValor = {
-        origem: palavrasSelecionadas.map(p => `${p} (${contagensOriginais[p].total || 0})`),
+        origem: listaOrigensFinal,
         total: newCounts.total,
         ego: newCounts.ego,
         alter: newCounts.alter,
@@ -413,7 +424,7 @@ async function fundirPalavrasSelecionadas() {
     lemasAtuais[novoNome] = novoLemaValor;
 
     palavrasSelecionadas.forEach(p => {
-        if(lemasAtuais.hasOwnProperty(p)){
+        if(lemasAtuais.hasOwnProperty(p) && p !== novoNome){
             delete lemasAtuais[p];
             logPromises.push(logLocalChange(planilhaNome, `lematizacoes/${planilhaNome}/${p}`, null, 'data'));
         }

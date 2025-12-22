@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-pt">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -12,26 +12,25 @@
   <!-- Estilos -->
   <link href="formaragora.css" rel="stylesheet" />
 
-  <!-- Bibliotecas -->
+  <!-- Bibliotecas Externas -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
   <link href="https://unpkg.com/vis-network/styles/vis-network.css" rel="stylesheet" />
   <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
-  <!-- Scripts -->
+  <!-- Scripts da Aplicação -->
   <script src="formaragora.js" type="module" defer></script>
-  <script src="bolha_conectividade.js" type="module" defer></script>
-  <script src="bolha_socioeconomica.js" type="module" defer></script>
   <script src="bolhas.js" type="module" defer></script>
   <script src="menu.js" type="module" defer></script>
   <link href="menu.css" rel="stylesheet" />
   <link href="bolhas.css" rel="stylesheet" />
 
-  <title>Ágora</title>
+  <title>Ágora - Formar Ágoras</title>
 </head>
 <body class="formaragora">
   <main>
+    <!-- Banner de Identificação da Planilha -->
     <div class="top-barra-planilha">
       <div class="barra-conteudo card-banner">
         <div class="barra-logo">
@@ -42,72 +41,87 @@
       </div>
     </div>
 
+    <!-- Menu de Navegação Superior -->
     <div class="container">
       <div class="menu">
         <a class="menu_analises" id="link-analises" data-translate="analysis_menu">Menu Das Análises</a>
         <a id="link-dashboard"  href="./dashboard.html?planilha=" data-translate="dashboard">Dashboard</a>
-        <a id="link-agora"      href="./agora.html?planilha=" data-translate="socioeconomic">Socioeconômico</a>
+        <a id="link-agora"      href="./agora.html?planilha=" data-translate="socioeconomic">Socioeconómico</a>
         <a id="link-evocacoes"  href="./evocacoes.html?planilha=" data-translate="evocations">Evocações</a>
         <a id="link-formar"     href="./formaragora.html?planilha=" data-translate="form_agoras">Formar Ágoras</a>
         <a id="link-mapa"       href="./mapa.html?planilha=" data-translate="map">Mapa</a>
       </div>
     </div>
 
-    <div class="planilha">
+    <!-- Painel de Controlo e Filtros -->
+    <div class="planilha-main-container">
       <div id="menu_agoras">
-        <div class="niveis">
-          <label class="niveis-label"><strong data-translate="form_agoras_level_label">NÍVEL DA ÁGORA</strong></label>
+        <!-- Seleção de Níveis -->
+        <div class="control-group">
+          <label><strong data-translate="form_agoras_level_label">NÍVEL DA ÁGORA</strong></label>
           <div id="niveisContainer" class="niveis-buttons"></div>
         </div>
 
-        <div class="analise">
+        <!-- Tipo de Análise -->
+        <div class="control-group">
           <label><strong data-translate="form_agoras_analysis_label">ANÁLISE</strong></label>
-          <label>
-            <input type="radio" name="analise" value="Socioeconômica" checked>
-            <span data-translate="form_agoras_socioeconomic_radio">Socioeconômica</span>
-          </label>
-          <label>
-            <input type="radio" name="analise" value="Conectividade">
-            <span data-translate="form_agoras_connectivity_radio">Conectividade</span>
-          </label>
+          <div class="radio-options">
+            <label><input type="radio" name="analise" value="Socioeconômica" checked> <span data-translate="form_agoras_socioeconomic_radio">Socioeconómica</span></label>
+            <label><input type="radio" name="analise" value="Conectividade"> <span data-translate="form_agoras_connectivity_radio">Conectividade</span></label>
+          </div>
         </div>
 
-        <div class="extra-opcao" id="extraOpcao">
+        <!-- Filtros de Positividade e Categoria -->
+        <div class="control-group">
+          <label><strong>POSITIVIDADE</strong></label>
+          <select id="filtroPositividade" class="custom-select">
+            <option value="">Todas</option>
+            <option value="POSITIVA">Positiva</option>
+            <option value="NEUTRA">Neutra</option>
+            <option value="NEGATIVA">Negativa</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label><strong>CATEGORIAS</strong></label>
+          <select id="filtroCategorias" class="custom-select">
+            <option value="">Todas as Categorias</option>
+          </select>
+        </div>
+
+        <!-- Opção Extra para Conectividade -->
+        <div class="control-group extra-opcao" id="extraOpcao" style="display: none;">
           <label><strong data-translate="form_agoras_words_per_level_label">QTD. DE PALAVRAS / NÍVEL</strong></label>
-          <input type="number" id="valorConectividade" data-translate-placeholder="form_agoras_words_per_level_placeholder" placeholder="Digite um número">
+          <input type="number" id="valorConectividade" placeholder="Número de palavras">
         </div>
 
-        <div class="aspecto">
-          <label><strong data-translate="form_agoras_aspect_label">ASPECTO ANALISADO</strong></label>
-          <label>
-            <input type="radio" name="aspecto" value="Ego" checked> Ego
-          </label>
-          <label>
-            <input type="radio" name="aspecto" value="Alter"> Alter
-          </label>
+        <!-- Aspecto Analisado -->
+        <div class="control-group">
+          <label><strong data-translate="form_agoras_aspect_label">ASPECTO</strong></label>
+          <div class="radio-options">
+            <label><input type="radio" name="aspecto" value="Ego" checked> Ego</label>
+            <label><input type="radio" name="aspecto" value="Alter"> Alter</label>
+          </div>
         </div>
 
+        <!-- Ação Principal -->
         <div class="rodar">
           <button class="btn-agora" onclick="rodarAnalise()">
-            <img src="/assets/icon_play.png" alt="Ícone de play">
+            <img src="/assets/icon_play.png" alt="Play">
             <span class="btn-text" data-translate="form_agoras_run_button">FORMAR ÁGORA</span>
           </button>
         </div>
       </div>
 
-      <!-- PLANILHAS SERÃO INSERIDAS AQUI -->
+      <!-- Container para as tabelas (renderizadas horizontalmente) -->
       <div id="planilhasContainer"></div>
     </div>
 
-    <!-- LOADING GLOBAL -->
+    <!-- Indicador de Carregamento -->
     <div id="loading" aria-live="polite" aria-busy="true" style="display: none;">
-      <figure class="loader">
-        <div class="dot white"></div>
-        <div class="dot"></div>
-        <div class="dot"></div>
-        <div class="dot"></div>
-        <div class="dot"></div>
-      </figure>
+      <div class="loader-overlay">
+        <div class="loader"></div>
+      </div>
     </div>
   </main>
 </body>

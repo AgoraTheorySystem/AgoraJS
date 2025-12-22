@@ -379,7 +379,7 @@ body.evocacoes-menu-expanded #seta-salvar {
   font-weight: bold;
   transition: bottom 0.5s ease-in-out;
   display: flex;
-  visibility: hidden;
+  visibility: in;
   align-items: center;
   gap: 10px;
 }

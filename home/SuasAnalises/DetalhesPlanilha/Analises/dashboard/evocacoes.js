@@ -187,7 +187,6 @@ async function processarTabela(data) {
 async function renderTabela() {
   const termo = currentSearch;
   
-  // Lê o estado do filtro "fusoes" da URL
   const urlParams = new URLSearchParams(window.location.search);
   const apenasFusoes = urlParams.get("fusoes") === "true";
 
@@ -195,14 +194,13 @@ async function renderTabela() {
     ? allWords.filter(([palavra]) => palavra.includes(termo))
     : [...allWords];
 
-  // Filtro de Fusões
   if (apenasFusoes) {
     lista = lista.filter(([palavra]) => {
       const lema = currentLematizacoes[palavra];
       if (lema && typeof lema === 'object' && lema.origem && Array.isArray(lema.origem)) {
-        const eUmaFusaoReal = lema.origem.length > 1 || 
-                           (lema.origem.length === 1 && lema.origem[0].split(' (')[0].trim().toUpperCase() !== palavra);
-        return eUmaFusaoReal;
+        // Correção: Se tem composição, consideramos fusão real para o filtro
+        return lema.origem.length > 1 || 
+               (lema.origem.length === 1 && lema.origem[0].split(' (')[0].trim().toUpperCase() !== palavra);
       }
       return false;
     });
@@ -264,10 +262,12 @@ async function renderTabela() {
         
         let fusaoDisplay = "";
         if (lema && typeof lema === 'object' && lema.origem && Array.isArray(lema.origem)) {
-            const eUmaFusaoReal = lema.origem.length > 1 || 
-                               (lema.origem.length === 1 && lema.origem[0].split(' (')[0].trim().toUpperCase() !== palavra);
+            // Lógica melhorada para exibição: Mostra se houver múltiplos itens OU se o nome mudou.
+            const nomeOriginalLimpo = lema.origem[0].split(' (')[0].trim().toUpperCase();
+            const ehDiferente = nomeOriginalLimpo !== palavra;
+            const ehMultiplo = lema.origem.length > 1;
 
-            if (eUmaFusaoReal) {
+            if (ehMultiplo || ehDiferente) {
                  fusaoDisplay = lema.origem.join(", ");
             }
         }
