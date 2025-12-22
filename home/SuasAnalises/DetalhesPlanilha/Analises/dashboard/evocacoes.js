@@ -7,18 +7,20 @@ const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
 const ITEMS_PER_PAGE = 20;
-let currentPage = 1;
+
+// --- LÓGICA DE PERSISTÊNCIA: Lê a página inicial e filtros da URL ---
+const urlParams = new URLSearchParams(window.location.search);
+let currentPage = parseInt(urlParams.get("page")) || 1; 
+
 let allWords = [];
 let currentLematizacoes = {};
 let currentSearch = "";
-// Define a ordenação inicial padrão
 let currentSortColumn = "total";
 let currentSortDirection = "desc";
 
 const DB_NAME = 'agoraDB';
 const STORE_NAME = 'planilhas';
 
-// Abre ou cria o banco de dados IndexedDB
 function openDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, 1);
@@ -40,7 +42,6 @@ function openDB() {
   });
 }
 
-// Pega um item do IndexedDB
 async function getItem(key) {
     const db = await openDB();
     const transaction = db.transaction(STORE_NAME, 'readonly');
@@ -57,22 +58,28 @@ async function getItem(key) {
     });
 }
 
+function updateUrlPage(page) {
+    const url = new URL(window.location);
+    url.searchParams.set('page', page);
+    window.history.replaceState({}, '', url);
+}
 
-// Filtro de fusões
-window.filtroFusoes = false;
 window.selectedEvocacoes = [];
 
 const selectedListEl = document.getElementById('selected-list');
 const selectedCountEl = document.getElementById('selected-count');
 const clearSelectedBtn = document.getElementById('clear-selected');
 
-clearSelectedBtn.addEventListener('click', () => {
-  window.selectedEvocacoes = [];
-  updateSelectedContainer();
-  renderTabela();
-});
+if (clearSelectedBtn) {
+    clearSelectedBtn.addEventListener('click', () => {
+      window.selectedEvocacoes = [];
+      updateSelectedContainer();
+      renderTabela();
+    });
+}
 
 function updateSelectedContainer() {
+  if (!selectedListEl) return;
   selectedListEl.innerHTML = '';
   selectedCountEl.textContent = window.selectedEvocacoes.length;
   window.selectedEvocacoes.forEach(palavra => {
@@ -94,10 +101,8 @@ function updateSelectedContainer() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  // Garante que os dados estão baixados e sincronizados ANTES de tentar ler
   await verificarEProcessarPlanilha();
 
-  const urlParams = new URLSearchParams(window.location.search);
   const planilhaNome = urlParams.get("planilha");
   if (!planilhaNome) {
     Swal.fire({ 
@@ -109,7 +114,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   try {
-    // Carrega a planilha e as lematizações do armazenamento local (IndexedDB)
     const data = await getItem(`planilha_${planilhaNome}`);
     if (!data || data.length === 0) {
       Swal.fire({ 
@@ -135,7 +139,6 @@ async function processarTabela(data) {
   const header = data[0];
   const rows = data.slice(1);
 
-  // 1. Recalcula contagens da planilha atual
   const palavraContagem = {};
   for (const row of rows) {
     for (let j = 0; j < header.length; j++) {
@@ -144,7 +147,6 @@ async function processarTabela(data) {
         const palavra = String(row[j] || "").trim().toUpperCase();
         if (!palavra || palavra === "VAZIO") continue;
         if (!palavraContagem[palavra]) {
-          // MODIFICADO: Adiciona positividade e categoria
           palavraContagem[palavra] = { total: 0, ego: 0, alter: 0, positividade: '', categoria: '' };
         }
         palavraContagem[palavra].total++;
@@ -157,13 +159,10 @@ async function processarTabela(data) {
     }
   }
 
-  // 2. Mescla com os totais corretos das fusões E REMOVE AS ORIGINAIS
   const finalContagem = { ...palavraContagem };
   Object.entries(currentLematizacoes).forEach(([palavra, lema]) => {
       const isNewFormat = lema && typeof lema === 'object' && !Array.isArray(lema) && lema.origem;
       if (isNewFormat) {
-          // Sobrescreve ou cria a entrada para a palavra fundida com os totais corretos
-          // MODIFICADO: Adiciona positividade e categoria
           finalContagem[palavra] = {
               total: lema.total !== undefined ? lema.total : (finalContagem[palavra]?.total || 0),
               ego: lema.ego !== undefined ? lema.ego : (finalContagem[palavra]?.ego || 0),
@@ -172,14 +171,8 @@ async function processarTabela(data) {
               categoria: lema.categoria !== undefined ? lema.categoria : (finalContagem[palavra]?.categoria || '')
           };
           
-          // Remove as palavras de origem da lista final
           lema.origem.forEach(palavraOriginal => {
-              // Extrai o nome da palavra (ex: "TEMPO" de "TEMPO (190)")
               const nomeOriginal = palavraOriginal.split(' (')[0].trim().toUpperCase();
-              
-              // *** CORREÇÃO APLICADA AQUI ***
-              // Só deleta se a palavra original NÃO FOR a própria palavra-lema
-              // Isso previne que um lema de metadados (ex: "TESTE") se auto-delete.
               if (nomeOriginal !== palavra && finalContagem[nomeOriginal]) {
                   delete finalContagem[nomeOriginal];
               }
@@ -191,17 +184,27 @@ async function processarTabela(data) {
   renderTabela();
 }
 
-
 async function renderTabela() {
   const termo = currentSearch;
+  
+  // Lê o estado do filtro "fusoes" da URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const apenasFusoes = urlParams.get("fusoes") === "true";
+
   let lista = termo
     ? allWords.filter(([palavra]) => palavra.includes(termo))
     : [...allWords];
 
-  if (window.filtroFusoes) {
+  // Filtro de Fusões
+  if (apenasFusoes) {
     lista = lista.filter(([palavra]) => {
       const lema = currentLematizacoes[palavra];
-      return lema && (Array.isArray(lema) || (typeof lema === 'object' && lema.origem));
+      if (lema && typeof lema === 'object' && lema.origem && Array.isArray(lema.origem)) {
+        const eUmaFusaoReal = lema.origem.length > 1 || 
+                           (lema.origem.length === 1 && lema.origem[0].split(' (')[0].trim().toUpperCase() !== palavra);
+        return eUmaFusaoReal;
+      }
+      return false;
     });
   }
 
@@ -219,7 +222,14 @@ async function renderTabela() {
     });
   }
 
+  const totalPages = Math.ceil(lista.length / ITEMS_PER_PAGE);
+  if (currentPage > totalPages && totalPages > 0) {
+      currentPage = totalPages;
+      updateUrlPage(currentPage);
+  }
+
   const container = document.getElementById("tabela-evocacoes");
+  if (!container) return;
   container.innerHTML = "";
 
   const regexHighlight = new RegExp(`(${termo})`, "gi");
@@ -227,7 +237,6 @@ async function renderTabela() {
   const end = start + ITEMS_PER_PAGE;
   const pageWords = lista.slice(start, end);
 
-  // Obter traduções para os cabeçalhos da tabela
   const header_word = await window.getTranslation('evocations_header_word');
   const header_total_qty = await window.getTranslation('evocations_header_total_qty');
   const header_alter_qty = await window.getTranslation('evocations_header_alter_qty');
@@ -243,10 +252,8 @@ async function renderTabela() {
         <th data-col="total" class="sortable">${header_total_qty}</th>
         <th data-col="alter" class="sortable">${header_alter_qty}</th>
         <th data-col="ego" class="sortable">${header_ego_qty}</th>
-        <!-- COLUNAS ADICIONADAS -->
         <th data-col="positividade" class="sortable">Positividade</th>
         <th data-col="categoria" class="sortable">Categoria</th>
-        <!-- FIM DAS COLUNAS ADICIONADAS -->
         <th>${header_merges}</th>
       </tr>
     </thead>
@@ -255,25 +262,20 @@ async function renderTabela() {
         const palavraDestacada = termo ? palavra.replace(regexHighlight, `<mark>$1</mark>`) : palavra;
         const lema = currentLematizacoes[palavra];
         
-        // CORREÇÃO APLICADA AQUI
         let fusaoDisplay = "";
         if (lema && typeof lema === 'object' && lema.origem && Array.isArray(lema.origem)) {
-            
-            // Verifica se é uma "fusão real" (mais de 1 origem, ou 1 origem DIFERENTE da palavra)
             const eUmaFusaoReal = lema.origem.length > 1 || 
                                (lema.origem.length === 1 && lema.origem[0].split(' (')[0].trim().toUpperCase() !== palavra);
 
             if (eUmaFusaoReal) {
                  fusaoDisplay = lema.origem.join(", ");
             }
-            // Se não for uma fusão real (ex: "TEMPO" com origem ["TEMPO (190)"]), 
-            // fusaoDisplay continua "", o que é o correto.
         }
         
-        // MODIFICADO: Adiciona células para positividade e categoria
+        const isSelected = window.selectedEvocacoes.includes(palavra);
         return `
-          <tr>
-            <td><input type="checkbox"></td>
+          <tr class="${isSelected ? 'selected' : ''}">
+            <td><input type="checkbox" ${isSelected ? 'checked' : ''}></td>
             <td>${palavraDestacada}</td>
             <td>${contagem.total}</td>
             <td>${contagem.alter}</td>
@@ -330,24 +332,16 @@ async function renderTabela() {
     });
   });
 
-  // *** LÓGICA DE CLIQUE NA LINHA ATUALIZADA ***
   table.querySelectorAll('tbody tr').forEach((tr, idx) => {
     const checkbox = tr.querySelector('input[type="checkbox"]');
     const palavra = pageWords[idx][0];
     
-    // Define o estado inicial da linha e do checkbox
-    const isSelected = window.selectedEvocacoes.includes(palavra);
-    checkbox.checked = isSelected;
-    tr.classList.toggle('selected', isSelected);
-
-    // Função centralizada para lidar com a seleção
     const handleSelection = (isRowClick) => {
-        // Se foi um clique na linha, inverte o estado do checkbox
         if (isRowClick) {
             checkbox.checked = !checkbox.checked;
         }
         
-        const isChecked = checkbox.checked; // Pega o estado ATUAL (novo ou o do clique)
+        const isChecked = checkbox.checked;
 
         if (isChecked) {
             if (!window.selectedEvocacoes.includes(palavra)) {
@@ -360,8 +354,6 @@ async function renderTabela() {
         tr.classList.toggle('selected', isChecked);
         updateSelectedContainer();
         
-        // Sincroniza o checkbox "Selecionar Todos"
-        const selectAllCheckbox = table.querySelector('#select-all-checkbox');
         if (selectAllCheckbox) {
             const todasPalavrasVisiveis = pageWords.map(([p]) => p);
             const todasSelecionadas = todasPalavrasVisiveis.every(p => window.selectedEvocacoes.includes(p));
@@ -371,22 +363,15 @@ async function renderTabela() {
         }
     };
 
-    // Listener para o checkbox (trigger padrão)
     checkbox.addEventListener('change', () => {
-        handleSelection(false); // Não foi clique na linha
+        handleSelection(false);
     });
 
-    // Listener para a LINHA
     tr.addEventListener('click', (e) => {
-        // Ignora o clique se foi DIRETAMENTE no checkbox (para não rodar a lógica duas vezes)
-        if (e.target.tagName === 'INPUT') {
-            return;
-        }
-        handleSelection(true); // Foi clique na linha
+        if (e.target.tagName === 'INPUT') return;
+        handleSelection(true);
     });
   });
-  // *** FIM DA LÓGICA DE CLIQUE ***
-
 
   updateSelectedContainer();
   renderizarPaginacao(lista.length);
@@ -413,12 +398,15 @@ function renderizarPaginacao(totalItems) {
     if (!desabilitado) {
       btn.addEventListener("click", () => {
         currentPage = pagina;
+        updateUrlPage(pagina);
         renderTabela();
         document.getElementById("tabela-evocacoes").scrollIntoView({ behavior: "smooth" });
       });
     }
     return btn;
   }
+
+  if (totalPages <= 1) return;
 
   paginationContainer.appendChild(criarBotao("«", 1, false, currentPage === 1));
   paginationContainer.appendChild(criarBotao("‹", currentPage - 1, false, currentPage === 1));
@@ -427,13 +415,13 @@ function renderizarPaginacao(totalItems) {
   let endPage = Math.min(totalPages, currentPage + 1);
   if (startPage > 1) {
     paginationContainer.appendChild(criarBotao("1", 1));
-    paginationContainer.appendChild(document.createTextNode("..."));
+    if (startPage > 2) paginationContainer.appendChild(document.createTextNode("..."));
   }
   for (let i = startPage; i <= endPage; i++) {
     paginationContainer.appendChild(criarBotao(i, i, i === currentPage));
   }
   if (endPage < totalPages) {
-    paginationContainer.appendChild(document.createTextNode("..."));
+    if (endPage < totalPages - 1) paginationContainer.appendChild(document.createTextNode("..."));
     paginationContainer.appendChild(criarBotao(totalPages, totalPages));
   }
 
@@ -444,6 +432,7 @@ function renderizarPaginacao(totalItems) {
 document.getElementById("busca-palavra")?.addEventListener("input", (e) => {
   currentSearch = e.target.value.trim().toUpperCase();
   currentPage = 1;
+  updateUrlPage(1);
   renderTabela();
 });
 

@@ -379,11 +379,13 @@ body.evocacoes-menu-expanded #seta-salvar {
   font-weight: bold;
   transition: bottom 0.5s ease-in-out;
   display: flex;
+  visibility: hidden;
   align-items: center;
   gap: 10px;
 }
 #popup-salvar.show { 
   top: 20px; 
+  visibility: visible;
   /* MODIFICADO: Ajusta no mobile para não cobrir o menu */
 }
 
