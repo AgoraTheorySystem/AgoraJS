@@ -62,6 +62,33 @@
                     <div id="filter-section">
                         <h2 data-translate="map_advanced_filters">Filtros Avançados</h2>
 
+                        <!-- Novo Filtro de Categoria -->
+                        <div class="filter-card">
+                            <div class="filter-card-header">
+                                <span class="filter-card-title" data-translate="map_category_filter_title">Categoria</span>
+                            </div>
+                            <div class="match-type-selector">
+                                <select id="filtro-categoria" style="width: 100%; padding: 8px; margin-top: 5px; border-radius: 4px; border: 1px solid #ccc; background-color: white; color: black;">
+                                    <option value="Todas" data-translate="map_all_option">Todas</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Novo Filtro de Positividade -->
+                        <div class="filter-card">
+                            <div class="filter-card-header">
+                                <span class="filter-card-title" data-translate="map_positivity_filter_title">Positividade</span>
+                            </div>
+                            <div class="match-type-selector">
+                                <select id="filtro-positividade" style="width: 100%; padding: 8px; margin-top: 5px; border-radius: 4px; border: 1px solid #ccc; background-color: white; color: black;">
+                                    <option value="Todas" data-translate="map_all_option">Todas</option>
+                                    <option value="Positiva" data-translate="map_positive_option">Positiva</option>
+                                    <option value="Negativa" data-translate="map_negative_option">Negativa</option>
+                                    <option value="Neutra" data-translate="map_neutral_option">Neutra</option>
+                                </select>
+                            </div>
+                        </div>
+
                         <div class="filter-card" id="evocations-filter-card">
                             <div class="filter-card-header">
                                 <span class="filter-card-title" data-translate="map_evocations_filter_title">Evocações</span>

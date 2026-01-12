@@ -22,31 +22,41 @@ const filtersState = {
         isActive: false,
         condition: 'eq',
         value: null,
-    }
+    },
+    category: 'Todas',
+    positivity: 'Todas'
 };
+
+// --- FUNÇÃO AUXILIAR DE NORMALIZAÇÃO ---
+function normalizeString(str) {
+    if (!str) return "";
+    return str.toString().trim().toUpperCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // Remove acentos e converte para maiúsculo
+}
 
 // --- ELEMENTOS DA UI ---
 const ui = {
-    descriptionText: document.getElementById('description-text'),
-    messageArea: document.getElementById('message-area'),
-    messageText: document.getElementById('message-text'),
-    messageIcon: document.getElementById('message-area').querySelector('.message-icon'),
-    loadingOverlay: document.getElementById('loadingOverlay'),
-    loadingProgressText: document.getElementById('loadingProgressText'),
-    progressBar: document.getElementById('progressBar'),
-    resultsPanel: document.getElementById('results-panel'),
-    unlocatedCitiesSection: document.getElementById('unlocatedCitiesSection'),
-    unlocatedCountSpan: document.getElementById('unlocatedCount'),
-    unlocatedCitiesList: document.getElementById('unlocatedCitiesList'),
-    mapButton: document.getElementById('map-button'),
-    downloadPdfBtn: document.getElementById('download-pdf-btn'),
-    // Filtros
-    editEvocationsBtn: document.getElementById('edit-evocations-filter'),
-    evocationsFilterCard: document.getElementById('evocations-filter-card'),
-    evocationsFilterStatus: document.getElementById('evocations-filter-status'),
-    editAgeBtn: document.getElementById('edit-age-filter'),
-    ageFilterCard: document.getElementById('age-filter-card'),
-    ageFilterStatus: document.getElementById('age-filter-status'),
+    get descriptionText() { return document.getElementById('description-text'); },
+    get messageArea() { return document.getElementById('message-area'); },
+    get messageText() { return document.getElementById('message-text'); },
+    get messageIcon() { return document.getElementById('message-area')?.querySelector('.message-icon'); },
+    get loadingOverlay() { return document.getElementById('loadingOverlay'); },
+    get loadingProgressText() { return document.getElementById('loadingProgressText'); },
+    get progressBar() { return document.getElementById('progressBar'); },
+    get resultsPanel() { return document.getElementById('results-panel'); },
+    get unlocatedCitiesSection() { return document.getElementById('unlocatedCitiesSection'); },
+    get unlocatedCountSpan() { return document.getElementById('unlocatedCount'); },
+    get unlocatedCitiesList() { return document.getElementById('unlocatedCitiesList'); },
+    get mapButton() { return document.getElementById('map-button'); },
+    get downloadPdfBtn() { return document.getElementById('download-pdf-btn'); },
+    get editEvocationsBtn() { return document.getElementById('edit-evocations-filter'); },
+    get evocationsFilterCard() { return document.getElementById('evocations-filter-card'); },
+    get evocationsFilterStatus() { return document.getElementById('evocations-filter-status'); },
+    get editAgeBtn() { return document.getElementById('edit-age-filter'); },
+    get ageFilterCard() { return document.getElementById('age-filter-card'); },
+    get ageFilterStatus() { return document.getElementById('age-filter-status'); },
+    get categorySelect() { return document.getElementById('filtro-categoria'); },
+    get positivitySelect() { return document.getElementById('filtro-positividade'); }
 };
 
 const icons = {
@@ -59,17 +69,19 @@ const icons = {
 // --- Funções de Controle da UI ---
 async function displayMessage(msgKey, type = 'info', replacements = {}) {
     let msg = await window.getTranslation(msgKey);
+    if(!msg) msg = msgKey; 
     for (const placeholder in replacements) {
         msg = msg.replace(`{${placeholder}}`, replacements[placeholder]);
     }
-    ui.messageText.innerHTML = msg;
-    ui.messageArea.className = `message-area ${type}`;
-    ui.messageIcon.innerHTML = icons[type];
+    if(ui.messageText) ui.messageText.innerHTML = msg;
+    if(ui.messageArea) ui.messageArea.className = `message-area ${type}`;
+    if(ui.messageIcon) ui.messageIcon.innerHTML = icons[type];
 }
 
 async function showLoading(show, progress = 0, textKey = 'map_loading_preparing', replacements = {}) {
     if (show) {
         let text = await window.getTranslation(textKey);
+        if(!text) text = textKey;
         for (const placeholder in replacements) {
             text = text.replace(`{${placeholder}}`, replacements[placeholder]);
         }
@@ -84,28 +96,12 @@ async function showLoading(show, progress = 0, textKey = 'map_loading_preparing'
 
 window.toggleUnlocatedCities = () => { ui.unlocatedCitiesList.classList.toggle('expanded'); }
 
-async function updateDescription() {
-    const { evocations, age } = filtersState;
-    let textKey = '';
+const urlPlanilha = new URLSearchParams(location.search).get('planilha');
+const barraPlanilhaEl = document.getElementById("nome-da-planilha");
+if(barraPlanilhaEl) barraPlanilhaEl.textContent = urlPlanilha;
 
-    if (evocations.isActive && age.isActive) {
-        textKey = 'map_description_evocations_and_age';
-    } else if (evocations.isActive) {
-        textKey = 'map_description_evocations';
-    } else if (age.isActive) {
-        textKey = 'map_description_age';
-    } else {
-        textKey = 'map_description_default';
-    }
-    ui.descriptionText.innerHTML = await window.getTranslation(textKey);
-}
-
-const planilha = new URLSearchParams(location.search).get('planilha');
-document.querySelector(".barra-planilha").textContent = planilha;
-
-// --- Lógica do Filtro de Palavras (Modal) ---
-async function loadWords(planilhaNome) {
-    if (areWordsLoaded) return;
+// --- IndexedDB Access ---
+async function getStoredItem(key) {
     try {
         const db = await new Promise((resolve, reject) => {
             const request = indexedDB.open('agoraDB', 1);
@@ -114,15 +110,22 @@ async function loadWords(planilhaNome) {
         });
         const transaction = db.transaction('planilhas', 'readonly');
         const store = transaction.objectStore('planilhas');
-        const request = store.get(`planilha_${planilhaNome}`);
-        const storedData = await new Promise((resolve, reject) => {
+        const request = store.get(key);
+        return await new Promise((resolve, reject) => {
             request.onsuccess = event => resolve(event.target.result ? event.target.result.value : null);
             request.onerror = event => reject(event.target.error);
         });
+    } catch (e) {
+        console.error("Erro IndexedDB:", e);
+        return null;
+    }
+}
 
-        if (!storedData || storedData.length < 2) {
-            throw new Error(await window.getTranslation('map_error_sheet_data_not_found'));
-        }
+async function loadWords(planilhaNome) {
+    if (areWordsLoaded) return;
+    try {
+        const storedData = await getStoredItem(`planilha_${planilhaNome}`);
+        if (!storedData || storedData.length < 2) throw new Error("Planilha não encontrada.");
 
         const header = storedData[0].map(h => h.toString().toLowerCase().trim());
         const evocColumnIndices = header.map((h, i) => h.startsWith('evoc') ? i : -1).filter(i => i !== -1);
@@ -131,174 +134,163 @@ async function loadWords(planilhaNome) {
         for (const row of storedData.slice(1)) {
             for (const index of evocColumnIndices) {
                 const word = (row[index] || '').toString().trim().toUpperCase();
-                if (word && word !== 'VAZIO') {
-                    wordCounts[word] = (wordCounts[word] || 0) + 1;
-                }
+                if (word && word !== 'VAZIO') wordCounts[word] = (wordCounts[word] || 0) + 1;
             }
         }
-        allWordsWithCount = Object.entries(wordCounts).sort(([, countA], [, countB]) => countB - countA);
+        allWordsWithCount = Object.entries(wordCounts).sort(([, a], [, b]) => b - a);
         areWordsLoaded = true;
+        
+        // Popula os filtros dinamicamente para garantir que as opções batam com os dados
+        await populateCategories(planilhaNome);
+        await populatePositivities(planilhaNome);
     } catch (error) {
-        console.error("Erro ao carregar palavras:", error);
-        const errorMsg = (await window.getTranslation('map_error_loading_words')).replace('{message}', error.message);
-        Swal.showValidationMessage(errorMsg);
+        console.error(error);
     }
 }
 
+async function populateCategories(planilhaNome) {
+    if(!ui.categorySelect) return;
+    const lemas = await getStoredItem(`lemas_${planilhaNome}`) || {};
+    const categories = new Set();
+    Object.values(lemas).forEach(l => { if(l.categoria) categories.add(l.categoria.trim()); });
+
+    ui.categorySelect.innerHTML = `<option value="Todas">Todas</option>`;
+    Array.from(categories).sort().forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat; opt.textContent = cat;
+        ui.categorySelect.appendChild(opt);
+    });
+}
+
+// NOVO: Popula positividade dinamicamente como as categorias
+async function populatePositivities(planilhaNome) {
+    if(!ui.positivitySelect) return;
+    const lemas = await getStoredItem(`lemas_${planilhaNome}`) || {};
+    const positivities = new Set();
+    Object.values(lemas).forEach(l => { if(l.positividade) positivities.add(l.positividade.trim()); });
+
+    ui.positivitySelect.innerHTML = `<option value="Todas">Todas</option>`;
+    Array.from(positivities).sort().forEach(pos => {
+        const opt = document.createElement('option');
+        opt.value = pos; opt.textContent = pos;
+        ui.positivitySelect.appendChild(opt);
+    });
+}
+
+// --- Funções de Modal ---
 async function getEvocationsModalHTML() {
     return `
         <div id="evocations-modal-content">
             <div id="selected-words-panel" class="hidden">
-                <h3>${await window.getTranslation('map_modal_selected_title')} (<span id="selected-count">0</span>):</h3>
+                <h3>Selecionados (<span id="selected-count">0</span>):</h3>
                 <ul id="selected-list"></ul>
-                <button id="clear-selected-btn">${await window.getTranslation('map_modal_clear_btn')}</button>
+                <button id="clear-selected-btn">Limpar</button>
             </div>
-            <input type="text" id="word-search-input" class="filter-input" placeholder="${await window.getTranslation('map_modal_search_placeholder')}">
-            <div id="word-list-container"><p>${await window.getTranslation('map_modal_loading_words')}</p></div>
+            <input type="text" id="word-search-input" class="filter-input" placeholder="Pesquisar...">
+            <div id="word-list-container"><p>Carregando...</p></div>
             <div id="pagination-controls"></div>
-        </div>
-    `;
+        </div>`;
 }
 
 async function renderWordListInModal(tempSelectedWords) {
-    const wordListContainer = document.getElementById('word-list-container');
-    const paginationControls = document.getElementById('pagination-controls');
+    const container = document.getElementById('word-list-container');
     const searchTerm = document.getElementById('word-search-input').value.trim().toUpperCase();
-    
-    const filteredWords = searchTerm
-        ? allWordsWithCount.filter(([word]) => word.includes(searchTerm))
-        : allWordsWithCount;
+    const filtered = searchTerm ? allWordsWithCount.filter(([w]) => w.includes(searchTerm)) : allWordsWithCount;
 
-    if (filteredWords.length === 0) {
-        wordListContainer.innerHTML = `<p style='padding: 1rem; text-align: center; color: #64748b;'>${await window.getTranslation('map_modal_no_words_found')}</p>`;
-        paginationControls.innerHTML = '';
+    if (filtered.length === 0) {
+        container.innerHTML = `<p style='text-align: center; color: #64748b;'>Nenhuma palavra encontrada</p>`;
         return;
     }
 
-    const startIndex = (currentPage - 1) * WORDS_PER_PAGE;
-    const endIndex = startIndex + WORDS_PER_PAGE;
-    const pageWords = filteredWords.slice(startIndex, endIndex);
+    const start = (currentPage - 1) * WORDS_PER_PAGE;
+    const pageWords = filtered.slice(start, start + WORDS_PER_PAGE);
 
-    wordListContainer.innerHTML = pageWords.map(([word, count]) => `
+    container.innerHTML = pageWords.map(([word, count]) => `
         <div class="word-item">
             <input type="checkbox" id="cb-modal-${word}" value="${word}" ${tempSelectedWords.includes(word) ? 'checked' : ''}>
             <label for="cb-modal-${word}">${word}</label>
             <span class="word-count">${count}</span>
-        </div>
-    `).join('');
+        </div>`).join('');
 
-    await renderPaginationInModal(filteredWords.length, tempSelectedWords);
+    renderPaginationInModal(filtered.length, tempSelectedWords);
 }
 
-async function renderPaginationInModal(totalItems, tempSelectedWords) {
-    const paginationControls = document.getElementById('pagination-controls');
+function renderPaginationInModal(totalItems, tempSelectedWords) {
+    const controls = document.getElementById('pagination-controls');
     const totalPages = Math.ceil(totalItems / WORDS_PER_PAGE);
-    paginationControls.innerHTML = '';
+    controls.innerHTML = '';
     if (totalPages <= 1) return;
 
-    const createButton = (text, page, isDisabled = false, isActive = false) => {
+    for (let i = 1; i <= totalPages; i++) {
+        if(i > 5 && i < totalPages) continue;
         const btn = document.createElement('button');
-        btn.className = `page-btn ${isActive ? 'active' : ''}`;
-        btn.textContent = text;
-        btn.disabled = isDisabled;
-        btn.onclick = async () => { currentPage = page; await renderWordListInModal(tempSelectedWords); };
-        return btn;
-    };
-
-    paginationControls.appendChild(createButton('«', 1, currentPage === 1));
-    paginationControls.appendChild(createButton('‹', currentPage - 1, currentPage === 1));
-
-    const startPage = Math.max(1, currentPage - 2);
-    const endPage = Math.min(totalPages, currentPage + 2);
-
-    if (startPage > 1) paginationControls.appendChild(createButton('1', 1));
-    if (startPage > 2) paginationControls.insertAdjacentHTML('beforeend', `<span>...</span>`);
-    
-    for (let i = startPage; i <= endPage; i++) {
-        paginationControls.appendChild(createButton(i, i, false, i === currentPage));
+        btn.textContent = i;
+        btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+        btn.onclick = () => { currentPage = i; renderWordListInModal(tempSelectedWords); };
+        controls.appendChild(btn);
     }
-
-    if (endPage < totalPages - 1) paginationControls.insertAdjacentHTML('beforeend', `<span>...</span>`);
-    if (endPage < totalPages) paginationControls.appendChild(createButton(totalPages, totalPages));
-
-    paginationControls.appendChild(createButton('›', currentPage + 1, currentPage === totalPages));
-    paginationControls.appendChild(createButton('»', totalPages, currentPage === totalPages));
 }
 
 function updateSelectedWordsPanelInModal(tempSelectedWords) {
     const panel = document.getElementById('selected-words-panel');
-    if (tempSelectedWords.length === 0) {
-        panel.classList.add('hidden');
-        return;
-    }
+    if (tempSelectedWords.length === 0) { panel.classList.add('hidden'); return; }
     panel.classList.remove('hidden');
     document.getElementById('selected-count').textContent = tempSelectedWords.length;
     document.getElementById('selected-list').innerHTML = tempSelectedWords.map(word => `
-        <li class="selected-word-item">
-            ${word}
-            <button class="remove-word-btn" data-word="${word}">&times;</button>
-        </li>
-    `).join('');
+        <li class="selected-word-item">${word}<button class="remove-word-btn" data-word="${word}">&times;</button></li>`).join('');
 }
 
+// --- Funções de Status dos Filtros ---
 async function updateEvocationsFilterStatus() {
     const { isActive, selectedWords, matchType } = filtersState.evocations;
-    const matchTypeText = await window.getTranslation(matchType === 'all' ? 'map_match_type_all' : 'map_match_type_any');
+    const matchTypeText = await window.getTranslation(matchType === 'all' ? 'map_match_all_option' : 'map_match_any_option') || (matchType === 'all' ? 'Contém todos (E)' : 'Contém qualquer um (OU)');
 
     if (isActive && selectedWords.length > 0) {
-        const statusText = (await window.getTranslation('map_status_evocations'))
-            .replace('{count}', selectedWords.length)
-            .replace('{matchType}', matchTypeText);
-        ui.evocationsFilterStatus.innerHTML = statusText;
+        ui.evocationsFilterStatus.innerHTML = `${selectedWords.length} palavras (${matchTypeText})`;
         ui.evocationsFilterCard.classList.add('active');
-        ui.editEvocationsBtn.textContent = await window.getTranslation('map_btn_edit');
+        ui.editEvocationsBtn.textContent = await window.getTranslation('map_btn_edit') || 'Editar';
     } else {
-        ui.evocationsFilterStatus.textContent = await window.getTranslation('map_status_no_filter');
+        ui.evocationsFilterStatus.textContent = await window.getTranslation('map_status_no_filter') || 'Nenhum filtro aplicado.';
         ui.evocationsFilterCard.classList.remove('active');
-        ui.editEvocationsBtn.textContent = await window.getTranslation('map_btn_configure');
-        filtersState.evocations.isActive = false;
-        filtersState.evocations.selectedWords = [];
+        ui.editEvocationsBtn.textContent = await window.getTranslation('map_btn_configure') || 'Configurar';
     }
     await updateDescription();
-}
-
-// --- Lógica do Filtro de Idade (Modal) ---
-async function getAgeModalHTML() {
-    const { condition, value } = filtersState.age;
-    return `
-        <div class="age-filter-inputs">
-            <select id="age-condition-modal" class="filter-input">
-                <option value="gte" ${condition === 'gte' ? 'selected' : ''}>${await window.getTranslation('map_age_cond_gte')}</option>
-                <option value="eq" ${condition === 'eq' ? 'selected' : ''}>${await window.getTranslation('map_age_cond_eq')}</option>
-                <option value="lte" ${condition === 'lte' ? 'selected' : ''}>${await window.getTranslation('map_age_cond_lte')}</option>
-            </select>
-            <input type="number" id="age-value-modal" class="filter-input" placeholder="${await window.getTranslation('map_modal_age_placeholder')}" min="0" value="${value || ''}">
-        </div>
-    `;
 }
 
 async function updateAgeFilterStatus() {
     const { isActive, condition, value } = filtersState.age;
     if (isActive && value !== null) {
-        const conditionText = await window.getTranslation({ gte: 'map_age_cond_gte', eq: 'map_age_cond_eq', lte: 'map_age_cond_lte' }[condition]);
-        const statusText = (await window.getTranslation('map_status_age'))
-            .replace('{conditionText}', conditionText)
-            .replace('{value}', value);
-        ui.ageFilterStatus.innerHTML = statusText;
+        const condLabels = { 
+            gte: await window.getTranslation('map_age_cond_gte') || 'Maior ou igual', 
+            eq: await window.getTranslation('map_age_cond_eq') || 'Igual a', 
+            lte: await window.getTranslation('map_age_cond_lte') || 'Menor ou igual' 
+        };
+        ui.ageFilterStatus.innerHTML = `${condLabels[condition]} ${value} anos`;
         ui.ageFilterCard.classList.add('active');
-        ui.editAgeBtn.textContent = await window.getTranslation('map_btn_edit');
+        ui.editAgeBtn.textContent = await window.getTranslation('map_btn_edit') || 'Editar';
     } else {
-        ui.ageFilterStatus.textContent = await window.getTranslation('map_status_no_filter');
+        ui.ageFilterStatus.textContent = await window.getTranslation('map_status_no_filter') || 'Nenhum filtro aplicado.';
         ui.ageFilterCard.classList.remove('active');
-        ui.editAgeBtn.textContent = await window.getTranslation('map_btn_configure');
-        filtersState.age.isActive = false;
-        filtersState.age.value = null;
+        ui.editAgeBtn.textContent = await window.getTranslation('map_btn_configure') || 'Configurar';
     }
     await updateDescription();
 }
 
+async function getAgeModalHTML() {
+    const { condition, value } = filtersState.age;
+    return `
+        <div class="age-filter-inputs">
+            <select id="age-condition-modal" class="filter-input" style="margin-bottom: 10px; width: 100%;">
+                <option value="gte" ${condition === 'gte' ? 'selected' : ''}>Maior ou igual</option>
+                <option value="eq" ${condition === 'eq' ? 'selected' : ''}>Igual a</option>
+                <option value="lte" ${condition === 'lte' ? 'selected' : ''}>Menor ou igual</option>
+            </select>
+            <input type="number" id="age-value-modal" class="filter-input" placeholder="Idade..." min="0" value="${value || ''}" style="width: 100%;">
+        </div>
+    `;
+}
 
-// --- Lógica do Mapa ---
+// --- Mapa Core ---
 function initializeMap() {
     if (map) return;
     map = new ol.Map({
@@ -319,8 +311,10 @@ function setupMapInteractions() {
         if (feature) {
             mapElement.style.cursor = 'pointer';
             if (tippyInstance) tippyInstance.destroy();
+            
             const clusteredFeatures = feature.get('features');
             let content = '';
+            
             if (clusteredFeatures.length > 1) {
                 const total = clusteredFeatures.reduce((sum, f) => sum + f.get('cityCount'), 0);
                 
@@ -336,8 +330,8 @@ function setupMapInteractions() {
                         <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
                             <thead>
                                 <tr>
-                                    <th style="padding: 8px 5px; text-align: left; font-weight: 700; font-size: 16px; color: #1A202C; border-bottom: 2px solid #E2E8F0;">${await window.getTranslation('map_tippy_cities_grouped')}</th>
-                                    <th style="padding: 8px 5px; text-align: right; font-weight: 700; font-size: 16px; color: #1A202C; border-bottom: 2px solid #E2E8F0;">${await window.getTranslation('map_tippy_people')}</th>
+                                    <th style="padding: 8px 5px; text-align: left; font-weight: 700; font-size: 16px; color: #1A202C; border-bottom: 2px solid #E2E8F0;">Cidades</th>
+                                    <th style="padding: 8px 5px; text-align: right; font-weight: 700; font-size: 16px; color: #1A202C; border-bottom: 2px solid #E2E8F0;">Pessoas</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -345,19 +339,19 @@ function setupMapInteractions() {
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <td style="padding: 8px 5px; text-align: left; font-weight: 700; font-size: 16px; color: #1A202C; border-top: 2px solid #E2E8F0;">${await window.getTranslation('map_tippy_total')}</td>
+                                    <td style="padding: 8px 5px; text-align: left; font-weight: 700; font-size: 16px; color: #1A202C; border-top: 2px solid #E2E8F0;">Total</td>
                                     <td style="padding: 8px 5px; text-align: right; font-weight: 700; font-size: 16px; color: #C53030; border-top: 2px solid #E2E8F0;">${total}</td>
                                 </tr>
                             </tfoot>
                         </table>
                     </div>`;
             } else {
-                const singleFeature = clusteredFeatures[0];
-                const cityName = singleFeature.get('cityName');
-                const cityCount = singleFeature.get('cityCount');
-                const personText = await window.getTranslation(cityCount > 1 ? 'map_tippy_persons' : 'map_tippy_person');
-                content = `<div style="padding: 4px 8px; font-family: 'Inter', sans-serif; font-size: 14px;"><strong style="font-size: 15px; color: #1A202C;">${cityName}</strong><br>${cityCount} ${personText}</div>`;
+                const f = clusteredFeatures[0];
+                const cityName = f.get('cityName');
+                const cityCount = f.get('cityCount');
+                content = `<div style="padding: 4px 8px; font-family: 'Inter', sans-serif; font-size: 14px;"><strong style="font-size: 15px; color: #1A202C;">${cityName}</strong><br>${cityCount} participante(s)</div>`;
             }
+            
             const virtualEl = { getBoundingClientRect: () => ({ width: 0, height: 0, top: evt.pixel[1] + mapElement.getBoundingClientRect().top, right: evt.pixel[0] + mapElement.getBoundingClientRect().left, bottom: evt.pixel[1] + mapElement.getBoundingClientRect().top, left: evt.pixel[0] + mapElement.getBoundingClientRect().left }) };
             tippyInstance = tippy(document.body, { getReferenceClientRect: virtualEl.getBoundingClientRect, content: content, allowHTML: true, placement: 'top', arrow: true, animation: 'fade', theme: 'light-border', trigger: 'manual', appendTo: () => document.body });
             tippyInstance.show();
@@ -366,386 +360,262 @@ function setupMapInteractions() {
             if (tippyInstance) tippyInstance.destroy();
         }
     });
-    map.getViewport().addEventListener('mouseout', () => { if (tippyInstance) tippyInstance.destroy(); });
-}
-
-
-// --- Geocodificação e Processamento de Dados ---
-async function geocodeCity(cityName, stateName) {
-    const query = stateName ? `${cityName}, ${stateName}, Brasil` : `${cityName}, Brasil`;
-    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=3&addressdetails=1`;
-    try {
-        await new Promise(resolve => setTimeout(resolve, 500)); // Rate limiting
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
-        const data = await response.json();
-        if (data && data.length > 0) {
-            const preferredResult = data.find(r => r.addresstype === 'city' || r.addresstype === 'town' || r.addresstype === 'village');
-            const result = preferredResult || data[0];
-            return [parseFloat(result.lat), parseFloat(result.lon)];
-        }
-        return null;
-    } catch (error) {
-        console.error(`Erro ao geocodificar "${query}":`, error);
-        return null;
-    }
 }
 
 async function processDataFromDB(planilhaNome) {
     await showLoading(true, 0, 'map_process_loading_data');
     ui.unlocatedCitiesSection.classList.add('hidden');
-    ui.unlocatedCitiesList.innerHTML = '';
     if (tippyInstance) tippyInstance.destroy();
 
     try {
-        const db = await new Promise((resolve, reject) => {
-            const request = indexedDB.open('agoraDB', 1);
-            request.onsuccess = event => resolve(event.target.result);
-            request.onerror = event => reject(event.target.error);
-        });
-        const transaction = db.transaction('planilhas', 'readonly');
-        const store = transaction.objectStore('planilhas');
-        const request = store.get(`planilha_${planilhaNome}`);
-        const storedData = await new Promise((resolve, reject) => {
-            request.onsuccess = event => resolve(event.target.result ? event.target.result.value : null);
-            request.onerror = event => reject(event.target.error);
-        });
+        const storedData = await getStoredItem(`planilha_${planilhaNome}`);
+        const lemas = await getStoredItem(`lemas_${planilhaNome}`) || {};
+        if (!storedData) return;
 
-        if (!storedData || storedData.length < 2) {
-            await displayMessage('map_process_no_data', 'error'); await showLoading(false); return;
-        }
+        // Criar um mapeamento reverso normalizado (Key sempre em MAIÚSCULAS e sem acentos)
+        const wordDataLookup = {};
+        Object.entries(lemas).forEach(([lemma, data]) => {
+            const lemmaKey = normalizeString(lemma);
+            wordDataLookup[lemmaKey] = data;
+            
+            if (data.origem && Array.isArray(data.origem)) {
+                data.origem.forEach(orig => {
+                    // Remove a contagem (ex: "FOME (5)" vira "FOME") e normaliza
+                    const originalWord = normalizeString(orig.split(' (')[0]);
+                    wordDataLookup[originalWord] = data;
+                });
+            }
+        });
 
         const header = storedData[0].map(h => h.toString().toLowerCase().trim());
-        const cityColumnIndex = header.indexOf('cidades') !== -1 ? header.indexOf('cidades') : header.indexOf('cidade');
-        const stateColumnIndex = header.indexOf('estado') !== -1 ? header.indexOf('estado') : header.indexOf('estados');
-        const ageColumnIndex = header.indexOf('idade');
-        const evocColumnIndices = header.map((h, i) => h.startsWith('evoc') ? i : -1).filter(i => i !== -1);
+        const cityCol = header.indexOf('cidades') !== -1 ? header.indexOf('cidades') : header.indexOf('cidade');
+        const stateCol = header.indexOf('estado') !== -1 ? header.indexOf('estado') : header.indexOf('estados');
+        const ageCol = header.indexOf('idade');
+        const evocCols = header.map((h, i) => h.startsWith('evoc') ? i : -1).filter(i => i !== -1);
 
-        if (cityColumnIndex === -1) {
-            await displayMessage('map_process_no_city_column', 'error'); await showLoading(false); return;
-        }
-        if (filtersState.age.isActive && ageColumnIndex === -1) {
-            await displayMessage('map_process_no_age_column', 'error'); await showLoading(false); return;
-        }
-        if (filtersState.evocations.isActive && evocColumnIndices.length === 0) {
-            await displayMessage('map_process_no_evoc_column', 'error'); await showLoading(false); return;
-        }
-
-        await displayMessage('map_process_filtering', 'info');
         const cityCounts = {};
-        const dataRows = storedData.slice(1);
+        for (const row of storedData.slice(1)) {
+            let pass = true;
+            const rowEvocs = evocCols.map(i => (row[i] || '').toString().trim().toUpperCase()).filter(w => w && w !== 'VAZIO');
 
-        for (const row of dataRows) {
-            let passesFilters = true;
-
+            // 1. Filtro de Evocações
             if (filtersState.evocations.isActive) {
-                const userEvocations = new Set(evocColumnIndices.map(index => (row[index] || '').toString().trim().toUpperCase()));
-                if (filtersState.evocations.matchType === 'all') {
-                    if (!filtersState.evocations.selectedWords.every(word => userEvocations.has(word))) passesFilters = false;
+                const set = new Set(rowEvocs);
+                pass = filtersState.evocations.matchType === 'all' 
+                    ? filtersState.evocations.selectedWords.every(w => set.has(w))
+                    : filtersState.evocations.selectedWords.some(w => set.has(w));
+            }
+            // 2. Filtro de Idade
+            if (pass && filtersState.age.isActive) {
+                const age = parseInt(row[ageCol]);
+                const val = filtersState.age.value;
+                if (isNaN(age)) {
+                    pass = false;
+                } else if (filtersState.age.condition === 'gte') {
+                    pass = age >= val;
+                } else if (filtersState.age.condition === 'eq') {
+                    pass = age === val;
                 } else {
-                    if (!filtersState.evocations.selectedWords.some(word => userEvocations.has(word))) passesFilters = false;
+                    pass = age <= val;
                 }
+            }
+            // 3. Filtro de Categoria (IGUAL AO QUE FUNCIONA)
+            if (pass && filtersState.category !== 'Todas') {
+                const targetCat = normalizeString(filtersState.category);
+                pass = rowEvocs.some(w => {
+                    const info = wordDataLookup[normalizeString(w)];
+                    return normalizeString(info?.categoria) === targetCat;
+                });
+            }
+            // 4. Filtro de Positividade (IGUAL AO DE CATEGORIA)
+            if (pass && filtersState.positivity !== 'Todas') {
+                const targetPos = normalizeString(filtersState.positivity);
+                pass = rowEvocs.some(w => {
+                    const info = wordDataLookup[normalizeString(w)];
+                    return normalizeString(info?.positividade) === targetPos;
+                });
             }
 
-            if (passesFilters && filtersState.age.isActive) {
-                const userAge = parseInt(row[ageColumnIndex], 10);
-                if (isNaN(userAge)) {
-                    passesFilters = false;
-                } else {
-                    const targetAge = filtersState.age.value;
-                    switch (filtersState.age.condition) {
-                        case 'gte': if (userAge < targetAge) passesFilters = false; break;
-                        case 'eq':  if (userAge !== targetAge) passesFilters = false; break;
-                        case 'lte': if (userAge > targetAge) passesFilters = false; break;
-                    }
-                }
-            }
-            
-            if (passesFilters && row[cityColumnIndex]) {
-                const cityUpper = row[cityColumnIndex].toString().trim().toUpperCase();
-                let finalIdentifier = cityAcronyms[cityUpper] || row[cityColumnIndex].toString().trim();
-                if (stateColumnIndex !== -1 && row[stateColumnIndex]) {
-                    const stateUpper = row[stateColumnIndex].toString().trim().toUpperCase();
-                    finalIdentifier += `, ${stateAcronyms[stateUpper] || row[stateColumnIndex].toString().trim()}`;
-                }
-                cityCounts[finalIdentifier] = (cityCounts[finalIdentifier] || 0) + 1;
+            if (pass && row[cityCol]) {
+                const city = row[cityCol].toString().trim().toUpperCase();
+                const state = stateCol !== -1 ? row[stateCol] : '';
+                const key = city + (state ? `, ${state}` : '');
+                cityCounts[key] = (cityCounts[key] || 0) + 1;
             }
         }
 
-        if (Object.keys(cityCounts).length === 0) {
-            await displayMessage('map_process_no_participants_found', 'warning');
-            await showLoading(false);
-            if(clusterLayer) map.removeLayer(clusterLayer);
-            return;
-        }
-
-        const unlocatedCitiesDetails = [];
-        const uniqueCities = Object.keys(cityCounts);
         const features = [];
+        const uniqueCities = Object.keys(cityCounts);
         for (let i = 0; i < uniqueCities.length; i++) {
-            const cityIdentifier = uniqueCities[i];
-            let [cityName, stateName] = cityIdentifier.split(', ');
-            
-            await showLoading(true, Math.round(((i + 1) / uniqueCities.length) * 100), 'map_process_geocoding', {
-                cityName: cityName,
-                current: i + 1,
-                total: uniqueCities.length
-            });
-
-            let coords = await geocodeCity(cityName, stateName);
+            const cityName = uniqueCities[i];
+            await showLoading(true, Math.round(((i+1)/uniqueCities.length)*100), 'Geocodificando...', { cityName });
+            const coords = await geocodeCity(...cityName.split(', '));
             if (coords) {
-                const feature = new ol.Feature({ geometry: new ol.geom.Point(ol.proj.fromLonLat([coords[1], coords[0]])) });
-                feature.setProperties({ cityName: cityIdentifier, cityCount: cityCounts[cityIdentifier] });
-                features.push(feature);
-            } else {
-                unlocatedCitiesDetails.push({ name: cityIdentifier, count: cityCounts[cityIdentifier] });
+                const f = new ol.Feature({ geometry: new ol.geom.Point(ol.proj.fromLonLat([coords[1], coords[0]])) });
+                f.setProperties({ cityName, cityCount: cityCounts[cityName] });
+                features.push(f);
             }
         }
-
-        if (features.length === 0) { await displayMessage('map_process_no_cities_geocoded', 'error'); await showLoading(false); return; }
-
-        const vectorSource = new ol.source.Vector({ features: features });
-        const clusterSource = new ol.source.Cluster({ distance: 40, minDistance: 20, source: vectorSource });
 
         if (clusterLayer) map.removeLayer(clusterLayer);
+        const vectorSource = new ol.source.Vector({ features });
         clusterLayer = new ol.layer.Vector({
-            source: clusterSource,
-            style: function (feature) {
-                const featuresInCluster = feature.get('features');
-                const totalCount = featuresInCluster.reduce((sum, f) => sum + f.get('cityCount'), 0);
+            source: new ol.source.Cluster({ distance: 40, source: vectorSource }),
+            style: (feature) => {
+                const clusteredFeatures = feature.get('features');
+                const totalCount = clusteredFeatures.reduce((sum, f) => sum + f.get('cityCount'), 0);
+                
                 const radius = 12 + Math.log(totalCount) * 4;
                 const startColor = [255, 255, 0], endColor = [255, 0, 0];
                 const allCounts = Object.values(cityCounts);
-                const maxTotalCount = allCounts.reduce((sum, count) => sum + count, 0);
-                let ratio = (maxTotalCount > 1) ? (Math.log(totalCount) / Math.log(maxTotalCount)) : 0;
+                const maxIndividualCount = Math.max(...allCounts);
+                
+                let ratio = (maxIndividualCount > 1) ? (Math.log(totalCount) / Math.log(maxIndividualCount)) : 0;
+                if(ratio > 1) ratio = 1;
+
                 const r = Math.round(startColor[0] + ratio * (endColor[0] - startColor[0]));
                 const g = Math.round(startColor[1] + ratio * (endColor[1] - startColor[1]));
                 const color = `rgba(${r}, ${g}, 0, 0.7)`;
 
                 return new ol.style.Style({
-                    image: new ol.style.Circle({ radius: radius, fill: new ol.style.Fill({ color: color }), stroke: new ol.style.Stroke({ color: '#6B211E', width: 1.5 }) }),
-                    text: new ol.style.Text({ text: totalCount.toString(), fill: new ol.style.Fill({ color: '#fff' }), stroke: new ol.style.Stroke({ color: 'rgba(0,0,0,0.6)', width: 2.5 }), font: 'bold 12px sans-serif' }),
+                    image: new ol.style.Circle({ 
+                        radius: radius, 
+                        fill: new ol.style.Fill({ color: color }), 
+                        stroke: new ol.style.Stroke({ color: '#6B211E', width: 1.5 }) 
+                    }),
+                    text: new ol.style.Text({ 
+                        text: totalCount.toString(), 
+                        fill: new ol.style.Fill({ color: '#fff' }), 
+                        stroke: new ol.style.Stroke({ color: 'rgba(0,0,0,0.6)', width: 2.5 }),
+                        font: 'bold 12px sans-serif' 
+                    })
                 });
-            },
+            }
         });
         map.addLayer(clusterLayer);
-        if (!ol.extent.isEmpty(vectorSource.getExtent())) { map.getView().fit(vectorSource.getExtent(), { padding: [50, 50, 50, 50], duration: 1000 }); }
+        if (features.length > 0) map.getView().fit(vectorSource.getExtent(), { padding: [50, 50, 50, 50], duration: 1000 });
 
-        let finalMessage = (await window.getTranslation('map_process_completed')).replace('{count}', features.length);
-        if (unlocatedCitiesDetails.length > 0) {
-            finalMessage += (await window.getTranslation('map_process_unlocated_cities')).replace('{count}', unlocatedCitiesDetails.length);
-            ui.unlocatedCitiesSection.classList.remove('hidden');
-            ui.unlocatedCountSpan.textContent = unlocatedCitiesDetails.length;
-            const occurrenceText = await window.getTranslation('map_process_occurrence');
-            const occurrencesText = await window.getTranslation('map_process_occurrences');
-            ui.unlocatedCitiesList.innerHTML = unlocatedCitiesDetails.map(item => `<li>${item.name} (${item.count} ${item.count > 1 ? occurrencesText : occurrenceText})</li>`).join('');
-        }
-        await displayMessage('map_msg_from_string', 'success', { message: finalMessage }); // Use a generic key for raw HTML
         await showLoading(false);
         ui.downloadPdfBtn.classList.remove('hidden');
-
-    } catch (error) {
-        console.error("Erro ao processar dados:", error);
-        await displayMessage('map_process_error', 'error', { message: error.message });
-        await showLoading(false);
+        displayMessage('Mapeamento concluído com sucesso!', 'success');
+    } catch (e) {
+        console.error(e);
+        showLoading(false);
     }
+}
+
+async function geocodeCity(city, state) {
+    const q = `${city}${state ? ', ' + state : ''}, Brasil`;
+    try {
+        await new Promise(r => setTimeout(r, 500));
+        const resp = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`);
+        const data = await resp.json();
+        return data.length > 0 ? [parseFloat(data[0].lat), parseFloat(data[0].lon)] : null;
+    } catch { return null; }
 }
 
 async function iniciarMapeamento() {
-    if (filtersState.evocations.isActive && filtersState.evocations.selectedWords.length === 0) {
-        ui.resultsPanel.classList.remove('hidden');
-        await displayMessage('map_validate_select_evocation', 'warning');
-        if(clusterLayer) map.removeLayer(clusterLayer);
-        ui.downloadPdfBtn.classList.add('hidden');
-        return;
-    }
-    if (filtersState.age.isActive && (filtersState.age.value === null || filtersState.age.value === '')) {
-        ui.resultsPanel.classList.remove('hidden');
-        await displayMessage('map_validate_enter_age', 'warning');
-        if(clusterLayer) map.removeLayer(clusterLayer);
-        ui.downloadPdfBtn.classList.add('hidden');
-        return;
-    }
-    
     ui.resultsPanel.classList.remove('hidden');
-    
-    const urlParams = new URLSearchParams(window.location.search);
-    const planilhaNome = urlParams.get("planilha");
-
-    if (planilhaNome) {
-        await processDataFromDB(planilhaNome);
-    } else {
-        await displayMessage('map_validate_no_sheet_name', 'error');
-    }
+    const params = new URLSearchParams(window.location.search);
+    const nome = params.get("planilha");
+    if (nome) await processDataFromDB(nome);
 }
 
-// --- Event Listeners ---
-document.addEventListener('DOMContentLoaded', () => {
-    initializeMap(); 
+// --- Lifecycle ---
+document.addEventListener('DOMContentLoaded', async () => {
+    initMapWhenReady();
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const planilhaNome = urlParams.get("planilha");
+    const params = new URLSearchParams(window.location.search);
+    const planilhaNome = params.get("planilha");
 
-    if (!planilhaNome) {
+    if (planilhaNome) {
+        await loadWords(planilhaNome);
+    } else {
         ui.mapButton.disabled = true;
-        ui.editAgeBtn.disabled = true;
-        ui.editEvocationsBtn.disabled = true;
     }
 
     ui.mapButton.addEventListener('click', iniciarMapeamento);
 
-    document.getElementById('evocations-match-type').addEventListener('change', (e) => {
-        filtersState.evocations.matchType = e.target.value;
-        updateEvocationsFilterStatus();
+    ui.categorySelect?.addEventListener('change', (e) => {
+        filtersState.category = e.target.value;
+        updateDescription();
     });
 
-    ui.editEvocationsBtn.addEventListener('click', async () => {
-        let tempSelectedWords = [...filtersState.evocations.selectedWords];
+    ui.positivitySelect?.addEventListener('change', (e) => {
+        filtersState.positivity = e.target.value;
+        updateDescription();
+    });
 
-        const result = await Swal.fire({
-            title: await window.getTranslation('map_modal_evocations_title'),
+    // Filtro de Evocações
+    ui.editEvocationsBtn?.addEventListener('click', async () => {
+        let temp = [...filtersState.evocations.selectedWords];
+        const res = await Swal.fire({
+            title: 'Filtrar Palavras',
             html: await getEvocationsModalHTML(),
             showCancelButton: true,
-            confirmButtonText: await window.getTranslation('map_modal_apply_filter_btn'),
-            cancelButtonText: await window.getTranslation('map_modal_cancel_btn'),
-            showDenyButton: filtersState.evocations.isActive,
-            denyButtonText: await window.getTranslation('map_modal_clear_filter_btn'),
+            confirmButtonText: 'Aplicar',
             didOpen: async () => {
-                await loadWords(planilhaNome);
                 currentPage = 1;
-                await renderWordListInModal(tempSelectedWords);
-                updateSelectedWordsPanelInModal(tempSelectedWords);
-
-                const searchInput = document.getElementById('word-search-input');
-                searchInput.addEventListener('input', async () => {
-                    currentPage = 1;
-                    await renderWordListInModal(tempSelectedWords);
-                });
-
-                document.getElementById('word-list-container').addEventListener('change', (e) => {
-                    if (e.target.type === 'checkbox') {
-                        const word = e.target.value;
-                        if (e.target.checked) {
-                            if (!tempSelectedWords.includes(word)) tempSelectedWords.push(word);
-                        } else {
-                            tempSelectedWords = tempSelectedWords.filter(w => w !== word);
-                        }
-                        updateSelectedWordsPanelInModal(tempSelectedWords);
-                    }
-                });
-
-                document.getElementById('selected-words-panel').addEventListener('click', async (e) => {
-                     if (e.target.classList.contains('remove-word-btn')) {
-                        const wordToRemove = e.target.dataset.word;
-                        tempSelectedWords = tempSelectedWords.filter(w => w !== wordToRemove);
-                        updateSelectedWordsPanelInModal(tempSelectedWords);
-                        await renderWordListInModal(tempSelectedWords);
-                    }
-                    if (e.target.id === 'clear-selected-btn') {
-                        tempSelectedWords = [];
-                        updateSelectedWordsPanelInModal(tempSelectedWords);
-                        await renderWordListInModal(tempSelectedWords);
-                    }
-                });
-            },
-            preConfirm: () => ({ selectedWords: tempSelectedWords })
+                await renderWordListInModal(temp);
+                updateSelectedWordsPanelInModal(temp);
+                document.getElementById('word-search-input').oninput = () => { currentPage = 1; renderWordListInModal(temp); };
+                document.getElementById('word-list-container').onchange = (e) => {
+                    const w = e.target.value;
+                    if(e.target.checked) { if(!temp.includes(w)) temp.push(w); }
+                    else { temp = temp.filter(x => x !== w); }
+                    updateSelectedWordsPanelInModal(temp);
+                };
+            }
         });
-
-        if (result.isConfirmed) {
-            filtersState.evocations.selectedWords = result.value.selectedWords;
-            filtersState.evocations.isActive = result.value.selectedWords.length > 0;
+        if (res.isConfirmed) {
+            filtersState.evocations.selectedWords = temp;
+            filtersState.evocations.isActive = temp.length > 0;
+            await updateEvocationsFilterStatus();
         }
-        if (result.isDenied) {
-            filtersState.evocations.selectedWords = [];
-            filtersState.evocations.isActive = false;
-        }
-        await updateEvocationsFilterStatus();
     });
 
-    ui.editAgeBtn.addEventListener('click', async () => {
-        const result = await Swal.fire({
-            title: await window.getTranslation('map_modal_age_title'),
+    // Filtro de Idade
+    ui.editAgeBtn?.addEventListener('click', async () => {
+        const res = await Swal.fire({
+            title: 'Filtro de Idade',
             html: await getAgeModalHTML(),
             showCancelButton: true,
-            confirmButtonText: await window.getTranslation('map_modal_apply_filter_btn'),
-            cancelButtonText: await window.getTranslation('map_modal_cancel_btn'),
+            confirmButtonText: 'Aplicar',
             showDenyButton: filtersState.age.isActive,
-            denyButtonText: await window.getTranslation('map_modal_clear_filter_btn'),
-            preConfirm: async () => {
-                const value = document.getElementById('age-value-modal').value;
-                const condition = document.getElementById('age-condition-modal').value;
-                if (!value) {
-                    Swal.showValidationMessage(await window.getTranslation('map_modal_age_validation'));
+            denyButtonText: 'Limpar Filtro',
+            preConfirm: () => {
+                const valInput = document.getElementById('age-value-modal');
+                const condInput = document.getElementById('age-condition-modal');
+                if (!valInput.value && !Swal.getDenyButton().clicked) {
+                    Swal.showValidationMessage('Por favor, insira uma idade.');
                     return false;
                 }
-                return { value: parseInt(value, 10), condition };
+                return { value: parseInt(valInput.value, 10), condition: condInput.value };
             }
         });
 
-        if (result.isConfirmed) {
-            filtersState.age.value = result.value.value;
-            filtersState.age.condition = result.value.condition;
+        if (res.isConfirmed) {
+            filtersState.age.value = res.value.value;
+            filtersState.age.condition = res.value.condition;
             filtersState.age.isActive = true;
-        }
-        if (result.isDenied) {
-            filtersState.age.value = null;
+            await updateAgeFilterStatus();
+        } else if (res.isDenied) {
             filtersState.age.isActive = false;
+            filtersState.age.value = null;
+            await updateAgeFilterStatus();
         }
-        await updateAgeFilterStatus();
     });
 
-    ui.downloadPdfBtn.addEventListener('click', async () => {
-        await showLoading(true, 5, 'map_pdf_rendering');
-        await new Promise(resolve => setTimeout(resolve, 500)); 
-        
-        try {
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-            
-            await showLoading(true, 30, 'map_pdf_capturing');
-            const mapCanvas = await html2canvas(document.getElementById('map'), { 
-                scale: 2, 
-                useCORS: true,
-                logging: false,
-                onclone: (clonedDoc) => {
-                    clonedDoc.querySelectorAll('[data-tippy-root]').forEach(el => el.style.visibility = 'hidden');
-                }
-            });
-            
-            await showLoading(true, 70, 'map_pdf_adding_image');
-            const mapImgData = mapCanvas.toDataURL('image/png');
-            const mapImgProps = pdf.getImageProperties(mapImgData);
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = pdf.internal.pageSize.getHeight();
-            const mapPdfWidth = pdfWidth;
-            const mapPdfHeight = (mapImgProps.height * mapPdfWidth) / mapImgProps.width;
-            let y = (mapPdfHeight < pdfHeight) ? (pdfHeight - mapPdfHeight) / 2 : 0;
-            pdf.addImage(mapImgData, 'PNG', 0, y, mapPdfWidth, mapPdfHeight);
-            
-            await showLoading(true, 95, 'map_pdf_finishing');
-            const fileName = `MapaFiltrado_${new Date().toISOString().split("T")[0]}.pdf`;
-            pdf.save(fileName);
-        } catch (error) {
-            console.error("Erro ao gerar PDF:", error);
-            await displayMessage('map_pdf_error', 'error');
-        } finally {
-            await showLoading(false);
-        }
-
-        // chama depois do DOM pronto
-            window.addEventListener('load', () => {
-            setTimeout(() => { if (window.map) { try { map.updateSize(); } catch(e){} } }, 0);
-            });
-
-            // no resize / rotação (já ajuda a manter o alinhamento perfeito)
-            window.addEventListener('resize', () => {
-            if (window.map) { try { map.updateSize(); } catch(e){} }
-            });
-
+    ui.downloadPdfBtn?.addEventListener('click', async () => {
+        const { jsPDF } = window.jspdf;
+        const canvas = await html2canvas(document.getElementById('map'));
+        const pdf = new jsPDF('l', 'mm', 'a4');
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 297, 210);
+        pdf.save('mapa.pdf');
     });
 });
 
-// ========== PATCH OpenLayers: initializar só com área e manter updateSize ==========
+// --- Patch de Redimensionamento ---
 const MAP_ID = "map";
 const PAGE_WRAPPER_SEL = ".page-wrapper";
 const MENU_SEL = ".container > .menu";
@@ -760,7 +630,7 @@ function waitForArea(el, tries=40){
   });
 }
 function refreshMapSize(){
-  if (!window.map) return;
+  if (!map) return;
   try {
     map.updateSize();
     requestAnimationFrame(()=>map.updateSize());
@@ -769,8 +639,8 @@ function refreshMapSize(){
 async function initMapWhenReady(){
   const el = document.getElementById(MAP_ID);
   if (!el) return;
-  try { await waitForArea(el); } catch { el.style.minHeight = el.style.minHeight || "60vh"; }
-  if (!window.map) initializeMap();          // usa sua initializeMap existente
+  try { await waitForArea(el); } catch { el.style.minHeight = el.style.minHeight || "500px"; }
+  if (!map) initializeMap();
   const wrapper = document.querySelector(PAGE_WRAPPER_SEL);
   if (wrapper && "ResizeObserver" in window) {
     new ResizeObserver(()=>refreshMapSize()).observe(wrapper);
@@ -783,13 +653,3 @@ async function initMapWhenReady(){
   if (menu) document.addEventListener("transitionend", (e)=>{ if(menu.contains(e.target)) refreshMapSize(); });
   requestAnimationFrame(refreshMapSize);
 }
-
-// troque isto:
-// document.addEventListener('DOMContentLoaded', () => { initializeMap(); ... });
-
-// por isto:
-document.addEventListener('DOMContentLoaded', () => { 
-  initMapWhenReady(); 
-  // ... (o resto do seu código DOMContentLoaded permanece igual)
-});
-
