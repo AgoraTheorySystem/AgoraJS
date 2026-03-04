@@ -55,7 +55,7 @@
       <div class="controles-wrapper">
         <div class="filtros-group">
           <div class="input-group">
-            <label for="filtro-freq">Frequência (f) >=</label>
+            <label for="filtro-freq">Frequência (f) &gt;</label>
             <div class="input-wrapper">
               <i class="fas fa-chart-bar"></i>
               <input type="number" id="filtro-freq" value="20" step="1" min="1">
@@ -63,19 +63,28 @@
           </div>
           
           <div class="input-group">
-            <label for="filtro-ome">OME <</label>
+            <label for="filtro-ome">OME &lt;</label>
             <div class="input-wrapper">
               <i class="fas fa-sort-numeric-down"></i>
               <input type="number" id="filtro-ome" value="3" step="0.1" min="0">
             </div>
           </div>
         </div>
+        
+        <!-- Switch EVOC Global -->
+        <div class="evoc-switch-container" style="margin-bottom: 0;">
+          <span class="evoc-switch-label">EVOC 1 a 5</span>
+          <label class="switch">
+            <input type="checkbox" id="evoc-switch">
+            <span class="slider"></span>
+          </label>
+          <span class="evoc-switch-label">EVOC 6 a 10</span>
+        </div>
 
         <div class="controles-percentual">
           <div class="input-group">
             <label>Frequência Menor (Corte)</label>
             <div class="percentual-box">
-              <!-- O valor definido aqui filtra termos com freq <= ao valor inserido -->
               <input type="number" id="input-percentual" value="1" min="0" step="1">
               <span class="percentual-result" id="label-percentual">Frequencia Mínima <= 1</span>
             </div>

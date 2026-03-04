@@ -4,6 +4,11 @@ const DB_NAME = 'agoraDB';
 const STORE_NAME = 'planilhas';
 let allWordsData = []; 
 
+// Controle de Evoc
+let currentEvocRange = localStorage.getItem('agora_evoc_range') || '1-5';
+let rawData = [];
+let currentLemas = {};
+
 // --- Funções do IndexedDB ---
 function openDB() {
   return new Promise((resolve, reject) => {
@@ -33,6 +38,12 @@ async function getItem(key) {
 
 document.addEventListener("DOMContentLoaded", async () => {
   showLoading(true);
+
+  // Sincroniza o estado inicial do switch com o localStorage
+  const switchEl = document.getElementById('evoc-switch');
+  if (switchEl) {
+    switchEl.checked = (currentEvocRange === '6-10');
+  }
   
   await verificarEProcessarPlanilha();
 
@@ -62,17 +73,29 @@ document.addEventListener("DOMContentLoaded", async () => {
       showLoading(false);
       return;
     }
-    const currentLematizacoes = await getItem(`lemas_${planilhaNome}`) || {};
+    currentLemas = await getItem(`lemas_${planilhaNome}`) || {};
+    rawData = data;
     
-    allWordsData = await processarDados(data, currentLematizacoes);
-    
+    allWordsData = await processarDados(rawData, currentLemas);
     renderizarQuadrantes();
     
-    // Listeners
+    // Listeners Globais
     document.getElementById('filtro-freq')?.addEventListener('input', renderizarQuadrantes);
     document.getElementById('filtro-ome')?.addEventListener('input', renderizarQuadrantes);
-    // Alterado: Agora o input percentual dispara a renderização completa para filtrar os dados
     document.getElementById('input-percentual')?.addEventListener('input', renderizarQuadrantes);
+
+    // Listener do Switch EVOC
+    document.getElementById('evoc-switch')?.addEventListener('change', async (e) => {
+      currentEvocRange = e.target.checked ? '6-10' : '1-5';
+      localStorage.setItem('agora_evoc_range', currentEvocRange); // Salva a preferência
+      showLoading(true);
+      
+      setTimeout(async () => {
+        allWordsData = await processarDados(rawData, currentLemas);
+        renderizarQuadrantes();
+        showLoading(false);
+      }, 50);
+    });
 
   } catch (error) {
     console.error("Erro ao carregar dados locais:", error);
@@ -95,6 +118,14 @@ async function processarDados(data, currentLematizacoes) {
     for (let j = 0; j < header.length; j++) {
       const coluna = header[j].toUpperCase();
       if (/^EVOC[1-9]$|^EVOC10$/.test(coluna)) {
+        const evocNum = parseInt(coluna.replace('EVOC', ''), 10);
+        
+        let isColumnInRange = false;
+        if (currentEvocRange === '1-5' && evocNum >= 1 && evocNum <= 5) isColumnInRange = true;
+        if (currentEvocRange === '6-10' && evocNum >= 6 && evocNum <= 10) isColumnInRange = true;
+
+        if (!isColumnInRange) continue;
+
         const palavra = String(row[j] || "").trim().toUpperCase();
         if (!palavra || palavra === "VAZIO") continue;
 
@@ -102,9 +133,14 @@ async function processarDados(data, currentLematizacoes) {
           palavraContagem[palavra] = { f: 0, weightedSum: 0, ome: 0 };
         }
         
+        // Ajusta o peso da evocação: Se for 6-10, diminui 5 para o peso ficar entre 1 e 5
+        let pesoEvoc = evocNum;
+        if (currentEvocRange === '6-10') {
+          pesoEvoc = evocNum - 5;
+        }
+
         palavraContagem[palavra].f++;
-        const evocNum = parseInt(coluna.replace('EVOC', ''), 10);
-        palavraContagem[palavra].weightedSum += evocNum;
+        palavraContagem[palavra].weightedSum += pesoEvoc;
       }
     }
   }
@@ -140,21 +176,18 @@ async function processarDados(data, currentLematizacoes) {
 function renderizarQuadrantes() {
   if (allWordsData.length === 0) return;
 
-  // 1. Obtém o valor de corte direto do input (Frequência Menor)
   const valorCorte = parseFloat(document.getElementById('input-percentual').value) || 0;
   
-  // Atualiza label visualmente apenas para feedback
   const label = document.getElementById('label-percentual');
   if(label) label.textContent = `Frequencia Mínima <= ${valorCorte}`;
 
   const corteFreq = parseFloat(document.getElementById('filtro-freq').value) || 0;
   const corteOME = parseFloat(document.getElementById('filtro-ome').value) || 0;
 
-  // --- Atualiza os cabeçalhos ---
-  updateBadges('badges-sup-esq', `f ≥ ${corteFreq}`, `OME < ${corteOME}`);
-  updateBadges('badges-sup-dir', `f ≥ ${corteFreq}`, `OME ≥ ${corteOME}`);
-  updateBadges('badges-inf-esq', `f < ${corteFreq}`, `OME < ${corteOME}`);
-  updateBadges('badges-inf-dir', `f < ${corteFreq}`, `OME ≥ ${corteOME}`);
+  updateBadges('badges-sup-esq', `f > ${corteFreq}`, `OME < ${corteOME}`);
+  updateBadges('badges-sup-dir', `f > ${corteFreq}`, `OME ≥ ${corteOME}`);
+  updateBadges('badges-inf-esq', `f ≤ ${corteFreq}`, `OME < ${corteOME}`);
+  updateBadges('badges-inf-dir', `f ≤ ${corteFreq}`, `OME ≥ ${corteOME}`);
 
   const qSupEsq = []; 
   const qSupDir = []; 
@@ -162,12 +195,11 @@ function renderizarQuadrantes() {
   const qInfDir = []; 
 
   for (const [palavra, stats] of allWordsData) {
-    // FILTRAGEM: Remove termos com frequência MENOR OU IGUAL ao valor definido no input
     if (stats.f <= valorCorte) {
         continue; 
     }
 
-    if (stats.f >= corteFreq) {
+    if (stats.f > corteFreq) {
       if (stats.ome < corteOME) {
         qSupEsq.push({ palavra, ...stats });
       } else {
@@ -195,9 +227,6 @@ function renderizarQuadrantes() {
   popularLista('lista-inf-dir', qInfDir);
 }
 
-/**
- * Atualiza os badges de regra no cabeçalho do card
- */
 function updateBadges(containerId, textFreq, textOme) {
     const container = document.getElementById(containerId);
     if (container) {

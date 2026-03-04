@@ -2,11 +2,16 @@ import { verificarEProcessarPlanilha } from "../dashboard/atualizacao.js";
 
 const DB_NAME = 'agoraDB';
 const STORE_NAME = 'planilhas';
-let allWordsData = []; // Armazena [palavra, {dados}] - COMPARTILHADO
-let myChartTopN = null; // Referência Gráfico TopN
-let myChartOME = null; // Referência Gráfico OME
-let myChartRank = null; // Referência Gráfico Rank
-let myChartDist = null; // Referência Gráfico Distribuição
+let allWordsData = []; // Armazena [palavra, {dados}]
+let myChartTopN = null; 
+let myChartOME = null; 
+let myChartRank = null; 
+let myChartDist = null; 
+
+// Controle de Evoc
+let currentEvocRange = localStorage.getItem('agora_evoc_range') || '1-5';
+let rawData = [];
+let currentLemas = {};
 
 // --- Funções do IndexedDB ---
 function openDB() {
@@ -36,27 +41,23 @@ async function getItem(key) {
 // --- Lógica Principal ---
 
 document.addEventListener("DOMContentLoaded", async () => {
-  // Garante que Chart.js e o plugin de anotação estejam carregados
   if (typeof Chart === 'undefined') {
     console.error("Chart.js não carregado.");
     Swal.fire('Erro Crítico', 'Não foi possível carregar a biblioteca de gráficos.', 'error');
     return;
   }
   
-  // Tenta registrar o plugin de anotação
   if (typeof ChartAnnotation !== 'undefined') {
     Chart.register(ChartAnnotation);
   } else {
-     // Tenta novamente após um pequeno atraso, caso o script tenha demorado a carregar
      setTimeout(() => {
         if (typeof ChartAnnotation !== 'undefined') {
             Chart.register(ChartAnnotation);
         } else {
-            console.warn("Plugin Chart.js Annotation não carregado. O gráfico OME pode não exibir as linhas de quadrante.");
+            console.warn("Plugin Chart.js Annotation não carregado.");
         }
      }, 500);
   }
-
 
   await verificarEProcessarPlanilha();
 
@@ -74,6 +75,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   const nomeEl = document.getElementById("nome-da-planilha");
   if (nomeEl && planilhaNome) nomeEl.textContent = planilhaNome.toUpperCase();
 
+  // Sincroniza o estado inicial do switch com o localStorage
+  const switchEl = document.getElementById('evoc-switch');
+  if (switchEl) {
+    switchEl.checked = (currentEvocRange === '6-10');
+  }
+
   try {
     const data = await getItem(`planilha_${planilhaNome}`);
     if (!data || data.length === 0) {
@@ -84,20 +91,34 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
       return;
     }
-    const currentLematizacoes = await getItem(`lemas_${planilhaNome}`) || {};
+    currentLemas = await getItem(`lemas_${planilhaNome}`) || {};
+    rawData = data;
     
-    // Processa os dados (calcula f, ome, etc.) UMA VEZ
-    allWordsData = await processarDados(data, currentLematizacoes);
+    // Processa a primeira vez
+    allWordsData = await processarDados(rawData, currentLemas);
     
-    // Inicia TODOS os gráficos
-    // Gráfico de Distribuição (Freq vs Rank) - AGORA O PRIMEIRO
     iniciarGraficoDistribuicao(allWordsData); 
-    // Gráfico Top N
     iniciarGraficoTopN(allWordsData);
-    // Gráfico OME (Quatro Casas)
     iniciarGraficoOME(allWordsData);
-    // Gráfico de Posição (Rank)
     iniciarGraficoRank(allWordsData);
+
+    // Event listener do Switch EVOC
+    document.getElementById('evoc-switch')?.addEventListener('change', async (e) => {
+      currentEvocRange = e.target.checked ? '6-10' : '1-5';
+      localStorage.setItem('agora_evoc_range', currentEvocRange); // Salva a preferência
+      
+      const loadingDiv = document.getElementById("loading");
+      if (loadingDiv) loadingDiv.style.display = 'block';
+
+      setTimeout(async () => {
+        allWordsData = await processarDados(rawData, currentLemas);
+        iniciarGraficoDistribuicao(allWordsData); 
+        iniciarGraficoTopN(allWordsData);
+        iniciarGraficoOME(allWordsData);
+        iniciarGraficoRank(allWordsData);
+        if (loadingDiv) loadingDiv.style.display = 'none';
+      }, 50);
+    });
 
   } catch (error) {
     console.error("Erro ao carregar dados locais:", error);
@@ -108,7 +129,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
   
-  // Adiciona listeners aos botões de download
+  // Listeners de Download
   document.getElementById('btn-download-grafico-dist')?.addEventListener('click', () => 
     baixarGrafico(myChartDist, `Grafico_Distribuicao_${planilhaNome}`)
   );
@@ -122,26 +143,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     baixarGrafico(myChartRank, `Grafico_Rank_${planilhaNome}`)
   );
 
-
-  // Adiciona listeners aos filtros
-  // Filtros Gráfico 1 (Distribuição)
+  // Filtros
   document.getElementById('freq-filtro-min-dist')?.addEventListener('input', () => iniciarGraficoDistribuicao(allWordsData));
   document.getElementById('freq-filtro-max-dist')?.addEventListener('input', () => iniciarGraficoDistribuicao(allWordsData));
-  
-  // Filtros Gráfico 2 (Top N)
   document.getElementById('top-n-select')?.addEventListener('change', () => iniciarGraficoTopN(allWordsData));
-  
-  // Filtros Gráfico 3 (OME)
   document.getElementById('freq-filtro-min-ome')?.addEventListener('input', () => iniciarGraficoOME(allWordsData));
   document.getElementById('ome-filtro-min-ome')?.addEventListener('input', () => iniciarGraficoOME(allWordsData));
   document.getElementById('ome-filtro-max-ome')?.addEventListener('input', () => iniciarGraficoOME(allWordsData));
-
-  // Gráfico 4 (Rank) não tem filtros, é automático
 });
 
 /**
- * Processa os dados brutos, calcula f, ome e aplica lemas.
- * (Função compartilhada)
+ * Processa os dados brutos, baseados no currentEvocRange escolhido no Switch.
  */
 async function processarDados(data, currentLematizacoes) {
   const header = data[0];
@@ -152,6 +164,14 @@ async function processarDados(data, currentLematizacoes) {
     for (let j = 0; j < header.length; j++) {
       const coluna = header[j].toUpperCase();
       if (/^EVOC[1-9]$|^EVOC10$/.test(coluna)) {
+        const evocNum = parseInt(coluna.replace('EVOC', ''), 10);
+        
+        let isColumnInRange = false;
+        if (currentEvocRange === '1-5' && evocNum >= 1 && evocNum <= 5) isColumnInRange = true;
+        if (currentEvocRange === '6-10' && evocNum >= 6 && evocNum <= 10) isColumnInRange = true;
+
+        if (!isColumnInRange) continue;
+
         const palavra = String(row[j] || "").trim().toUpperCase();
         if (!palavra || palavra === "VAZIO") continue;
 
@@ -163,9 +183,14 @@ async function processarDados(data, currentLematizacoes) {
           };
         }
         
+        // Ajusta o peso da evocação: Se for 6-10, diminui 5 para o peso ficar entre 1 e 5
+        let pesoEvoc = evocNum;
+        if (currentEvocRange === '6-10') {
+          pesoEvoc = evocNum - 5;
+        }
+
         palavraContagem[palavra].f++;
-        const evocNum = parseInt(coluna.replace('EVOC', ''), 10);
-        palavraContagem[palavra].weightedSum += evocNum;
+        palavraContagem[palavra].weightedSum += pesoEvoc;
         palavraContagem[palavra][`evoc${evocNum}`]++;
       }
     }
@@ -203,44 +228,34 @@ async function processarDados(data, currentLematizacoes) {
     }
   });
 
-  return Object.entries(finalContagem); // Retorna [ [palavra, {stats}], ... ]
+  return Object.entries(finalContagem); 
 }
 
-
-/**
- * GRÁFICO 1: Distribuição dos Termos (Freq. vs. Rank) - AGORA O PRIMEIRO A SER CHAMADO
- */
 function iniciarGraficoDistribuicao(allWords) {
   const ctx = document.getElementById('graficoPrototipicoDist')?.getContext('2d');
-  if (!ctx) return; // Se o canvas não existir, para
+  if (!ctx) return;
 
   if (!allWords || allWords.length === 0) {
-    console.warn("Nenhum dado para exibir no gráfico de Distribuição.");
+    if (myChartDist) myChartDist.destroy();
     return;
   }
 
-  // 1. Ler valores dos filtros (com IDs únicos)
   const freqMin = parseFloat(document.getElementById('freq-filtro-min-dist')?.value) || 0;
   const freqMaxInput = document.getElementById('freq-filtro-max-dist');
   const freqMax = freqMaxInput && freqMaxInput.value ? parseFloat(freqMaxInput.value) : Infinity;
 
-  // Lógica de Filtro Top 100
   const filtersAreEmpty = (freqMin === 0 && freqMax === Infinity);
 
-  // 2. Filtrar os dados ANTES de ordenar
   const filteredWords = allWords.filter(([, stats]) => {
     const freqMatch = stats.f >= freqMin && (stats.f <= freqMax || freqMax === Infinity);
     return freqMatch;
   });
 
-  // 3. Ordenar por frequência (maior primeiro) para obter o ranking
   const sortedWords = filteredWords.sort(([, statsA], [, statsB]) => statsB.f - statsA.f);
   
-  // 4. Aplicar a regra do Top 100
   const wordsForChart = filtersAreEmpty ? sortedWords.slice(0, 100) : sortedWords;
   const totalTermos = wordsForChart.length;
 
-  // 5. Atualizar Subtítulo
   const subtitleEl = document.getElementById('chart-subtitle-dist');
   if (subtitleEl) {
     if (filtersAreEmpty) {
@@ -252,29 +267,27 @@ function iniciarGraficoDistribuicao(allWords) {
     }
   }
   
-  // 6. Formatar dados para o gráfico (x: Rank, y: Frequência)
   const dataPoints = wordsForChart.map(([palavra, stats], index) => ({
-    x: index + 1,  // Rank (iniciando em 1)
-    y: stats.f,    // Frequência
-    label: palavra // Rótulo para o tooltip
+    x: index + 1,  
+    y: stats.f,    
+    label: palavra 
   }));
 
-  // 7. Criar o gráfico
   if (myChartDist) {
-    myChartDist.destroy(); // Destrói gráfico anterior se existir
+    myChartDist.destroy();
   }
   
   myChartDist = new Chart(ctx, {
-    type: 'scatter', // Gráfico de dispersão (pontos)
+    type: 'scatter', 
     data: {
       datasets: [{
         label: 'Termos',
         data: dataPoints,
-        backgroundColor: 'rgba(54, 162, 235, 0.7)', // Pontos azuis
+        backgroundColor: 'rgba(54, 162, 235, 0.7)', 
         borderColor: 'rgba(54, 162, 235, 1)',
-        pointRadius: 4, // Bolas maiores
-        pointHoverRadius: 6, // Bolas maiores no hover
-        borderWidth: 0 // Sem linha conectando os pontos
+        pointRadius: 4, 
+        pointHoverRadius: 6, 
+        borderWidth: 0 
       }]
     },
     options: {
@@ -285,7 +298,7 @@ function iniciarGraficoDistribuicao(allWords) {
           type: 'linear',
           position: 'bottom',
           min: 1, 
-          max: filtersAreEmpty ? 100 : undefined, // Limita o eixo X a 100 se os filtros estiverem vazios
+          max: filtersAreEmpty ? 100 : undefined, 
           title: {
             display: true,
             text: 'Ranking (Ordem de Frequência)',
@@ -310,38 +323,28 @@ function iniciarGraficoDistribuicao(allWords) {
             }
           }
         },
-        legend: {
-          display: false 
-        }
+        legend: { display: false }
       }
     }
   });
 }
 
-/**
- * GRÁFICO 2: Termos Mais Frequentes (Gráfico de Barras)
- */
 function iniciarGraficoTopN(allWords) {
   const ctx = document.getElementById('graficoTopN')?.getContext('2d');
   if (!ctx) return;
 
   if (!allWords || allWords.length === 0) {
-    console.warn("Nenhum dado para exibir no gráfico Top N.");
+    if (myChartTopN) myChartTopN.destroy();
     return;
   }
 
-  // 1. Ler valor do filtro Top N
   const topNValue = parseInt(document.getElementById('top-n-select')?.value) || 15;
-
-  // 2. Ordenar por frequência (maior primeiro) e pegar o Top N
   const sortedWords = [...allWords].sort(([, statsA], [, statsB]) => statsB.f - statsA.f);
   const topWords = sortedWords.slice(0, topNValue);
 
-  // 3. Formatar dados para o gráfico
   const labels = topWords.map(([palavra]) => palavra);
   const data = topWords.map(([, stats]) => stats.f);
 
-  // 4. Criar o gráfico
   if (myChartTopN) {
     myChartTopN.destroy();
   }
@@ -361,30 +364,21 @@ function iniciarGraficoTopN(allWords) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      indexAxis: 'y', // Gráfico de barras horizontais
+      indexAxis: 'y',
       scales: {
         x: {
           beginAtZero: true,
-          title: {
-            display: true,
-            text: 'Frequência Total'
-          }
+          title: { display: true, text: 'Frequência Total' }
         },
         y: {
-          ticks: {
-            autoSkip: false // Garante que todos os labels apareçam
-          }
+          ticks: { autoSkip: false }
         }
       },
       plugins: {
-        legend: {
-          display: false
-        },
+        legend: { display: false },
         tooltip: {
           callbacks: {
-            label: function(context) {
-              return ` Frequência: ${context.raw}`;
-            }
+            label: function(context) { return ` Frequência: ${context.raw}`; }
           }
         }
       }
@@ -392,25 +386,19 @@ function iniciarGraficoTopN(allWords) {
   });
 }
 
-
-/**
- * GRÁFICO 3: Inicia e renderiza o gráfico de Quatro Casas (Frequência vs. OME).
- */
 function iniciarGraficoOME(allWords) {
   const ctx = document.getElementById('graficoOME')?.getContext('2d');
   if (!ctx) return;
 
   if (!allWords || allWords.length === 0) {
-    console.warn("Nenhum dado para exibir no gráfico OME.");
+    if (myChartOME) myChartOME.destroy();
     return;
   }
   
-  // 1. Ler valores dos filtros
   const freqMin = parseFloat(document.getElementById('freq-filtro-min-ome')?.value) || 0;
   const omeMin = parseFloat(document.getElementById('ome-filtro-min-ome')?.value) || 0;
   const omeMax = parseFloat(document.getElementById('ome-filtro-max-ome')?.value) || Infinity;
 
-  // 2. Filtrar os dados
   const filteredWords = allWords.filter(([, stats]) => {
     const freqMatch = stats.f >= freqMin;
     const omeMatch = stats.ome >= omeMin && (stats.ome <= omeMax || omeMax === Infinity);
@@ -418,16 +406,14 @@ function iniciarGraficoOME(allWords) {
   });
 
   const totalTermos = filteredWords.length;
-
-  // 3. Calcular Médias (para os quadrantes)
   let mediaFreq = 0;
   let mediaOME = 0;
+  
   if (totalTermos > 0) {
       mediaFreq = filteredWords.reduce((sum, [, stats]) => sum + stats.f, 0) / totalTermos;
       mediaOME = filteredWords.reduce((sum, [, stats]) => sum + stats.ome, 0) / totalTermos;
   }
 
-  // 4. Atualizar Subtítulo
   const subtitleEl = document.getElementById('chart-subtitle-ome');
   if (subtitleEl) {
     if (totalTermos > 0) {
@@ -437,16 +423,14 @@ function iniciarGraficoOME(allWords) {
     }
   }
 
-  // 5. Formatar dados para o gráfico (x: OME, y: Frequência)
   const dataPoints = filteredWords.map(([palavra, stats]) => ({
-    x: stats.ome,    // OME no eixo X
-    y: stats.f,      // Frequência no eixo Y
-    label: palavra   // Rótulo para o tooltip
+    x: stats.ome,    
+    y: stats.f,      
+    label: palavra   
   }));
 
-  // 6. Criar o gráfico
   if (myChartOME) {
-    myChartOME.destroy(); // Destrói gráfico anterior se existir
+    myChartOME.destroy(); 
   }
   
   myChartOME = new Chart(ctx, {
@@ -455,7 +439,7 @@ function iniciarGraficoOME(allWords) {
       datasets: [{
         label: 'Termos',
         data: dataPoints,
-        backgroundColor: 'rgba(230, 0, 0, 0.7)', // Pontos vermelhos
+        backgroundColor: 'rgba(230, 0, 0, 0.7)', 
         borderColor: 'rgba(230, 0, 0, 1)',
         pointRadius: 5,
         pointHoverRadius: 8
@@ -491,9 +475,7 @@ function iniciarGraficoOME(allWords) {
             }
           }
         },
-        legend: {
-          display: false // Esconde a legenda
-        },
+        legend: { display: false },
         annotation: (typeof ChartAnnotation !== 'undefined') ? {
           annotations: {
             lineFreq: {
@@ -534,26 +516,20 @@ function iniciarGraficoOME(allWords) {
   });
 }
 
-/**
- * GRÁFICO 4: Análise de Posição (Rank) (Gráfico de Barras Agrupadas)
- */
 function iniciarGraficoRank(allWords) {
   const ctx = document.getElementById('graficoRank')?.getContext('2d');
   if (!ctx) return;
 
   if (!allWords || allWords.length === 0) {
-    console.warn("Nenhum dado para exibir no gráfico de Rank.");
+    if (myChartRank) myChartRank.destroy();
     return;
   }
 
-  // 1. Ordenar por frequência e pegar os Top 5
   const sortedWords = [...allWords].sort(([, statsA], [, statsB]) => statsB.f - statsA.f);
   const top5Words = sortedWords.slice(0, 5);
 
-  // 2. Formatar dados
   const labels = top5Words.map(([palavra]) => palavra);
   
-  // *** ALTERAÇÃO AQUI: Nova paleta de 10 cores visíveis e distintas ***
   const rankColors = [
       '#3366CC', // 1ª Posição (Azul)
       '#DC3912', // 2ª Posição (Vermelho)
@@ -567,18 +543,21 @@ function iniciarGraficoRank(allWords) {
       '#316395'  // 10ª Posição (Azul Escuro)
   ];
 
+  // Define as posições iniciais e finais dinamicamente
+  const startIdx = currentEvocRange === '1-5' ? 1 : 6;
+  const endIdx = currentEvocRange === '1-5' ? 5 : 10;
+  
   const datasets = [];
-  for (let i = 1; i <= 10; i++) { // Loop vai até 10
+  for (let i = startIdx; i <= endIdx; i++) {
       datasets.push({
           label: `${i}ª Posição`,
           data: top5Words.map(([, stats]) => stats[`evoc${i}`]),
-          backgroundColor: rankColors[i - 1], // Usa a nova paleta de cores
+          backgroundColor: rankColors[i - 1], // Usa a cor respectiva global
           borderColor: rankColors[i - 1],
           borderWidth: 1
       });
   }
 
-  // 3. Criar o gráfico
   if (myChartRank) {
     myChartRank.destroy();
   }
@@ -594,25 +573,17 @@ function iniciarGraficoRank(allWords) {
       maintainAspectRatio: false,
       scales: {
         x: {
-          title: {
-            display: true,
-            text: 'Top 5 Termos Mais Frequentes'
-          }
+          title: { display: true, text: 'Top 5 Termos Mais Frequentes' }
         },
         y: {
           beginAtZero: true,
-          title: {
-            display: true,
-            text: 'Frequência por Posição'
-          }
+          title: { display: true, text: 'Frequência por Posição' }
         }
       },
       plugins: {
-        legend: {
-          position: 'top',
-        },
+        legend: { position: 'top' },
         tooltip: {
-          mode: 'index', // Mostra tooltips para todas as barras no mesmo índice
+          mode: 'index',
           intersect: false
         }
       }
@@ -620,10 +591,6 @@ function iniciarGraficoRank(allWords) {
   });
 }
 
-
-/**
- * Função genérica para baixar um gráfico como PNG.
- */
 function baixarGrafico(chartInstance, fileName) {
   if (!chartInstance) {
     console.error("Instância do gráfico não fornecida para download:", fileName);
@@ -631,7 +598,6 @@ function baixarGrafico(chartInstance, fileName) {
     return;
   }
   
-  // Define o fundo do canvas como branco para o download
   const canvas = chartInstance.canvas;
   const ctx = canvas.getContext('2d');
   ctx.save();

@@ -113,6 +113,78 @@ th.sortable.active-desc::after {
   opacity: 1;
 }
 
+/* --- ESTILOS DO SWITCH EVOC (GLOBAL) --- */
+.filter-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+#busca-palavra {
+  flex: 1;
+  max-width: 400px;
+}
+
+.evoc-switch-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: #ffffff;
+  padding: 8px 16px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  border: 1px solid #e2e8f0;
+}
+
+.evoc-switch-label {
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 28px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #2b6f69;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px; width: 20px;
+  left: 4px; bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #d97706; /* Laranja para destacar mudança 6-10 */
+}
+
+input:checked + .slider:before {
+  transform: translateX(22px);
+}
+
 /* Responsividade da Tabela */
 @media (max-width: 900px) {
   .table-container {
@@ -124,6 +196,12 @@ th.sortable.active-desc::after {
   }
 
   .filter-container {
+    max-width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  #busca-palavra {
     max-width: 100%;
   }
 

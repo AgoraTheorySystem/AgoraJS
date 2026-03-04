@@ -52,6 +52,16 @@
     <!-- Container Principal dos Gráficos -->
     <div class="conteudo-principal">
       
+      <!-- Switch EVOC Global para os Gráficos -->
+      <div class="evoc-switch-container" style="align-self: center; margin-bottom: -10px;">
+        <span class="evoc-switch-label">EVOC 1 a 5</span>
+        <label class="switch">
+          <input type="checkbox" id="evoc-switch">
+          <span class="slider"></span>
+        </label>
+        <span class="evoc-switch-label">EVOC 6 a 10</span>
+      </div>
+
       <!-- Bloco: Gráfico 1 - Distribuição dos Termos (Freq vs Rank) -->
       <div class="chart-block">
         <div class="controles-grafico">
@@ -146,9 +156,8 @@
         <div class="controles-grafico">
           <div class="chart-header">
             <h2 id="chart-title-rank">Análise de Posição</h2>
-            <p id="chart-subtitle-rank">Frequência dos termos por ordem de evocação (1ª a 10ª posição).</p>
+            <p id="chart-subtitle-rank">Frequência dos termos por ordem de evocação selecionada.</p>
           </div>
-          <!-- Sem filtros aqui, é baseado nos Top 5 gerais -->
           <button id="btn-download-grafico-rank" class="view-toggle-btn">
             <img src="/assets/icon_download.png" alt="Baixar Gráfico">
             Baixar Gráfico

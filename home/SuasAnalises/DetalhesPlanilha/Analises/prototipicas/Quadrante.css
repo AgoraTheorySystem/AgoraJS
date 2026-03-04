@@ -44,7 +44,7 @@ body {
   box-shadow: var(--shadow-card);
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
+  align-items: center; /* Alterado de flex-end para center no geral */
   justify-content: space-between;
   gap: 24px;
   border: 1px solid rgba(255,255,255,0.5);
@@ -53,6 +53,7 @@ body {
 .filtros-group {
   display: flex;
   gap: 24px;
+  align-items: flex-end;
 }
 
 .input-group {
@@ -182,7 +183,7 @@ body {
   letter-spacing: 0.03em;
 }
 
-/* Badges de Regras (Autoexplicativo) */
+/* Badges de Regras */
 .regras-container {
   display: flex;
   gap: 6px;
@@ -217,7 +218,7 @@ body {
   padding: 16px;
   overflow-y: auto;
   flex: 1;
-  background-color: var(--bg-list); /* Fundo cinza suave */
+  background-color: var(--bg-list); 
   max-height: 500px;
 }
 
@@ -230,7 +231,7 @@ body {
   background-color: #ffffff;
   border-radius: 10px;
   margin-bottom: 10px;
-  box-shadow: var(--shadow-item); /* Sombra para elevar */
+  box-shadow: var(--shadow-item); 
   border: 1px solid transparent;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -279,6 +280,10 @@ body {
     grid-template-columns: 1fr;
   }
   .controles-wrapper {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .filtros-group {
     flex-direction: column;
     align-items: stretch;
   }
