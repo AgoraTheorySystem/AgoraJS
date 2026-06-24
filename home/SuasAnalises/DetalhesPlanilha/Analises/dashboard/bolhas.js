@@ -57,13 +57,47 @@ window.gerarBolhas = async function(parametros) {
   const urlParams = new URLSearchParams(window.location.search);
   const planilhaNome = urlParams.get("planilha");
   const raw = await getItem(`planilha_${planilhaNome}`);
+  const lemas = await getItem(`lemas_${planilhaNome}`) || {};
+
   if (!raw) {
     const errorMessage = await window.getTranslation('bolhas_sheet_not_found_error');
     bolhasContainer.innerHTML = `<p>${errorMessage}</p>`;
     return;
   }
 
-  const data = raw;
+  function applyLemas(sheetData, lemasDict) {
+    if (!lemasDict || Object.keys(lemasDict).length === 0) return sheetData;
+    const reverseLemaMap = {};
+    const deletedWords = new Set();
+
+    for (const [palavraFundida, dataLema] of Object.entries(lemasDict)) {
+      const palavraFundidaUpper = palavraFundida.toUpperCase();
+      if (dataLema === null) {
+        deletedWords.add(palavraFundidaUpper);
+        continue;
+      }
+      const isNewFormat = dataLema && typeof dataLema === 'object' && !Array.isArray(dataLema) && dataLema.origem;
+      if (isNewFormat) {
+        dataLema.origem.forEach(origemStr => {
+          const palavraOriginal = origemStr.split(' (')[0].trim().toUpperCase();
+          if (palavraOriginal) reverseLemaMap[palavraOriginal] = palavraFundidaUpper;
+        });
+      }
+    }
+
+    return sheetData.map((row, rowIndex) => {
+      if (rowIndex === 0 || !Array.isArray(row)) return row;
+      return row.map(cell => {
+        const valor = String(cell || "").trim().toUpperCase();
+        if (!valor) return cell;
+        if (reverseLemaMap[valor]) return reverseLemaMap[valor];
+        if (deletedWords.has(valor)) return "VAZIO";
+        return cell;
+      });
+    });
+  }
+
+  const data = applyLemas(raw, lemas);
   const headers = data[0];
   const rows = data.slice(1);
 

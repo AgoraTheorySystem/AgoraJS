@@ -5,14 +5,14 @@
 // import firebaseConfig from '/firebase.js';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCsGFmMYzhOmJ4TkUoQmlj2R5R385PWLl8",
-  authDomain: "agoradatabase-17954.firebaseapp.com",
-  databaseURL: "https://agoradatabase-17954-default-rtdb.firebaseio.com",
-  projectId: "agoradatabase-17954",
-  storageBucket: "agoradatabase-17954.firebasestorage.app",
-  messagingSenderId: "759571782330",
-  appId: "1:759571782330:web:1d6045023e59f3d0960083",
-  measurementId: "G-E5S5ZKLJYG"
+  apiKey: "AIzaSyCRb_9-yTqNbljp-SKnGKvwSBBQCFoB014",
+  authDomain: "agorasystem-71ad3.firebaseapp.com",
+  databaseURL: "https://agorasystem-71ad3-default-rtdb.firebaseio.com",
+  projectId: "agorasystem-71ad3",
+  storageBucket: "agorasystem-71ad3.firebasestorage.app",
+  messagingSenderId: "738118215435",
+  appId: "1:738118215435:web:e9e978d462b164a775a40e",
+  measurementId: "G-V3Q5BT8BK4"
 };
 
 export default firebaseConfig;

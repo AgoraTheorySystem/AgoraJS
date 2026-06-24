@@ -125,7 +125,24 @@ async function loadWords(planilhaNome) {
     if (areWordsLoaded) return;
     try {
         const storedData = await getStoredItem(`planilha_${planilhaNome}`);
+        const lemas = await getStoredItem(`lemas_${planilhaNome}`) || {};
         if (!storedData || storedData.length < 2) throw new Error("Planilha não encontrada.");
+
+        const reverseLemaMap = {};
+        const deletedWords = new Set();
+        for (const [palavraFundida, dataLema] of Object.entries(lemas)) {
+            const palavraFundidaUpper = palavraFundida.toUpperCase();
+            if (dataLema === null) {
+                deletedWords.add(palavraFundidaUpper);
+                continue;
+            }
+            if (dataLema && typeof dataLema === 'object' && !Array.isArray(dataLema) && dataLema.origem) {
+                dataLema.origem.forEach(origemStr => {
+                    const palavraOriginal = origemStr.split(' (')[0].trim().toUpperCase();
+                    if (palavraOriginal) reverseLemaMap[palavraOriginal] = palavraFundidaUpper;
+                });
+            }
+        }
 
         const header = storedData[0].map(h => h.toString().toLowerCase().trim());
         const evocColumnIndices = header.map((h, i) => h.startsWith('evoc') ? i : -1).filter(i => i !== -1);
@@ -133,8 +150,13 @@ async function loadWords(planilhaNome) {
         const wordCounts = {};
         for (const row of storedData.slice(1)) {
             for (const index of evocColumnIndices) {
-                const word = (row[index] || '').toString().trim().toUpperCase();
-                if (word && word !== 'VAZIO') wordCounts[word] = (wordCounts[word] || 0) + 1;
+                let word = (row[index] || '').toString().trim().toUpperCase();
+                if (word && word !== 'VAZIO') {
+                    if (reverseLemaMap[word]) word = reverseLemaMap[word];
+                    if (!deletedWords.has(word)) {
+                        wordCounts[word] = (wordCounts[word] || 0) + 1;
+                    }
+                }
             }
         }
         allWordsWithCount = Object.entries(wordCounts).sort(([, a], [, b]) => b - a);
@@ -374,7 +396,22 @@ async function processDataFromDB(planilhaNome) {
 
         // Criar um mapeamento reverso normalizado (Key sempre em MAIÚSCULAS e sem acentos)
         const wordDataLookup = {};
+        const reverseLemaMap = {};
+        const deletedWords = new Set();
+        
         Object.entries(lemas).forEach(([lemma, data]) => {
+            const lemmaUpper = lemma.toUpperCase();
+            if (data === null) {
+                deletedWords.add(lemmaUpper);
+                return;
+            }
+            if (data && typeof data === 'object' && !Array.isArray(data) && data.origem) {
+                data.origem.forEach(orig => {
+                    const originalWord = orig.split(' (')[0].trim().toUpperCase();
+                    if (originalWord) reverseLemaMap[originalWord] = lemmaUpper;
+                });
+            }
+
             const lemmaKey = normalizeString(lemma);
             wordDataLookup[lemmaKey] = data;
             
@@ -396,7 +433,11 @@ async function processDataFromDB(planilhaNome) {
         const cityCounts = {};
         for (const row of storedData.slice(1)) {
             let pass = true;
-            const rowEvocs = evocCols.map(i => (row[i] || '').toString().trim().toUpperCase()).filter(w => w && w !== 'VAZIO');
+            const rowEvocs = evocCols.map(i => {
+                let w = (row[i] || '').toString().trim().toUpperCase();
+                if (reverseLemaMap[w]) w = reverseLemaMap[w];
+                return w;
+            }).filter(w => w && w !== 'VAZIO' && !deletedWords.has(w));
 
             // 1. Filtro de Evocações
             if (filtersState.evocations.isActive) {
@@ -564,6 +605,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if(e.target.checked) { if(!temp.includes(w)) temp.push(w); }
                     else { temp = temp.filter(x => x !== w); }
                     updateSelectedWordsPanelInModal(temp);
+                };
+                document.getElementById('clear-selected-btn').onclick = () => {
+                    temp = [];
+                    updateSelectedWordsPanelInModal(temp);
+                    renderWordListInModal(temp);
+                };
+                document.getElementById('selected-list').onclick = (e) => {
+                    if (e.target.classList.contains('remove-word-btn')) {
+                        const w = e.target.getAttribute('data-word');
+                        temp = temp.filter(x => x !== w);
+                        updateSelectedWordsPanelInModal(temp);
+                        renderWordListInModal(temp);
+                    }
                 };
             }
         });
